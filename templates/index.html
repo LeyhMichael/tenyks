@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quarterback Dashboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', Arial, sans-serif; background: #0f1117; color: #e0e0e0; min-height: 100vh; }
+
+        header {
+            background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%);
+            border-bottom: 1px solid #2a2f3e;
+            padding: 14px 28px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        header h1 { font-size: 17px; font-weight: 700; color: #fff; }
+        header .subtitle { font-size: 12px; color: #6b7280; margin-top: 2px; }
+        header a { color: #6b7280; font-size: 12px; text-decoration: none; padding: 6px 12px; border: 1px solid #2a2f3e; border-radius: 6px; transition: all 0.2s; }
+        header a:hover { color: #fff; border-color: #4b5563; }
+
+        .nav-tabs {
+            display: flex; gap: 0; padding: 0 28px;
+            background: #1a1f2e; border-bottom: 1px solid #2a2f3e;
+        }
+        .nav-tab {
+            padding: 12px 20px; font-size: 13px; font-weight: 600;
+            color: #6b7280; text-decoration: none; border-bottom: 2px solid transparent;
+            transition: all 0.2s; cursor: pointer;
+        }
+        .nav-tab:hover { color: #e0e0e0; }
+        .nav-tab.active { color: #60a5fa; border-bottom-color: #3b82f6; }
+
+        .stats-bar {
+            display: flex; gap: 16px; padding: 10px 28px;
+            background: #0f1117; border-bottom: 1px solid #2a2f3e;
+        }
+        .stat-chip { display: flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .stat-chip.urgent { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+        .stat-chip.active { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+        .stat-chip.team { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+        .stat-chip.blocked { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+        .stat-dot { width: 7px; height: 7px; border-radius: 50%; }
+        .dot-red { background: #f87171; } .dot-blue { background: #60a5fa; } .dot-green { background: #34d399; }
+
+        .container { display: flex; gap: 0; height: calc(100vh - 120px); }
+        .panel { overflow-y: auto; padding: 20px 24px; }
+        .requests-panel { flex: 3; border-right: 1px solid #2a2f3e; }
+        .capacity-panel { flex: 2; }
+        .full-panel { flex: 1; }
+
+        .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #2a2f3e; }
+        .panel-header h2 { font-size: 13px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; }
+        .panel-header .sublabel { font-size: 11px; color: #4b5563; }
+
+        .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; margin: 16px 0 10px; display: flex; align-items: center; gap: 8px; }
+        .section-label.unassigned { color: #f87171; }
+        .section-label.assigned { color: #6b7280; }
+        .section-label::after { content: ''; flex: 1; height: 1px; background: currentColor; opacity: 0.2; }
+
+        .request-card { background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 10px; padding: 14px 16px; margin-bottom: 8px; transition: all 0.2s; }
+        .request-card:hover { border-color: #3b82f6; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .request-card.unassigned-card { border-left: 3px solid #f87171; }
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+        .card-number { font-size: 11px; color: #4b5563; font-weight: 600; }
+        .card-desc { font-size: 13px; font-weight: 600; color: #e5e7eb; margin: 4px 0 6px; line-height: 1.4; }
+        .card-meta { font-size: 11px; color: #6b7280; margin-bottom: 10px; }
+        .card-meta span { margin-right: 12px; }
+        .badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+        .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .badge-new { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+        .badge-assigned { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+        .badge-wip { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+        .badge-unassigned { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+        .badge-person { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
+        .badge-blocked { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+
+        .assign-row { display: flex; gap: 8px; }
+        .assign-row select { flex: 1; padding: 7px 10px; background: #0f1117; border: 1px solid #2a2f3e; border-radius: 7px; font-size: 12px; color: #e0e0e0; cursor: pointer; }
+        .assign-row select:focus { outline: none; border-color: #3b82f6; }
+        .assign-row button { padding: 7px 16px; background: #3b82f6; color: white; border: none; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
+        .assign-row button:hover { background: #2563eb; }
+        .success-msg { color: #34d399; font-size: 11px; margin-top: 6px; display: none; font-weight: 600; }
+
+        /* Capacity cards */
+        .member-card { background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; transition: all 0.2s; }
+        .member-card:hover { border-color: #3b82f6; }
+        .member-card.blocked-card { border-left: 3px solid #f87171; opacity: 0.85; }
+        .member-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .member-name { font-size: 13px; font-weight: 600; color: #e5e7eb; }
+        .member-status { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+        .status-blocked { background: rgba(239,68,68,0.2); color: #f87171; }
+        .status-full { background: rgba(239,68,68,0.2); color: #f87171; }
+        .status-warn { background: rgba(251,191,36,0.2); color: #fbbf24; }
+        .status-ok { background: rgba(16,185,129,0.2); color: #34d399; }
+        .member-meta { font-size: 11px; color: #6b7280; margin-bottom: 10px; }
+        .week-bar-track { height: 6px; background: #2a2f3e; border-radius: 3px; overflow: hidden; margin-bottom: 4px; }
+        .week-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+        .fill-green { background: linear-gradient(90deg, #10b981, #34d399); }
+        .fill-yellow { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .fill-red { background: linear-gradient(90deg, #ef4444, #f87171); }
+        .week-bar-label { display: flex; justify-content: space-between; font-size: 10px; color: #4b5563; margin-bottom: 8px; }
+        .day-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+        .day-cell { display: flex; flex-direction: column; align-items: center; padding: 6px 4px; border-radius: 6px; border: 1px solid #2a2f3e; background: #0f1117; }
+        .day-cell.today { border-color: #3b82f6; background: rgba(59,130,246,0.08); }
+        .day-name { font-size: 10px; color: #6b7280; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+        .day-cell.today .day-name { color: #60a5fa; }
+        .day-count { font-size: 15px; font-weight: 700; }
+        .count-0 { color: #374151; } .count-low { color: #34d399; } .count-mid { color: #fbbf24; } .count-high { color: #f87171; }
+        .day-pill { font-size: 9px; color: #4b5563; margin-top: 2px; }
+        .spillover-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #a78bfa; margin-top: 6px; background: rgba(139,92,246,0.1); padding: 2px 8px; border-radius: 8px; border: 1px solid rgba(139,92,246,0.2); }
+
+        /* Staffing tab */
+        .staffing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+        .staffing-card { background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 10px; padding: 16px; transition: all 0.2s; }
+        .staffing-card:hover { border-color: #3b82f6; }
+        .staffing-card.is-blocked { border-left: 3px solid #f87171; }
+        .staffing-name { font-size: 13px; font-weight: 600; color: #e5e7eb; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .staffing-buttons { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 10px; }
+        .pct-btn {
+            padding: 8px 4px; border-radius: 6px; border: 1px solid #2a2f3e;
+            background: #0f1117; color: #6b7280; font-size: 12px; font-weight: 600;
+            cursor: pointer; text-align: center; transition: all 0.2s;
+        }
+        .pct-btn:hover { border-color: #3b82f6; color: #60a5fa; }
+        .pct-btn.selected-0 { background: rgba(16,185,129,0.2); color: #34d399; border-color: #10b981; }
+        .pct-btn.selected-25 { background: rgba(16,185,129,0.2); color: #34d399; border-color: #10b981; }
+        .pct-btn.selected-50 { background: rgba(239,68,68,0.2); color: #f87171; border-color: #ef4444; }
+        .pct-btn.selected-75 { background: rgba(239,68,68,0.2); color: #f87171; border-color: #ef4444; }
+        .pct-btn.selected-100 { background: rgba(239,68,68,0.2); color: #f87171; border-color: #ef4444; }
+        .staffing-bar-track { height: 4px; background: #2a2f3e; border-radius: 2px; overflow: hidden; }
+        .staffing-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s ease; }
+        .staffing-saved { font-size: 10px; color: #34d399; margin-top: 6px; display: none; }
+        .blocked-warning { font-size: 11px; color: #f87171; font-weight: 600; display: none; margin-top: 6px; }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: #4b5563; }
+        .empty-state .icon { font-size: 32px; margin-bottom: 10px; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #2a2f3e; border-radius: 3px; }
+
+        /* Toast */
+        .toast-notification {
+            position: fixed;
+            bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px);
+            background: #1a1f2e; border: 1px solid #3b82f6;
+            color: #e0e0e0; padding: 14px 22px; border-radius: 10px;
+            font-size: 13px; font-weight: 600;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            z-index: 9999; opacity: 0; pointer-events: none;
+            white-space: pre-wrap; max-width: 420px; text-align: center;
+        }
+        .toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast-warning { border-color: #f59e0b; color: #fbbf24; background: #1a1a0f; }
+        .toast-error   { border-color: #ef4444; color: #f87171; background: #1a0f0f; }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>🏈 Quarterback Dashboard</h1>
+            <div class="subtitle">Vantage Request Staffing</div>
+        </div>
+        <a href="/logout">Sign out</a>
+    </header>
+
+    <div class="nav-tabs">
+        <a href="/" class="nav-tab {% if tab == 'requests' %}active{% endif %}">📋 Requests</a>
+        <a href="/staffing-tab" class="nav-tab {% if tab == 'staffing' %}active{% endif %}">👥 Case Staffing</a>
+        <a href="/pto-tab" class="nav-tab {% if tab == 'pto' %}active{% endif %}">🏖️ PTO & Absences</a>
+        <a href="/backlog-tab" class="nav-tab {% if tab == 'backlog' %}active{% endif %}">📌 Backlog</a>
+        <button class="nav-tab" onclick="runAgent()" id="agentBtn" style="background:none;border:none;cursor:pointer;">🤖 Run Agent</button>
+    </div>
+
+    {% if tab == 'requests' %}
+    <div class="stats-bar">
+        <div class="stat-chip urgent"><div class="stat-dot dot-red"></div>{{ unassigned_count }} Unassigned</div>
+        <div class="stat-chip active"><div class="stat-dot dot-blue"></div>{{ requests|length }} Active</div>
+        <div class="stat-chip team"><div class="stat-dot dot-green"></div>{{ team|length }} Active This Week</div>
+        {% set blocked_count = team | selectattr("is_blocked") | list | length %}
+        {% if blocked_count > 0 %}
+        <div class="stat-chip blocked"><div class="stat-dot dot-red"></div>{{ blocked_count }} Blocked (Staffed)</div>
+        {% endif %}
+    </div>
+
+    <div class="container">
+        <!-- Requests panel -->
+        <div class="panel requests-panel">
+            <div class="panel-header"><h2>Requests</h2></div>
+
+            {% set unassigned = requests | selectattr("is_unassigned") | list %}
+            {% set assigned = requests | rejectattr("is_unassigned") | list %}
+
+            {% if unassigned %}
+            <div class="section-label unassigned">⚡ Needs Assignment ({{ unassigned|length }})</div>
+            {% for r in unassigned %}
+            <div class="request-card unassigned-card" id="card-{{ r.Number }}">
+                <div class="card-top">
+                    <span class="card-number">{{ r.Number }}</span>
+                    <span class="badge badge-new">{{ r.Status }}</span>
+                </div>
+                <div class="card-desc">{{ r['Short Description'] }}</div>
+                <div class="card-meta">
+                    <span>👤 {{ r.Requestor }}</span>
+                    {% if r['Created Date'] %}<span>📅 {{ r['Created Date'] }}</span>{% endif %}
+                    {% if r['Deadline'] %}<span>⏰ {{ r['Deadline'] }}</span>{% endif %}
+                </div>
+                <div class="badges"><span class="badge badge-unassigned">Unassigned</span></div>
+                <div class="assign-row">
+                    <select id="select-{{ r.Number }}">
+                        <option value="">— Assign to team member —</option>
+                        {% for name in team_names %}
+                        <option value="{{ name }}" {% if name in blocked_names %}disabled{% endif %}>
+                            {{ name }}{% if name in blocked_names %} {% set br = blocked_reasons.get(name, '') %}{% if br == 'pto' %}🏖️ (PTO){% elif br == 'training' %}📚 (Training){% elif br == 'event' %}🎉 (Event){% else %}🔴 (Staffed){% endif %}{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <button onclick="assign('{{ r.Number }}')">Assign →</button>
+                </div>
+                <div class="success-msg" id="msg-{{ r.Number }}">✓ Assigned!</div>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {% if assigned %}
+            <div class="section-label assigned">Already Assigned ({{ assigned|length }})</div>
+            {% for r in assigned %}
+            <div class="request-card" id="card-{{ r.Number }}">
+                <div class="card-top">
+                    <span class="card-number">{{ r.Number }}</span>
+                    <span class="badge {% if r.Status == 'Work in progress' %}badge-wip{% else %}badge-assigned{% endif %}">{{ r.Status }}</span>
+                </div>
+                <div class="card-desc">{{ r['Short Description'] }}</div>
+                <div class="card-meta">
+                    <span>👤 {{ r.Requestor }}</span>
+                    {% if r['Created Date'] %}<span>📅 {{ r['Created Date'] }}</span>{% endif %}
+                    {% if r['Deadline'] %}<span>⏰ {{ r['Deadline'] }}</span>{% endif %}
+                </div>
+                <div class="badges">
+                    <span class="badge badge-person">{{ r['Assigned to'] }}</span>
+                    {% if r['Assigned to'] in blocked_names %}{% set br = blocked_reasons.get(r['Assigned to'], '') %}<span class="badge badge-blocked">{% if br == 'pto' %}🏖️ PTO{% elif br == 'training' %}📚 Training{% elif br == 'event' %}🎉 Event{% else %}🔴 Staffed{% endif %}</span>{% endif %}
+                </div>
+                <div class="assign-row">
+                    <select id="select-{{ r.Number }}">
+                        <option value="">— Reassign —</option>
+                        {% for name in team_names %}
+                        <option value="{{ name }}" {% if r['Assigned to'] == name %}selected{% endif %} {% if name in blocked_names %}disabled{% endif %}>
+                            {{ name }}{% if name in blocked_names %} {% set br = blocked_reasons.get(name, '') %}{% if br == 'pto' %}🏖️ (PTO){% elif br == 'training' %}📚 (Training){% elif br == 'event' %}🎉 (Event){% else %}🔴 (Staffed){% endif %}{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <button onclick="assign('{{ r.Number }}')">Reassign →</button>
+                </div>
+                <div class="success-msg" id="msg-{{ r.Number }}">✓ Reassigned!</div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+
+        <!-- Capacity panel -->
+        <div class="panel capacity-panel">
+            <div class="panel-header">
+                <h2>Weekly Capacity</h2>
+                <span class="sublabel">Max {{ MAX_REQUESTS }} req/week</span>
+            </div>
+            {% if team %}
+            {% for m in team %}
+            <div class="member-card {% if m.is_blocked %}blocked-card{% endif %}">
+                <div class="member-top">
+                    <div class="member-name">{{ m.name }}</div>
+                    <span class="member-status status-{{ m.status }}">
+                        {% if m.status == 'blocked' %}
+                            {% if m.block_reason == 'pto' %}🏖️ PTO
+                            {% elif m.block_reason == 'training' %}📚 Training
+                            {% elif m.block_reason == 'event' %}🎉 Event
+                            {% else %}🔴 Staffed{% endif %}
+                        {% elif m.status == 'full' %}🔴 Full
+                        {% elif m.status == 'warn' %}🟡 Limited
+                        {% else %}🟢 Available{% endif %}
+                    </span>
+                </div>
+                <div class="member-meta">
+                    {% if m.is_blocked %}
+                        {% if m.block_reason == 'pto' %}🏖️ On PTO · Cannot take requests
+                        {% elif m.block_reason == 'training' %}📚 In training · Cannot take requests
+                        {% elif m.block_reason == 'event' %}🎉 At event · Cannot take requests
+                        {% else %}On case · Cannot take requests{% endif %}
+                    {% else %}
+                        {{ m.total }} / {{ MAX_REQUESTS }} requests · {{ m.effective_cap }} cap this week
+                    {% endif %}
+                    {% if m.spillover > 0 %}<span class="spillover-badge">↩ {{ m.spillover }} spillover</span>{% endif %}
+                </div>
+                {% if not m.is_blocked %}
+                <div class="week-bar-track">
+                    <div class="week-bar-fill fill-{% if m.status == 'full' %}red{% elif m.status == 'warn' %}yellow{% else %}green{% endif %}" style="width: {{ m.pct }}%"></div>
+                </div>
+                <div class="week-bar-label"><span>0</span><span>{{ MAX_REQUESTS }}</span></div>
+                <div class="day-grid">
+                    {% for day in week_labels %}
+                    {% set count = m.daily[day] %}
+                    <div class="day-cell {% if day == today_label %}today{% endif %}">
+                        <div class="day-name">{{ day }}</div>
+                        <div class="day-count {% if count == 0 %}count-0{% elif count <= 2 %}count-low{% elif count <= 4 %}count-mid{% else %}count-high{% endif %}">{{ count }}</div>
+                        <div class="day-pill">req</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="empty-state"><div class="icon">✅</div><p>No active assignments this week</p></div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% elif tab == 'staffing' %}
+    <div class="stats-bar">
+        {% set blocked_count = team | selectattr("is_blocked") | list | length %}
+        <div class="stat-chip team"><div class="stat-dot dot-green"></div>{{ team_names|length }} Team Members</div>
+        {% if blocked_count > 0 %}
+        <div class="stat-chip blocked"><div class="stat-dot dot-red"></div>{{ blocked_count }} Currently Blocked</div>
+        {% endif %}
+    </div>
+
+    <div class="container">
+        <div class="panel full-panel" style="flex:1; width:100%;">
+            <div class="panel-header">
+                <h2>Case Staffing</h2>
+                <span class="sublabel">Set staffing % · ≥50% blocks request assignment</span>
+            </div>
+            <div class="staffing-grid">
+                {% for name in team_names %}
+                {% set current_pct = staffing.get(name, 0) %}
+                <div class="staffing-card {% if current_pct >= 50 %}is-blocked{% endif %}" id="scard-{{ loop.index }}">
+                    <div class="staffing-name">
+                        {{ name }}
+                        <span class="member-status status-{% if current_pct >= 50 %}blocked{% else %}ok{% endif %}" id="slabel-{{ loop.index }}">
+                            {% if current_pct >= 50 %}🔴 Blocked{% else %}🟢 Free{% endif %}
+                        </span>
+                    </div>
+                    <div class="staffing-buttons">
+                        {% for pct in [0, 25, 50, 75, 100] %}
+                        <div class="pct-btn {% if current_pct == pct %}selected-{{ pct }}{% endif %}"
+                             id="btn-{{ loop.index0 }}-{{ loop.index }}"
+                             onclick="setStaffing('{{ name }}', {{ pct }}, {{ loop.index }})">
+                            {{ pct }}%
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="staffing-bar-track">
+                        <div class="staffing-bar-fill {% if current_pct >= 50 %}fill-red{% elif current_pct > 0 %}fill-yellow{% else %}fill-green{% endif %}"
+                             id="sbar-{{ loop.index }}" style="width: {{ current_pct }}%"></div>
+                    </div>
+                    <div class="staffing-saved" id="ssaved-{{ loop.index }}">✓ Saved</div>
+                    <div class="blocked-warning {% if current_pct >= 50 %}style="display:block"{% endif %}" id="swarn-{{ loop.index }}">
+                        ⛔ Blocked from new requests
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toastNotification');
+            const toastMsg = document.getElementById('toastMsg');
+            if (!toast) return;
+            toastMsg.textContent = msg;
+            toast.className = 'toast-notification show' + (type !== 'info' ? ' toast-' + type : '');
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => toast.classList.remove('show'), 5000);
+        }
+
+        function assign(number) {
+            const select = document.getElementById("select-" + number);
+            const assignee = select.value;
+            if (!assignee) return alert("Please select a team member first");
+            fetch("/assign", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({number: number, assignee: assignee})
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    const msg = document.getElementById("msg-" + number);
+                    msg.style.display = "block";
+                    setTimeout(() => window.location.reload(), 1200);
+                } else if (data.error) {
+                    showToast("⛔ " + data.error, 'error');
+                }
+            }).catch(err => {
+                showToast('Assignment failed: ' + err.message, 'error');
+            });
+        }
+
+        function setStaffing(name, pct, idx) {
+            // Update button styles
+            [0, 25, 50, 75, 100].forEach((p, i) => {
+                const btn = document.getElementById("btn-" + i + "-" + idx);
+                if (btn) btn.className = "pct-btn" + (p === pct ? " selected-" + p : "");
+            });
+
+            // Update bar
+            const bar = document.getElementById("sbar-" + idx);
+            if (bar) {
+                bar.style.width = pct + "%";
+                bar.className = "staffing-bar-fill " + (pct >= 50 ? "fill-red" : pct > 0 ? "fill-yellow" : "fill-green");
+            }
+
+            fetch("/update-staffing", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({name: name, pct: pct})
+            }).then(r => r.json()).then(data => {
+                const saved = document.getElementById("ssaved-" + idx);
+                const warn = document.getElementById("swarn-" + idx);
+                const label = document.getElementById("slabel-" + idx);
+                const card = document.getElementById("scard-" + idx);
+                if (saved) { saved.style.display = "block"; setTimeout(() => saved.style.display = "none", 2000); }
+                if (warn) warn.style.display = data.is_blocked ? "block" : "none";
+                if (label) {
+                    label.className = "member-status " + (data.is_blocked ? "status-blocked" : "status-ok");
+                    label.textContent = data.is_blocked ? "🔴 Blocked" : "🟢 Free";
+                }
+                if (card) {
+                    if (data.is_blocked) card.classList.add("is-blocked");
+                    else card.classList.remove("is-blocked");
+                }
+            });
+        }
+        // ── Agent ──────────────────────────────────────────────────────────
+        const FLAGS = {
+            DEU:'🇩🇪', GBR:'🇬🇧', CHE:'🇨🇭', FRA:'🇫🇷', USA:'🇺🇸',
+            NOR:'🇳🇴', SGP:'🇸🇬', AUT:'🇦🇹', AUS:'🇦🇺', IND:'🇮🇳',
+            NLD:'🇳🇱', BEL:'🇧🇪', SWE:'🇸🇪', DNK:'🇩🇰', ESP:'🇪🇸'
+        };
+
+        function getFlag(code) { return FLAGS[code] || '🌍'; }
+
+        function getCapColor(remaining, max) {
+            const used = max - remaining;
+            const pct = (used / max) * 100;
+            if (pct >= 100) return '#ef4444';
+            if (pct >= 60) return '#f59e0b';
+            return '#10b981';
+        }
+
+        function updatePendingCount() {
+            const recs = window._agentRecs || [];
+            const pending = recs.filter(r => r._status === 'pending').length;
+            const applied = recs.filter(r => r._status === 'applied').length;
+            const countEl = document.getElementById('agentPendingCount');
+            const applyAllBtn = document.getElementById('applyAllBtn');
+            if (countEl) countEl.textContent = `${applied} applied · ${pending} pending`;
+            if (applyAllBtn) applyAllBtn.disabled = pending === 0;
+        }
+
+        function applySingle(i) {
+            const rec = window._agentRecs[i];
+            if (!rec || rec._status !== 'pending') return;
+            const applyBtn = document.querySelector(`#rec-card-${i} .rec-apply-btn`);
+            const skipBtn = document.querySelector(`#rec-card-${i} .rec-skip-btn`);
+            if (applyBtn) { applyBtn.disabled = true; applyBtn.textContent = '…'; }
+
+            fetch("/assign", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({number: rec.number, assignee: rec.assignee})
+            }).then(r => r.json()).then(data => {
+                rec._status = 'applied';
+                const card = document.getElementById(`rec-card-${i}`);
+                if (card) {
+                    card.classList.remove('rec-skipped');
+                    card.classList.add('rec-applied');
+                }
+                const badge = document.getElementById(`rec-badge-${i}`);
+                if (badge) { badge.textContent = '✅ Applied'; badge.className = 'rec-status-badge badge-applied'; }
+                if (applyBtn) { applyBtn.textContent = '✓ Applied'; applyBtn.style.background = 'rgba(16,185,129,0.15)'; applyBtn.style.borderColor = 'rgba(16,185,129,0.4)'; applyBtn.style.color = '#34d399'; }
+                if (skipBtn) skipBtn.disabled = true;
+                updatePendingCount();
+            });
+        }
+
+        function skipSingle(i) {
+            const rec = window._agentRecs[i];
+            if (!rec || rec._status !== 'pending') return;
+            rec._status = 'skipped';
+            const card = document.getElementById(`rec-card-${i}`);
+            if (card) card.classList.add('rec-skipped');
+            const badge = document.getElementById(`rec-badge-${i}`);
+            if (badge) { badge.textContent = 'Skipped'; badge.className = 'rec-status-badge badge-skipped'; }
+            document.querySelector(`#rec-card-${i} .rec-apply-btn`).disabled = true;
+            document.querySelector(`#rec-card-${i} .rec-skip-btn`).disabled = true;
+            updatePendingCount();
+        }
+
+        function runAgent() {
+            const btn = document.getElementById("agentBtn");
+            btn.textContent = "⏳ Running…";
+            btn.disabled = true;
+
+            document.getElementById("agentOverlay").style.display = "flex";
+            document.getElementById("agentLoading").style.display = "flex";
+            document.getElementById("agentResults").style.display = "none";
+            document.getElementById("agentSummaryHeader").textContent = "Claude is analysing your team…";
+
+            fetch("/run-agent", { method: "POST" })
+                .then(r => r.json())
+                .then(data => {
+                    btn.textContent = "🤖 Run Agent";
+                    btn.disabled = false;
+                    document.getElementById("agentLoading").style.display = "none";
+                    document.getElementById("agentResults").style.display = "block";
+
+                    if (data.error) {
+                        document.getElementById("agentRecs").innerHTML =
+                            `<div style="color:#f87171;padding:20px;text-align:center;">⚠️ ${data.error}</div>`;
+                        document.getElementById("agentResults").style.display = "block";
+                        return;
+                    }
+
+                    const recs = data.recommendations || [];
+                    recs.forEach(r => r._status = 'pending');
+                    window._agentRecs = recs;
+
+                    // Summary bar
+                    document.getElementById("agentSummaryHeader").textContent = data.summary || "";
+                    document.getElementById("agentSummaryBar").innerHTML =
+                        `<span>📊</span> ${data.summary || "Agent complete"}`;
+
+                    // Build cards
+                    const MAX = 14;
+                    let html = "";
+                    if (recs.length === 0) {
+                        html = `<div style="color:#6b7280;text-align:center;padding:40px;">
+                            <div style="font-size:32px;margin-bottom:12px;">✅</div>
+                            <div>All requests are already assigned — nothing to do!</div>
+                        </div>`;
+                    } else {
+                        recs.forEach((r, i) => {
+                            const reqCountry = r.country || '';
+                            const assigneeCountry = r.assignee_country || '';
+                            const isExactMatch = reqCountry && assigneeCountry && reqCountry === assigneeCountry;
+                            const desc = r.short_description || r.number;
+                            const remaining = parseInt((r.reason || '').match(/(\d+)\s*(?:slot|remaining)/)?.[1]) || '?';
+                            const capPct = remaining === '?' ? 50 : Math.round(((MAX - remaining) / MAX) * 100);
+                            const capColor = remaining === '?' ? '#f59e0b' : getCapColor(remaining, MAX);
+
+                            html += `
+                            <div class="agent-rec-card" id="rec-card-${i}">
+                                <div class="rec-card-header">
+                                    <span class="rec-number-tag">${r.number}</span>
+                                    <span class="rec-status-badge badge-pending" id="rec-badge-${i}">Pending</span>
+                                </div>
+                                <div class="rec-description">${desc}</div>
+                                <div class="rec-match-flow">
+                                    <div class="match-origin">
+                                        <div class="match-flag">${getFlag(reqCountry)}</div>
+                                        <div class="match-country-code">${reqCountry || '—'}</div>
+                                    </div>
+                                    <div class="match-arrow-zone">
+                                        <div class="match-arrow-line"></div>
+                                        <span class="match-label-tag ${isExactMatch ? 'match-exact' : 'match-fallback'}">
+                                            ${isExactMatch ? '🎯 Country Match' : '⚡ Best Available'}
+                                        </span>
+                                    </div>
+                                    <div class="match-dest">
+                                        <div class="match-dest-name">${getFlag(assigneeCountry)} ${r.assignee}</div>
+                                        <div class="match-dest-cap">
+                                            <div class="cap-bar-mini">
+                                                <div class="cap-bar-fill" style="width:${capPct}%;background:${capColor}"></div>
+                                            </div>
+                                            <span class="cap-text">${remaining} free</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rec-reason">${r.reason}</div>
+                                <div class="rec-card-actions">
+                                    <button class="rec-apply-btn" onclick="applySingle(${i})">Apply →</button>
+                                    <button class="rec-skip-btn" onclick="skipSingle(${i})">Skip</button>
+                                </div>
+                            </div>`;
+                        });
+                    }
+                    document.getElementById("agentRecs").innerHTML = html;
+                    updatePendingCount();
+                })
+                .catch(err => {
+                    btn.textContent = "🤖 Run Agent";
+                    btn.disabled = false;
+                    document.getElementById("agentLoading").style.display = "none";
+                    document.getElementById("agentRecs").innerHTML =
+                        `<div style="color:#f87171;padding:20px;text-align:center;">⚠️ Network error: ${err.message}</div>`;
+                    document.getElementById("agentResults").style.display = "block";
+                });
+        }
+
+        function applyRecommendations() {
+            const pending = (window._agentRecs || []).filter(r => r._status === 'pending');
+            if (pending.length === 0) return;
+
+            const btn = document.getElementById('applyAllBtn');
+            if (btn) { btn.disabled = true; btn.textContent = '⏳ Applying…'; }
+
+            // Single batch call — read once, update all, write once (no race condition)
+            fetch('/apply-recommendations', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({recommendations: pending})
+            }).then(r => r.json()).then(data => {
+                if (data.errors && data.errors.length > 0) {
+                    console.error('Apply errors:', data.errors);
+                }
+                // Update all card UIs
+                pending.forEach(r => {
+                    const i = window._agentRecs.indexOf(r);
+                    r._status = 'applied';
+                    const card = document.getElementById(`rec-card-${i}`);
+                    if (card) { card.classList.remove('rec-skipped'); card.classList.add('rec-applied'); }
+                    const badge = document.getElementById(`rec-badge-${i}`);
+                    if (badge) { badge.textContent = '✅ Applied'; badge.className = 'rec-status-badge badge-applied'; }
+                    const applyBtn = document.querySelector(`#rec-card-${i} .rec-apply-btn`);
+                    const skipBtn = document.querySelector(`#rec-card-${i} .rec-skip-btn`);
+                    if (applyBtn) { applyBtn.textContent = '✓ Applied'; applyBtn.style.background = 'rgba(16,185,129,0.15)'; applyBtn.style.borderColor = 'rgba(16,185,129,0.4)'; applyBtn.style.color = '#34d399'; }
+                    if (skipBtn) skipBtn.disabled = true;
+                });
+                updatePendingCount();
+                // Reload after a short delay so user sees the green confirmation
+                setTimeout(() => { closeAgent(); window.location.reload(); }, 1000);
+            }).catch(err => {
+                if (btn) { btn.disabled = false; btn.textContent = '✅ Apply All'; }
+                alert('Error applying assignments: ' + err.message);
+            });
+        }
+
+        function closeAgent() {
+            document.getElementById("agentOverlay").style.display = "none";
+        }
+    </script>
+
+    <!-- Agent overlay -->
+    <div id="agentOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);z-index:200;align-items:flex-start;justify-content:center;padding-top:40px;overflow-y:auto;">
+        <div class="agent-modal">
+            <!-- Modal header -->
+            <div class="agent-modal-header">
+                <div>
+                    <div class="agent-modal-title">🤖 AI Assignment Engine</div>
+                    <div class="agent-modal-subtitle" id="agentSummaryHeader">Analysing your team's capacity…</div>
+                </div>
+                <button onclick="closeAgent()" class="agent-close-btn">✕</button>
+            </div>
+
+            <!-- Loading state -->
+            <div id="agentLoading" class="agent-loading">
+                <div class="agent-loading-icon">
+                    <div class="pulse-ring"></div>
+                    <span>🤖</span>
+                </div>
+                <div class="agent-loading-text">Claude is reviewing requests and capacity…</div>
+                <div class="agent-loading-dots"><span></span><span></span><span></span></div>
+            </div>
+
+            <!-- Results -->
+            <div id="agentResults" style="display:none;">
+                <!-- Summary bar -->
+                <div class="agent-summary-bar" id="agentSummaryBar"></div>
+
+                <!-- Recommendation cards -->
+                <div id="agentRecs"></div>
+
+                <!-- Footer actions -->
+                <div class="agent-footer">
+                    <div class="agent-footer-count" id="agentPendingCount"></div>
+                    <div style="display:flex;gap:10px;">
+                        <button onclick="applyRecommendations()" class="agent-apply-all-btn" id="applyAllBtn">
+                            ✅ Apply All
+                        </button>
+                        <button onclick="closeAgent()" class="agent-cancel-btn">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* ── Agent modal ───────────────────────────────────────────────── */
+        .agent-modal {
+            background: #1a1f2e;
+            border: 1px solid rgba(59,130,246,0.4);
+            border-radius: 16px;
+            width: 680px;
+            max-width: calc(100vw - 40px);
+            box-shadow: 0 24px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(59,130,246,0.1);
+            margin-bottom: 40px;
+        }
+        .agent-modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 22px 24px 18px;
+            border-bottom: 1px solid #2a2f3e;
+        }
+        .agent-modal-title { font-size: 17px; font-weight: 700; color: #fff; }
+        .agent-modal-subtitle { font-size: 12px; color: #6b7280; margin-top: 3px; }
+        .agent-close-btn {
+            background: none; border: none; color: #6b7280; font-size: 18px;
+            cursor: pointer; padding: 4px 8px; border-radius: 6px;
+            transition: all 0.15s;
+        }
+        .agent-close-btn:hover { background: #2a2f3e; color: #e0e0e0; }
+
+        /* Loading */
+        .agent-loading {
+            text-align: center; padding: 50px 24px;
+            display: flex; flex-direction: column; align-items: center; gap: 16px;
+        }
+        .agent-loading-icon {
+            position: relative; width: 60px; height: 60px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px;
+        }
+        .pulse-ring {
+            position: absolute; inset: 0; border-radius: 50%;
+            border: 2px solid #3b82f6;
+            animation: pulseRing 1.5s ease-out infinite;
+        }
+        @keyframes pulseRing {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        .agent-loading-text { font-size: 14px; color: #9ca3af; }
+        .agent-loading-dots { display: flex; gap: 6px; }
+        .agent-loading-dots span {
+            width: 8px; height: 8px; border-radius: 50%; background: #3b82f6;
+            animation: dotPulse 1.4s ease-in-out infinite;
+        }
+        .agent-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .agent-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dotPulse {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Summary bar */
+        .agent-summary-bar {
+            margin: 0 24px 16px;
+            padding: 10px 16px;
+            background: rgba(59,130,246,0.08);
+            border: 1px solid rgba(59,130,246,0.2);
+            border-radius: 10px;
+            font-size: 13px; color: #9ca3af;
+            display: flex; align-items: center; gap: 8px;
+            margin-top: 16px;
+        }
+
+        /* Rec cards */
+        #agentRecs { padding: 0 24px; display: flex; flex-direction: column; gap: 10px; }
+
+        .agent-rec-card {
+            background: #0f1117;
+            border: 1px solid #2a2f3e;
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .agent-rec-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: #3b82f6;
+            border-radius: 12px 0 0 12px;
+        }
+        .agent-rec-card.rec-applied::before { background: #10b981; }
+        .agent-rec-card.rec-skipped { opacity: 0.4; }
+        .agent-rec-card.rec-skipped::before { background: #4b5563; }
+
+        .rec-card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px;
+        }
+        .rec-number-tag {
+            font-size: 11px; font-weight: 700; color: #60a5fa;
+            background: rgba(59,130,246,0.12);
+            padding: 3px 8px; border-radius: 6px;
+            letter-spacing: 0.5px;
+        }
+        .rec-status-badge {
+            font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 12px;
+        }
+        .badge-pending { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+        .badge-applied { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+        .badge-skipped { background: rgba(107,114,128,0.15); color: #6b7280; border: 1px solid rgba(107,114,128,0.3); }
+
+        .rec-description {
+            font-size: 13px; font-weight: 500; color: #d1d5db;
+            margin-bottom: 12px; line-height: 1.4;
+        }
+
+        /* Match flow */
+        .rec-match-flow {
+            display: flex; align-items: center; gap: 0;
+            background: rgba(59,130,246,0.05);
+            border: 1px solid rgba(59,130,246,0.15);
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 10px;
+        }
+        .match-origin {
+            display: flex; flex-direction: column; align-items: center;
+            min-width: 80px;
+        }
+        .match-flag { font-size: 22px; margin-bottom: 3px; line-height: 1; }
+        .match-country-code {
+            font-size: 10px; font-weight: 700; color: #9ca3af;
+            letter-spacing: 1px;
+        }
+        .match-arrow-zone {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; padding: 0 12px;
+        }
+        .match-arrow-line {
+            height: 2px; width: 100%;
+            background: linear-gradient(90deg, rgba(59,130,246,0.3), #3b82f6, rgba(59,130,246,0.3));
+            position: relative; margin-bottom: 4px;
+        }
+        .match-arrow-line::after {
+            content: '▶'; position: absolute; right: -4px; top: -7px;
+            font-size: 10px; color: #3b82f6;
+        }
+        .match-label-tag {
+            font-size: 10px; font-weight: 600;
+            padding: 2px 8px; border-radius: 8px;
+        }
+        .match-exact { background: rgba(16,185,129,0.15); color: #34d399; }
+        .match-fallback { background: rgba(251,191,36,0.15); color: #fbbf24; }
+        .match-dest {
+            display: flex; flex-direction: column; align-items: flex-end;
+            min-width: 140px;
+        }
+        .match-dest-name {
+            font-size: 13px; font-weight: 700; color: #e5e7eb;
+            margin-bottom: 4px; text-align: right;
+        }
+        .match-dest-cap {
+            display: flex; align-items: center; gap: 6px;
+        }
+        .cap-bar-mini {
+            width: 48px; height: 4px; background: #2a2f3e; border-radius: 2px; overflow: hidden;
+        }
+        .cap-bar-fill { height: 100%; border-radius: 2px; }
+        .cap-text { font-size: 10px; color: #6b7280; }
+
+        .rec-reason {
+            font-size: 11px; color: #6b7280; font-style: italic;
+            padding: 0 2px; margin-bottom: 12px;
+        }
+        .rec-reason::before { content: '💡 '; }
+
+        .rec-card-actions { display: flex; gap: 8px; }
+        .rec-apply-btn {
+            padding: 7px 16px; background: rgba(59,130,246,0.15);
+            border: 1px solid rgba(59,130,246,0.4);
+            color: #60a5fa; border-radius: 7px; font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .rec-apply-btn:hover { background: rgba(59,130,246,0.3); }
+        .rec-apply-btn:disabled { opacity: 0.4; cursor: default; }
+        .rec-skip-btn {
+            padding: 7px 12px; background: transparent;
+            border: 1px solid #2a2f3e;
+            color: #4b5563; border-radius: 7px; font-size: 12px;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .rec-skip-btn:hover { color: #9ca3af; border-color: #4b5563; }
+        .rec-skip-btn:disabled { opacity: 0.4; cursor: default; }
+
+        /* Footer */
+        .agent-footer {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 24px;
+            border-top: 1px solid #2a2f3e;
+            margin-top: 16px;
+        }
+        .agent-footer-count { font-size: 12px; color: #6b7280; }
+        .agent-apply-all-btn {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white; border: none; border-radius: 8px;
+            font-size: 13px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+        }
+        .agent-apply-all-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,130,246,0.4); }
+        .agent-apply-all-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+        .agent-cancel-btn {
+            padding: 10px 20px; background: #2a2f3e;
+            color: #9ca3af; border: none; border-radius: 8px;
+            font-size: 13px; cursor: pointer; transition: all 0.2s;
+        }
+        .agent-cancel-btn:hover { background: #374151; color: #e0e0e0; }
+
+        #agentBtn { color: #a78bfa; }
+        #agentBtn:hover { color: #c4b5fd; }
+        #agentBtn:disabled { color: #4b5563; cursor: not-allowed; }
+    </style>
+
+    <div id="toastNotification" class="toast-notification"><span id="toastMsg"></span></div>
+</body>
+</html>

@@ -1,2 +1,13 @@
 venv/
 .env
+__pycache__/
+*.pyc
+*.pkl
+x_tbng3_vantage_activities.xlsx
+staffing_data.xlsx
+team_members.xlsx
+DE_AT_Companies_BFF_2025.xlsx
+Topic_Activation_Backlog_1779918640.xlsx
+TDA Request Volume Trends.html
+TDA Request Volume Trends_files/
+snow_test.py

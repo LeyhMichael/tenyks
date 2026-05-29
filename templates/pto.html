@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PTO & Absences</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', Arial, sans-serif; background: #0f1117; color: #e0e0e0; min-height: 100vh; }
+
+        header {
+            background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%);
+            border-bottom: 1px solid #2a2f3e;
+            padding: 14px 28px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        header h1 { font-size: 17px; font-weight: 700; color: #fff; }
+        header .subtitle { font-size: 12px; color: #6b7280; margin-top: 2px; }
+        header a { color: #6b7280; font-size: 12px; text-decoration: none; padding: 6px 12px; border: 1px solid #2a2f3e; border-radius: 6px; transition: all 0.2s; }
+        header a:hover { color: #fff; border-color: #4b5563; }
+
+        .nav-tabs { display: flex; padding: 0 28px; background: #1a1f2e; border-bottom: 1px solid #2a2f3e; }
+        .nav-tab { padding: 12px 20px; font-size: 13px; font-weight: 600; color: #6b7280; text-decoration: none; border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .nav-tab:hover { color: #e0e0e0; }
+        .nav-tab.active { color: #60a5fa; border-bottom-color: #3b82f6; }
+
+        .calendar-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 28px; background: #1a1f2e; border-bottom: 1px solid #2a2f3e;
+        }
+        .month-nav { display: flex; align-items: center; gap: 16px; }
+        .month-nav button {
+            background: #2a2f3e; border: 1px solid #374151; color: #e0e0e0;
+            padding: 7px 14px; border-radius: 7px; cursor: pointer; font-size: 14px;
+            transition: all 0.2s;
+        }
+        .month-nav button:hover { background: #374151; }
+        .month-title { font-size: 17px; font-weight: 700; color: #fff; min-width: 160px; text-align: center; }
+
+        .legend { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #6b7280; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+        .leg-empty   { background: #1a1f2e; border: 1px solid #2a2f3e; }
+        .leg-pto     { background: rgba(239,68,68,0.25); border: 1px solid #b91c1c; }
+        .leg-training{ background: rgba(59,130,246,0.25); border: 1px solid #1d4ed8; }
+        .leg-event   { background: rgba(139,92,246,0.25); border: 1px solid #6d28d9; }
+
+        .calendar-wrap { overflow: auto; height: calc(100vh - 160px); position: relative; }
+
+        table { border-collapse: collapse; min-width: 100%; }
+
+        thead th {
+            position: sticky; top: 0; z-index: 10;
+            background: #1a1f2e; border-bottom: 2px solid #2a2f3e;
+            padding: 10px 6px; font-size: 11px; font-weight: 600;
+            color: #9ca3af; text-align: center; white-space: nowrap;
+        }
+        thead th.name-col { left: 0; z-index: 20; background: #1a1f2e; min-width: 160px; text-align: left; padding-left: 16px; }
+        thead th.today-col { color: #60a5fa; }
+
+        tbody td.name-col {
+            position: sticky; left: 0; z-index: 5;
+            background: #0f1117; border-right: 1px solid #2a2f3e;
+            padding: 0 12px 0 16px; font-size: 12px; font-weight: 600;
+            color: #e5e7eb; white-space: nowrap; min-width: 160px;
+        }
+
+        tbody tr { border-bottom: 1px solid #1e2330; }
+        tbody tr:hover td.name-col { background: #141820; }
+        tbody tr:hover .day-cell { background: #181d2a; }
+
+        .day-cell {
+            width: 52px; min-width: 52px; height: 52px;
+            text-align: center; vertical-align: middle;
+            border-right: 1px solid #1e2330;
+            cursor: pointer; transition: all 0.15s;
+            position: relative;
+        }
+        .day-cell:hover { border: 1px solid #3b82f6 !important; z-index: 2; }
+        .day-cell.weekend { background: #0d1015; cursor: default; }
+        .day-cell.weekend:hover { border: 1px solid #1e2330 !important; }
+        .day-cell.today-col { border-right: 1px solid #2a3f5e; }
+
+        .cell-inner {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; width: 100%; padding: 2px;
+        }
+        .cell-emoji { font-size: 18px; line-height: 1; }
+        .cell-label { font-size: 8px; margin-top: 2px; font-weight: 700; letter-spacing: 0.5px; opacity: 0.85; }
+
+        /* Absence type colours */
+        .abs-pto      { background: rgba(239,68,68,0.18); }
+        .abs-pto      .cell-label { color: #f87171; }
+        .abs-training { background: rgba(59,130,246,0.18); }
+        .abs-training .cell-label { color: #60a5fa; }
+        .abs-event    { background: rgba(139,92,246,0.18); }
+        .abs-event    .cell-label { color: #a78bfa; }
+
+        /* Popup */
+        .popup {
+            display: none; position: fixed; z-index: 100;
+            background: #1a1f2e; border: 1px solid #3b82f6;
+            border-radius: 12px; padding: 14px 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            min-width: 220px;
+        }
+        .popup.show { display: block; }
+        .popup-name { font-size: 12px; font-weight: 700; color: #60a5fa; margin-bottom: 2px; }
+        .popup-date { font-size: 11px; color: #6b7280; margin-bottom: 12px; }
+        .popup-options { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .popup-btn {
+            padding: 9px 8px; border-radius: 8px; border: 1px solid #2a2f3e;
+            background: #0f1117; color: #9ca3af; font-size: 12px; font-weight: 600;
+            cursor: pointer; text-align: center; transition: all 0.15s;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .popup-btn:hover { border-color: #3b82f6; color: #e0e0e0; }
+        .popup-btn.active { border-color: currentColor; }
+        .popup-btn.btn-clear  { color: #6b7280; grid-column: 1 / -1; }
+        .popup-btn.btn-clear:hover { color: #9ca3af; border-color: #4b5563; }
+        .popup-btn.btn-clear.active  { background: rgba(55,65,81,0.3); border-color: #4b5563; color: #9ca3af; }
+        .popup-btn.btn-pto    { }
+        .popup-btn.btn-pto.active    { background: rgba(239,68,68,0.2); border-color: #ef4444; color: #f87171; }
+        .popup-btn.btn-training { }
+        .popup-btn.btn-training.active { background: rgba(59,130,246,0.2); border-color: #3b82f6; color: #60a5fa; }
+        .popup-btn.btn-event  { }
+        .popup-btn.btn-event.active   { background: rgba(139,92,246,0.2); border-color: #8b5cf6; color: #a78bfa; }
+        .popup-close { margin-top: 10px; text-align: center; font-size: 11px; color: #4b5563; cursor: pointer; }
+        .popup-close:hover { color: #9ca3af; }
+
+        /* Toast */
+        .toast-notification {
+            position: fixed; bottom: 28px; left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #1a1f2e; border: 1px solid #3b82f6;
+            color: #e0e0e0; padding: 14px 22px; border-radius: 10px;
+            font-size: 13px; font-weight: 600;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            z-index: 9999; opacity: 0; pointer-events: none;
+        }
+        .toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast-warning { border-color: #f59e0b; color: #fbbf24; background: #1a1a0f; }
+        .toast-error   { border-color: #ef4444; color: #f87171; background: #1a0f0f; }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #2a2f3e; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>🏈 Quarterback Dashboard</h1>
+            <div class="subtitle">Vantage Request Staffing</div>
+        </div>
+        <a href="/logout">Sign out</a>
+    </header>
+
+    <div class="nav-tabs">
+        <a href="/" class="nav-tab">📋 Requests</a>
+        <a href="/staffing-tab" class="nav-tab">👥 Case Staffing</a>
+        <a href="/pto-tab" class="nav-tab active">🏖️ PTO & Absences</a>
+        <a href="/backlog-tab" class="nav-tab">📌 Backlog</a>
+    </div>
+
+    <div class="calendar-header">
+        <div class="month-nav">
+            <button onclick="changeMonth(-1)">← Prev</button>
+            <div class="month-title" id="monthTitle"></div>
+            <button onclick="changeMonth(1)">Next →</button>
+        </div>
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot leg-empty"></div>No absence</div>
+            <div class="legend-item"><div class="legend-dot leg-pto"></div>🏖️ PTO</div>
+            <div class="legend-item"><div class="legend-dot leg-training"></div>📚 Training</div>
+            <div class="legend-item"><div class="legend-dot leg-event"></div>🎉 Event</div>
+            <div class="legend-item" style="color:#4b5563;font-size:11px;">· All types block request assignment</div>
+        </div>
+    </div>
+
+    <div class="calendar-wrap">
+        <table id="calTable">
+            <thead id="calHead"></thead>
+            <tbody id="calBody"></tbody>
+        </table>
+    </div>
+
+    <!-- Popup -->
+    <div class="popup" id="popup">
+        <div class="popup-name" id="popupName"></div>
+        <div class="popup-date" id="popupDate"></div>
+        <div class="popup-options" id="popupOptions"></div>
+        <div class="popup-close" onclick="closePopup()">✕ Close</div>
+    </div>
+
+    <script>
+        const teamNames = {{ team_names | tojson }};
+        const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+        const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+        const TYPES = {
+            "":         { emoji: "",    label: "",        cls: "",            btnCls: "btn-clear",    btnText: "✕ Clear" },
+            "PTO":      { emoji: "🏖️",  label: "PTO",     cls: "abs-pto",     btnCls: "btn-pto",      btnText: "🏖️ PTO" },
+            "Training": { emoji: "📚",  label: "TRAINING",cls: "abs-training",btnCls: "btn-training", btnText: "📚 Training" },
+            "Event":    { emoji: "🎉",  label: "EVENT",   cls: "abs-event",   btnCls: "btn-event",    btnText: "🎉 Event" }
+        };
+
+        let currentDate = new Date();
+        let currentMonth = currentDate.getMonth();
+        let currentYear = currentDate.getFullYear();
+        let ptoCache = {};   // ptoCache[name][dateStr] = "PTO"|"Training"|"Event"|undefined
+        let activeCell = null;
+
+        function changeMonth(dir) {
+            currentMonth += dir;
+            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+            if (currentMonth < 0)  { currentMonth = 11; currentYear--; }
+            loadAndRender();
+        }
+
+        function monthKey() {
+            return currentYear + "-" + String(currentMonth + 1).padStart(2, "0");
+        }
+
+        function getDaysInMonth(year, month) {
+            const days = [];
+            const d = new Date(year, month, 1);
+            while (d.getMonth() === month) { days.push(new Date(d)); d.setDate(d.getDate() + 1); }
+            return days;
+        }
+
+        function dateStr(d) {
+            return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+        }
+
+        function isToday(d) {
+            const t = new Date();
+            return d.getDate() === t.getDate() && d.getMonth() === t.getMonth() && d.getFullYear() === t.getFullYear();
+        }
+
+        function isWeekend(d) { return d.getDay() === 0 || d.getDay() === 6; }
+
+        function getType(name, ds) {
+            return (ptoCache[name] && ptoCache[name][ds]) || "";
+        }
+
+        function cellHtml(type) {
+            const t = TYPES[type] || TYPES[""];
+            if (!type) return `<div class="cell-inner"><div style="color:#374151;font-size:11px;">—</div></div>`;
+            return `<div class="cell-inner"><div class="cell-emoji">${t.emoji}</div><div class="cell-label">${t.label}</div></div>`;
+        }
+
+        function renderCalendar() {
+            const days = getDaysInMonth(currentYear, currentMonth);
+            document.getElementById("monthTitle").textContent = MONTHS[currentMonth] + " " + currentYear;
+
+            // Header
+            let headHtml = "<tr><th class='name-col'>Team Member</th>";
+            days.forEach(d => {
+                const today = isToday(d);
+                const weekend = isWeekend(d);
+                const dayName = DAYS[d.getDay() === 0 ? 6 : d.getDay() - 1];
+                headHtml += `<th class="${today ? 'today-col' : ''} ${weekend ? 'weekend' : ''}" style="${weekend ? 'opacity:0.4' : ''}">
+                    <div>${dayName}</div>
+                    <div style="font-size:13px;color:${today?'#60a5fa':'#e5e7eb'};font-weight:700">${d.getDate()}</div>
+                </th>`;
+            });
+            headHtml += "</tr>";
+            document.getElementById("calHead").innerHTML = headHtml;
+
+            // Body
+            let bodyHtml = "";
+            teamNames.forEach(name => {
+                bodyHtml += `<tr><td class="name-col">${name}</td>`;
+                days.forEach(d => {
+                    const ds = dateStr(d);
+                    const weekend = isWeekend(d);
+                    const today = isToday(d);
+                    const type = getType(name, ds);
+                    const absCls = type ? TYPES[type].cls : "";
+                    if (weekend) {
+                        bodyHtml += `<td class="day-cell weekend"></td>`;
+                    } else {
+                        bodyHtml += `<td class="day-cell ${absCls} ${today ? 'today-col' : ''}"
+                            onclick="openPopup(event,'${name}','${ds}','${type}')"
+                            id="cell-${name.replace(/ /g,'_')}-${ds}">
+                            ${cellHtml(type)}
+                        </td>`;
+                    }
+                });
+                bodyHtml += "</tr>";
+            });
+            document.getElementById("calBody").innerHTML = bodyHtml;
+        }
+
+        function openPopup(event, name, ds, currentType) {
+            activeCell = { name, ds };
+            document.getElementById("popupName").textContent = name;
+            document.getElementById("popupDate").textContent = ds;
+
+            let optHtml = "";
+            ["", "PTO", "Training", "Event"].forEach(t => {
+                const info = TYPES[t];
+                const isActive = t === currentType ? " active" : "";
+                optHtml += `<div class="popup-btn ${info.btnCls}${isActive}" onclick="setAbsence('${name}','${ds}','${t}')">${info.btnText}</div>`;
+            });
+            document.getElementById("popupOptions").innerHTML = optHtml;
+
+            const popup = document.getElementById("popup");
+            const rect = event.target.closest("td").getBoundingClientRect();
+            popup.style.left = Math.min(rect.left, window.innerWidth - 240) + "px";
+            popup.style.top  = (rect.bottom + 6) + "px";
+            popup.classList.add("show");
+            event.stopPropagation();
+        }
+
+        function closePopup() {
+            document.getElementById("popup").classList.remove("show");
+            activeCell = null;
+        }
+
+        document.addEventListener("click", e => {
+            if (!document.getElementById("popup").contains(e.target)) closePopup();
+        });
+
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toastNotification');
+            const toastMsg = document.getElementById('toastMsg');
+            if (!toast) return;
+            toastMsg.textContent = msg;
+            toast.className = 'toast-notification show' + (type !== 'info' ? ' toast-' + type : '');
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => toast.classList.remove('show'), 5000);
+        }
+
+        function setAbsence(name, ds, type) {
+            fetch("/update-pto", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({name, date: ds, type})
+            }).then(r => r.json()).then(data => {
+                if (!ptoCache[name]) ptoCache[name] = {};
+                if (type) {
+                    ptoCache[name][ds] = type;
+                } else {
+                    delete ptoCache[name][ds];
+                }
+
+                const cellId = "cell-" + name.replace(/ /g, "_") + "-" + ds;
+                const cell = document.getElementById(cellId);
+                if (cell) {
+                    const absCls = type ? TYPES[type].cls : "";
+                    cell.className = `day-cell ${absCls}`;
+                    cell.innerHTML = cellHtml(type);
+                    cell.setAttribute("onclick", `openPopup(event,'${name}','${ds}','${type}')`);
+                }
+
+                closePopup();
+
+                if (data.reassigned && data.reassigned > 0) {
+                    const n = data.reassigned;
+                    const reason = type || 'cleared';
+                    showToast(`⚡ ${n} request${n > 1 ? 's' : ''} moved back to queue — ${name} marked as ${type || 'available'}`, 'warning');
+                }
+            });
+        }
+
+        function loadAndRender() {
+            const mk = monthKey();
+            fetch(`/api/pto-data?month=${mk}`)
+                .then(r => r.json())
+                .then(data => {
+                    Object.entries(data).forEach(([name, days]) => {
+                        if (!ptoCache[name]) ptoCache[name] = {};
+                        Object.assign(ptoCache[name], days);
+                    });
+                    renderCalendar();
+                });
+        }
+
+        loadAndRender();
+    </script>
+
+    <div id="toastNotification" class="toast-notification"><span id="toastMsg"></span></div>
+</body>
+</html>
