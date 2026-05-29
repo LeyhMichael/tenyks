@@ -7,7 +7,7 @@ import anthropic
 
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"), override=True)
 
-DATA_DIR = os.path.expanduser("~/tenyks-data")
+DATA_DIR = os.environ.get("DATA_DIR", os.path.expanduser("~/tenyks-data"))
 DATA_FILE = os.path.join(DATA_DIR, "x_tbng3_vantage_activities.pkl")
 MEMBERS_FILE = os.path.join(DATA_DIR, "team_members.xlsx")
 STAFFING_FILE = os.path.join(DATA_DIR, "staffing_data.csv")
