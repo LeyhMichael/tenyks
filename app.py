@@ -218,6 +218,9 @@ def get_all_team_members(df):
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
+        # Auto-login when Azure Easy Auth has already authenticated the user
+        if request.headers.get("X-MS-CLIENT-PRINCIPAL"):
+            session["logged_in"] = True
         if not session.get("logged_in"):
             return render_template("login.html")
         return f(*args, **kwargs)
