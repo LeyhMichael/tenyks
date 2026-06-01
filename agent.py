@@ -1,69 +1,14 @@
 import os
 import json
-import pandas as pd
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import anthropic
+import db
 
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"), override=True)
 
-DATA_DIR = os.environ.get("DATA_DIR", os.path.expanduser("~/tenyks-data"))
-DATA_FILE = os.path.join(DATA_DIR, "x_tbng3_vantage_activities.pkl")
-MEMBERS_FILE = os.path.join(DATA_DIR, "team_members.xlsx")
-STAFFING_FILE = os.path.join(DATA_DIR, "staffing_data.csv")
-PTO_FILE = os.path.join(DATA_DIR, "pto_data.csv")
 ACTIVE_STATUSES = ["New", "Work in progress", "Assigned"]
 MAX_REQUESTS_PER_WEEK = 14
-
-
-def load_requests():
-    df = pd.read_pickle(DATA_FILE)
-    df["Assigned to"] = df["Assigned to"].fillna("Unassigned")
-    df["Country"] = df["Country"].fillna("Unknown")
-    df["Project Code"] = df["Project Code"].fillna("").astype(str)
-    df["Created Date"] = pd.to_datetime(df["Created Date"], errors="coerce")
-    return df
-
-
-def load_team_members():
-    df = pd.read_excel(MEMBERS_FILE)
-    return {row["Name"]: row["Country"] for _, row in df.iterrows()}
-
-
-def load_staffing():
-    if not os.path.exists(STAFFING_FILE):
-        return {}
-    try:
-        df = pd.read_csv(STAFFING_FILE, sep=',')
-        data = {}
-        for _, row in df.iterrows():
-            name = str(row["Name"])
-            date = str(row["Date"])[:10]
-            pct = int(row["Percentage"])
-            if name not in data:
-                data[name] = {}
-            data[name][date] = pct
-        return data
-    except Exception:
-        return {}
-
-
-def load_pto():
-    if not os.path.exists(PTO_FILE):
-        return {}
-    try:
-        df = pd.read_csv(PTO_FILE)
-        data = {}
-        for _, row in df.iterrows():
-            name = str(row["Name"])
-            date = str(row["Date"])[:10]
-            pto_type = str(row["Type"])
-            if name not in data:
-                data[name] = {}
-            data[name][date] = pto_type
-        return data
-    except Exception:
-        return {}
 
 
 def get_current_load(df, member):
@@ -94,7 +39,6 @@ def get_effective_capacity(name, staffing, pto):
     has_absence_today = bool(pto.get(name, {}).get(today_str))
     if staffing_pct >= 50 or has_absence_today:
         return 0
-    # Count absence days in current Mon–Fri week (each ≈ 20% reduction)
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     monday = today - timedelta(days=today.weekday())
     week_dates = [(monday + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(5)]
@@ -120,8 +64,6 @@ def get_member_requests(df, name):
 
 def build_context(df, team_members, staffing, pto):
     """Build a summary of unassigned requests and team capacity for Claude."""
-
-    # Only active unassigned requests (same filter as the dashboard)
     unassigned_df = df[
         (df["Assigned to"] == "Unassigned") &
         (df["Status"].isin(ACTIVE_STATUSES))
@@ -130,7 +72,6 @@ def build_context(df, team_members, staffing, pto):
     unassigned = unassigned_df
 
     today_str = datetime.now().strftime("%Y-%m-%d")
-    # Team capacity — effective_capacity accounts for staffing % AND PTO/absences
     capacity = []
     for name, country in team_members.items():
         load = get_current_load(df, name)
@@ -160,10 +101,14 @@ def run_agent():
     if not api_key:
         return {"error": "ANTHROPIC_API_KEY not set"}
 
-    df = load_requests()
-    team_members = load_team_members()
-    staffing = load_staffing()
-    pto = load_pto()
+    try:
+        df           = db.load_requests_df()
+        team_members = db.load_team_members()
+        staffing     = db.load_staffing()
+        pto          = db.load_pto()
+    except Exception as e:
+        return {"error": f"Database error: {e}"}
+
     unassigned, capacity = build_context(df, team_members, staffing, pto)
 
     # Detect members who are over their effective capacity
@@ -171,7 +116,7 @@ def run_agent():
     for member in capacity:
         excess = member["current_requests"] - member["effective_capacity"]
         if excess > 0:
-            reqs = get_member_requests(df, member["name"])  # noqa: uses df-level filter
+            reqs = get_member_requests(df, member["name"])
             overcapacity.append({
                 "name": member["name"],
                 "country": member["country"],
@@ -189,7 +134,6 @@ def run_agent():
     if not has_unassigned and not has_overcapacity:
         return {"recommendations": [], "summary": "All requests are assigned and team capacity is within limits."}
 
-    # Members available to receive (re)assignments
     available = [m for m in capacity if not m["blocked"] and m["remaining_capacity"] > 0]
 
     # ── Mode: capacity overrun only ───────────────────────────────────────────

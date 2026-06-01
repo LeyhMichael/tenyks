@@ -5,6 +5,7 @@ import os
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from agent import run_agent
+import db
 
 load_dotenv()
 
@@ -12,75 +13,30 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "changeme")
 PASSWORD = os.environ.get("APP_PASSWORD", "changeme")
 
-DATA_DIR = os.environ.get("DATA_DIR", os.path.expanduser("~/tenyks-data"))
-DATA_FILE = os.path.join(DATA_DIR, "x_tbng3_vantage_activities.pkl")
-STAFFING_FILE = os.path.join(DATA_DIR, "staffing_data.csv")
-PTO_FILE = os.path.join(DATA_DIR, "pto_data.csv")
-BACKLOG_FILE = os.path.join(DATA_DIR, "backlog.xlsx")
-MEMBERS_FILE = os.path.join(DATA_DIR, "team_members.xlsx")
+BACKLOG_FILE = os.path.join(
+    os.environ.get("DATA_DIR", os.path.expanduser("~/tenyks-data")), "backlog.xlsx"
+)
 ACTIVE_STATUSES = ["New", "Work in progress", "Assigned"]
 MAX_REQUESTS_PER_WEEK = 14
 BACKLOG_COLUMNS = ["Group", "Name", "Lead", "Team", "Status", "Start Date",
                    "End Date", "Priority", "Hours", "Completion Date",
                    "Practice", "Stakeholders", "Allocation %"]
 
-# ── Staffing persistence ──────────────────────────────────────────────────────
+# ── Staffing & PTO — loaded from DB at startup, kept in memory ───────────────
+# Writes go to DB immediately (and update the in-memory dict for the current
+# worker).  Acceptable for a single-worker / dev deployment.
 
-def load_staffing():
-    if not os.path.exists(STAFFING_FILE):
-        return {}
-    try:
-        df = pd.read_csv(STAFFING_FILE)
-        data = {}
-        for _, row in df.iterrows():
-            name = str(row["Name"])
-            date = str(row["Date"])[:10]
-            pct = int(row["Percentage"])
-            if name not in data:
-                data[name] = {}
-            data[name][date] = pct
-        return data
-    except Exception:
-        return {}
+try:
+    staffing_data = db.load_staffing()
+except Exception:
+    staffing_data = {}
 
-def save_staffing(data):
-    rows = []
-    for name, days in data.items():
-        for date, pct in days.items():
-            rows.append({"Name": name, "Date": date, "Percentage": pct})
-    pd.DataFrame(rows, columns=["Name", "Date", "Percentage"]).to_csv(STAFFING_FILE, index=False)
+try:
+    pto_data = db.load_pto()
+except Exception:
+    pto_data = {}
 
-staffing_data = load_staffing()
-
-# ── PTO / Absences persistence ────────────────────────────────────────────────
-
-def load_pto():
-    if not os.path.exists(PTO_FILE):
-        return {}
-    try:
-        df = pd.read_csv(PTO_FILE)
-        data = {}
-        for _, row in df.iterrows():
-            name = str(row["Name"])
-            date = str(row["Date"])[:10]
-            pto_type = str(row["Type"])
-            if name not in data:
-                data[name] = {}
-            data[name][date] = pto_type
-        return data
-    except Exception:
-        return {}
-
-def save_pto(data):
-    rows = []
-    for name, days in data.items():
-        for date, pto_type in days.items():
-            rows.append({"Name": name, "Date": date, "Type": pto_type})
-    pd.DataFrame(rows, columns=["Name", "Date", "Type"]).to_csv(PTO_FILE, index=False)
-
-pto_data = load_pto()
-
-# ── Backlog persistence ───────────────────────────────────────────────────────
+# ── Backlog persistence (still file-based) ────────────────────────────────────
 
 def load_backlog():
     if not os.path.exists(BACKLOG_FILE):
@@ -132,7 +88,7 @@ def get_block_reason(name):
         return "on case today"
     absence = pto_data.get(name, {}).get(today_str)
     if absence:
-        return absence.lower()  # "pto", "training", "event"
+        return absence.lower()
     return None
 
 def get_effective_capacity(name):
@@ -142,15 +98,13 @@ def get_effective_capacity(name):
     has_absence_today = bool(pto_data.get(name, {}).get(today_str))
 
     if staffing_pct >= 50 or has_absence_today:
-        return 0  # fully blocked today
+        return 0
 
-    # Count absence days in current Mon–Fri week (each day ≈ 20% reduction)
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     monday = today - timedelta(days=today.weekday())
     week_dates = [(monday + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(5)]
     absence_days = sum(1 for d in week_dates if pto_data.get(name, {}).get(d))
 
-    # Backlog allocation today
     backlog_pct = get_backlog_allocation_today(name)
 
     effective_pct = min(staffing_pct + absence_days * 20 + backlog_pct, 100)
@@ -173,11 +127,7 @@ def get_member_active_requests(df, name):
 # ── Data helpers ──────────────────────────────────────────────────────────────
 
 def load_data():
-    df = pd.read_pickle(DATA_FILE)
-    df["Assigned to"] = df["Assigned to"].fillna("Unassigned")
-    df["Short Description"] = df["Short Description"].astype(str).str[:80]
-    df["Created Date"] = pd.to_datetime(df["Created Date"], errors="coerce")
-    return df
+    return db.load_requests_df()
 
 def get_week_dates():
     today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -257,7 +207,11 @@ def get_team_capacity(df):
     return result, [d.strftime("%a") for d in week_days]
 
 def get_all_team_members(df):
-    return sorted(df[df["Assigned to"] != "Unassigned"]["Assigned to"].unique().tolist())
+    """Return sorted list of all team members (DB table takes precedence, requests as fallback)."""
+    try:
+        return sorted(db.load_team_members().keys())
+    except Exception:
+        return sorted(df[df["Assigned to"] != "Unassigned"]["Assigned to"].unique().tolist())
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 
@@ -354,10 +308,8 @@ def assign():
     if not number or not assignee:
         return jsonify({"error": "Invalid input"}), 400
     try:
-        df = pd.read_pickle(DATA_FILE)
-        df["Assigned to"] = df["Assigned to"].fillna("Unassigned")
+        df = db.load_requests_df()
 
-        # ── Capacity gate ──────────────────────────────────────────────────
         effective_cap = get_effective_capacity(assignee)
         current_load = len(get_member_active_requests(df, assignee))
         block_reason = get_block_reason(assignee)
@@ -367,9 +319,7 @@ def assign():
         if current_load >= effective_cap:
             return jsonify({"error": f"{assignee} is at capacity ({current_load}/{effective_cap} requests this week)"}), 400
 
-        df.loc[df["Number"] == number, "Assigned to"] = assignee
-        df.loc[df["Number"] == number, "Status"] = "Assigned"
-        df.to_pickle(DATA_FILE)
+        db.update_request(number, assignee, "Assigned")
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -391,26 +341,23 @@ def update_staffing():
     except (ValueError, TypeError):
         return jsonify({"error": "Invalid data"}), 400
 
-    # Save staffing
+    # Update in-memory dict and persist to DB
     if name not in staffing_data:
         staffing_data[name] = {}
     staffing_data[name][date] = pct
-    save_staffing(staffing_data)
+    db.upsert_staffing(name, date, pct)
 
-    # ── Spillover trigger (only fires when setting today's staffing) ───────
+    # Spillover trigger — only fires when setting today's staffing
     today_str = datetime.now().strftime("%Y-%m-%d")
     reassigned = 0
     if date == today_str:
-        df = pd.read_pickle(DATA_FILE)
-        df["Assigned to"] = df["Assigned to"].fillna("Unassigned")
+        df = db.load_requests_df()
         effective_cap = get_effective_capacity(name)
         member_reqs = get_member_active_requests(df, name)
         spillover_count = max(0, len(member_reqs) - effective_cap)
         if spillover_count > 0:
             to_reassign = member_reqs.sort_values("Created Date", ascending=False).head(spillover_count)
-            df.loc[to_reassign.index, "Assigned to"] = None
-            df.loc[to_reassign.index, "Status"] = "New"
-            df.to_pickle(DATA_FILE)
+            db.unassign_requests(to_reassign["Number"].tolist())
             reassigned = spillover_count
 
     return jsonify({"success": True, "is_blocked": pct >= 50, "reassigned": reassigned})
@@ -421,7 +368,7 @@ def update_pto():
     data = request.get_json()
     name = str(data.get("name", "")).strip()
     date = str(data.get("date", "")).strip()
-    pto_type = str(data.get("type", "")).strip()  # "PTO", "Training", "Event", or "" to clear
+    pto_type = str(data.get("type", "")).strip()
     if not name or not date:
         return jsonify({"error": "Invalid input"}), 400
     try:
@@ -433,27 +380,23 @@ def update_pto():
         if name not in pto_data:
             pto_data[name] = {}
         pto_data[name][date] = pto_type
+        db.upsert_pto(name, date, pto_type)
     else:
-        # Clear the entry
         if name in pto_data and date in pto_data[name]:
             del pto_data[name][date]
+        db.delete_pto(name, date)
 
-    save_pto(pto_data)
-
-    # ── Spillover trigger (only fires when setting today) ──────────────────
+    # Spillover trigger — only fires when setting today
     today_str = datetime.now().strftime("%Y-%m-%d")
     reassigned = 0
     if date == today_str:
-        df = pd.read_pickle(DATA_FILE)
-        df["Assigned to"] = df["Assigned to"].fillna("Unassigned")
+        df = db.load_requests_df()
         effective_cap = get_effective_capacity(name)
         member_reqs = get_member_active_requests(df, name)
         spillover_count = max(0, len(member_reqs) - effective_cap)
         if spillover_count > 0:
             to_reassign = member_reqs.sort_values("Created Date", ascending=False).head(spillover_count)
-            df.loc[to_reassign.index, "Assigned to"] = None
-            df.loc[to_reassign.index, "Status"] = "New"
-            df.to_pickle(DATA_FILE)
+            db.unassign_requests(to_reassign["Number"].tolist())
             reassigned = spillover_count
 
     return jsonify({"success": True, "is_blocked": is_blocked_today(name), "reassigned": reassigned})
@@ -522,13 +465,10 @@ def run_agent_route():
     result = run_agent()
     if "recommendations" in result:
         df = load_data()
-        member_countries = {}
-        if os.path.exists(MEMBERS_FILE):
-            try:
-                tm_df = pd.read_excel(MEMBERS_FILE)
-                member_countries = {row["Name"]: row["Country"] for _, row in tm_df.iterrows()}
-            except Exception:
-                pass
+        try:
+            member_countries = db.load_team_members()
+        except Exception:
+            member_countries = {}
         for rec in result["recommendations"]:
             row = df[df["Number"] == rec["number"]]
             if not row.empty:
@@ -542,36 +482,32 @@ def run_agent_route():
 @app.route("/apply-recommendations", methods=["POST"])
 @login_required
 def apply_recommendations():
-    """Batch apply with capacity enforcement — single read/write, no race conditions."""
+    """Batch apply with capacity enforcement."""
     data = request.get_json()
     recommendations = data.get("recommendations", [])
     if not recommendations:
         return jsonify({"applied": 0, "skipped": [], "errors": []})
     try:
-        df = pd.read_pickle(DATA_FILE)
-        df["Assigned to"] = df["Assigned to"].fillna("Unassigned")
+        df = db.load_requests_df()
         applied = []
         skipped = []
-        load_tracker = {}  # track in-batch load per assignee
+        load_tracker = {}
 
         for rec in recommendations:
             number = str(rec.get("number", "")).strip()
             assignee = str(rec.get("assignee", "")).strip()
             if not number or not assignee:
                 continue
-            # Seed tracker on first encounter
             if assignee not in load_tracker:
                 load_tracker[assignee] = len(get_member_active_requests(df, assignee))
             effective_cap = get_effective_capacity(assignee)
             if load_tracker[assignee] >= effective_cap:
                 skipped.append(number)
                 continue
-            df.loc[df["Number"] == number, "Assigned to"] = assignee
-            df.loc[df["Number"] == number, "Status"] = "Assigned"
+            db.update_request(number, assignee, "Assigned")
             applied.append(number)
             load_tracker[assignee] += 1
 
-        df.to_pickle(DATA_FILE)
         print(f"[assign] {len(applied)} applied, {len(skipped)} skipped (capacity)")
         return jsonify({"applied": len(applied), "skipped": skipped, "errors": []})
     except Exception as e:
