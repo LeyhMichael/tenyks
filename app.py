@@ -111,16 +111,10 @@ def get_effective_capacity(name):
     return max(0, int(MAX_REQUESTS_PER_WEEK * (1 - effective_pct / 100)))
 
 def get_member_active_requests(df, name):
-    """Return rows of active requests assigned to name within the current week window."""
-    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    monday = today - timedelta(days=today.weekday())
-    last_thursday = monday - timedelta(days=4)
-    dates = pd.to_datetime(df["Created Date"], errors="coerce")
+    """Return all active requests assigned to name."""
     mask = (
         (df["Status"].isin(ACTIVE_STATUSES)) &
-        (df["Assigned to"] == name) &
-        (dates >= last_thursday) &
-        (dates <= today + timedelta(days=1))
+        (df["Assigned to"] == name)
     )
     return df[mask]
 
