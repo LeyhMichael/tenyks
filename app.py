@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, session
 from functools import wraps
 import pandas as pd
 import os
+import json
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from agent import run_agent
@@ -222,7 +223,18 @@ def login_required(f):
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 
+def load_apps():
+    path = os.path.join(os.path.dirname(__file__), "apps.json")
+    with open(path) as f:
+        return json.load(f)
+
 @app.route("/")
+@login_required
+def home():
+    apps = load_apps()
+    return render_template("home.html", apps=apps)
+
+@app.route("/quarterback")
 @login_required
 def index():
     df = load_data()
