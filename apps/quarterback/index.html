@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quarterback Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🏈 Quarterback Dashboard</h1>
+    <div class="subtitle">Vantage Request Staffing</div>
+  </div>
+</header>
+
+<div class="nav-tabs">
+  <button class="nav-tab active" data-tab="requests">📋 Requests</button>
+  <button class="nav-tab" data-tab="staffing">👥 Case Staffing</button>
+  <button class="nav-tab" data-tab="pto">🏖️ PTO &amp; Absences</button>
+  <button class="nav-tab" data-tab="backlog">📌 Backlog</button>
+  <button class="nav-tab" id="agentBtn" onclick="openAgent()">🤖 Run Agent</button>
+</div>
+
+<!-- Stats bar -->
+<div class="stats-bar" id="statsBar"></div>
+
+<!-- ── Tab: Requests ────────────────────────────────────────────────────── -->
+<div class="tab-panel active" id="tab-requests" style="height:calc(100vh - 120px);">
+  <div class="panel requests-panel" id="requestsPanel">
+    <div class="panel-header"><h2>Requests</h2></div>
+    <div id="requestsContent"><div class="empty-state"><div class="icon">⏳</div><p>Loading…</p></div></div>
+  </div>
+  <div class="panel capacity-panel" id="capacityPanel">
+    <div class="panel-header">
+      <h2>Weekly Capacity</h2>
+      <span class="sublabel" id="capSublabel"></span>
+    </div>
+    <div id="capacityContent"><div class="empty-state"><div class="icon">⏳</div><p>Loading…</p></div></div>
+  </div>
+</div>
+
+<!-- ── Tab: Staffing ────────────────────────────────────────────────────── -->
+<div class="tab-panel full" id="tab-staffing" style="height:calc(100vh - 120px);">
+  <div class="panel full-panel">
+    <div class="panel-header">
+      <h2>Case Staffing</h2>
+      <span class="sublabel">≥50% blocks request assignment</span>
+    </div>
+    <div class="cal-nav">
+      <button onclick="changeMonth('staffing',-1)">‹ Prev</button>
+      <span class="cal-month" id="staffingMonthLabel"></span>
+      <button onclick="changeMonth('staffing',1)">Next ›</button>
+    </div>
+    <div class="cal-wrap"><div id="staffingCal"></div></div>
+  </div>
+</div>
+
+<!-- ── Tab: PTO ─────────────────────────────────────────────────────────── -->
+<div class="tab-panel full" id="tab-pto" style="height:calc(100vh - 120px);">
+  <div class="panel full-panel">
+    <div class="panel-header">
+      <h2>PTO &amp; Absences</h2>
+      <span class="sublabel">Sets block · triggers spillover if today</span>
+    </div>
+    <div class="cal-nav">
+      <button onclick="changeMonth('pto',-1)">‹ Prev</button>
+      <span class="cal-month" id="ptoMonthLabel"></span>
+      <button onclick="changeMonth('pto',1)">Next ›</button>
+    </div>
+    <div class="cal-wrap"><div id="ptoCal"></div></div>
+  </div>
+</div>
+
+<!-- ── Tab: Backlog ─────────────────────────────────────────────────────── -->
+<div class="tab-panel full" id="tab-backlog" style="height:calc(100vh - 120px);">
+  <div class="panel full-panel">
+    <div class="panel-header">
+      <h2>Project Backlog</h2>
+      <button class="btn-new" onclick="openBacklogModal()">+ New Project</button>
+    </div>
+    <div class="backlog-controls">
+      <input type="text" id="blSearch" placeholder="Search…" oninput="renderBacklog()">
+      <select id="blGroup" onchange="renderBacklog()"><option value="">All Groups</option></select>
+      <select id="blStatus" onchange="renderBacklog()">
+        <option value="">All Statuses</option>
+        <option>Working</option><option>Backlog</option><option>Complete</option>
+        <option>On Hold</option><option>Deprioritized</option>
+      </select>
+      <select id="blPriority" onchange="renderBacklog()">
+        <option value="">All Priorities</option>
+        <option>High</option><option>Medium</option><option>Low</option><option>Unset</option>
+      </select>
+    </div>
+    <div id="backlogContent"></div>
+  </div>
+</div>
+
+<!-- ── Agent modal ──────────────────────────────────────────────────────── -->
+<div class="overlay" id="agentOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">🤖 AI Assignment Engine</div>
+        <div class="modal-subtitle" id="agentSubtitle">Analysing your team's capacity…</div>
+      </div>
+      <button class="modal-close" onclick="closeAgent()">✕</button>
+    </div>
+
+    <div id="agentLoading" class="agent-loading">
+      <div class="agent-loading-icon">
+        <div class="pulse-ring"></div>
+        <span>🤖</span>
+      </div>
+      <div class="agent-loading-text">Claude is reviewing requests and capacity…</div>
+      <div class="agent-loading-dots"><span></span><span></span><span></span></div>
+    </div>
+
+    <div id="agentResults" style="display:none;">
+      <div class="agent-summary-bar" id="agentSummaryBar"></div>
+      <div id="agentRecs"></div>
+      <div class="modal-footer">
+        <div class="modal-footer-count" id="agentPendingCount"></div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-primary" id="applyAllBtn" onclick="applyAllRecs()">✅ Apply All</button>
+          <button class="btn-secondary" onclick="closeAgent()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Backlog item modal ────────────────────────────────────────────────── -->
+<div class="overlay" id="backlogOverlay">
+  <div class="modal modal-sm" id="backlogModal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="backlogModalTitle">New Project</div>
+      </div>
+      <button class="modal-close" onclick="closeBacklogModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="blId">
+      <div class="form-grid" style="margin-bottom:14px;">
+        <div class="form-field" style="grid-column:1/-1;">
+          <label>Name</label>
+          <input type="text" id="blName">
+        </div>
+        <div class="form-field">
+          <label>Group</label>
+          <select id="blGroupField">
+            <option>IP &amp; Product</option>
+            <option>Operations &amp; Reporting</option>
+            <option>Marketing &amp; Promotion</option>
+            <option>50% time</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Status</label>
+          <select id="blStatusField">
+            <option>Working</option><option>Backlog</option><option>Complete</option>
+            <option>On Hold</option><option>Deprioritized</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Priority</label>
+          <select id="blPriorityField">
+            <option>High</option><option>Medium</option><option>Low</option><option>Unset</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Allocation %</label>
+          <input type="number" id="blAllocation" min="0" max="100" placeholder="0">
+        </div>
+        <div class="form-field">
+          <label>Lead</label>
+          <input type="text" id="blLead">
+        </div>
+        <div class="form-field">
+          <label>Team</label>
+          <input type="text" id="blTeam" placeholder="Comma-separated names">
+        </div>
+        <div class="form-field">
+          <label>Start Date</label>
+          <input type="date" id="blStartDate">
+        </div>
+        <div class="form-field">
+          <label>End Date</label>
+          <input type="date" id="blEndDate">
+        </div>
+        <div class="form-field">
+          <label>Hours</label>
+          <input type="number" id="blHours" min="0" step="0.5" placeholder="0">
+        </div>
+        <div class="form-field">
+          <label>Practice</label>
+          <input type="text" id="blPractice">
+        </div>
+        <div class="form-field" style="grid-column:1/-1;">
+          <label>Stakeholders</label>
+          <input type="text" id="blStakeholders">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger" id="blDeleteBtn" onclick="deleteBacklogItem()" style="display:none;">Delete</button>
+      <div style="display:flex;gap:10px;margin-left:auto;">
+        <button class="btn-secondary" onclick="closeBacklogModal()">Cancel</button>
+        <button class="btn-primary" onclick="saveBacklogItem()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Calendar popup ───────────────────────────────────────────────────── -->
+<div class="cal-popup" id="calPopup" style="display:none;">
+  <div class="cal-popup-title" id="calPopupTitle"></div>
+  <div class="cal-popup-btns" id="calPopupBtns"></div>
+  <span class="cal-popup-close" onclick="closeCalPopup()">✕ close</span>
+</div>
+
+<!-- ── Toast ────────────────────────────────────────────────────────────── -->
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Background -->
+  <rect width="32" height="32" rx="6" fill="#3333a8"/>
+
+  <!-- Compass circle -->
+  <circle cx="16" cy="16" r="10" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.2"/>
+
+  <!-- North needle (white, pointing up-right) -->
+  <polygon points="16,6 18.2,15 16,13.5 13.8,15" fill="#ffffff"/>
+
+  <!-- South needle (dimmed, pointing down-left) -->
+  <polygon points="16,26 13.8,17 16,18.5 18.2,17" fill="rgba(255,255,255,0.35)"/>
+
+  <!-- Center dot -->
+  <circle cx="16" cy="16" r="1.8" fill="#ffffff"/>
+</svg>
