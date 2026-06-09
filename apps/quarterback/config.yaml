@@ -1,0 +1,6 @@
+name: "Quarterback Dashboard"
+description: "Manage Vantage requests end-to-end — assign tickets track team capacity block staffing and PTO and let AI recommend optimal assignments."
+icon: "🏈"
+accent: "#3b82f6"
+tag: "Admin"
+author: "Michael Leyh"

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Test — Tenyks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <h1>🧪 API Test</h1>
+  <p class="subtitle">Each section tests one layer of the platform API stack.</p>
+
+  <!-- Ping -->
+  <div class="section">
+    <h2>1 — Ping</h2>
+    <p>GET /testing/api/ping — confirms the server is routing API requests to this app's api.js.</p>
+    <button onclick="ping()">Send ping</button>
+    <pre id="ping-result" class="result"></pre>
+  </div>
+
+  <!-- Echo -->
+  <div class="section">
+    <h2>2 — Echo</h2>
+    <p>POST /testing/api/echo — sends a JSON body and expects it back. Tests readJson and sendJson.</p>
+    <input type="text" id="echo-input" placeholder='Any text — will be sent as { "message": "..." }' />
+    <button onclick="echo()">Send echo</button>
+    <pre id="echo-result" class="result"></pre>
+  </div>
+
+  <!-- External HTTP -->
+  <div class="section">
+    <h2>3 — External HTTP</h2>
+    <p>GET /testing/api/time — server fetches from worldtimeapi.org. Verifies outbound HTTP from the server works.</p>
+    <button onclick="time()">Fetch time</button>
+    <pre id="time-result" class="result"></pre>
+  </div>
+
+  <!-- Ask Claude -->
+  <div class="section">
+    <h2>4 — Ask Claude</h2>
+    <p>POST /testing/api/ask — proxies a prompt to the Anthropic API via the server. Tests ANTHROPIC_API_KEY and the SDK.</p>
+    <textarea id="ask-input" rows="3" placeholder="Ask anything..."></textarea>
+    <button onclick="ask()">Send to Claude</button>
+    <pre id="ask-result" class="result"></pre>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

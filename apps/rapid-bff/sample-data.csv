@@ -1,0 +1,1253 @@
+record,COUNTRY,REGION,SECTOR,INDUSTRY,CAP1,CAP2,CAP3,CAP4,CAP5,CAP6,CAP7,CAP8,CAP9
+P483,United States,NAMR,Public Sector,Public Sector,33,17,17,50,17,33,17,17,17
+3526,United States,NAMR,Automotive & Mobility,Industrial Goods,50,33,33,33,17,33,17,33,50
+3151,Czech Republic,EMESA,Automotive & Mobility,Industrial Goods,66,66,33,66,17,50,50,50,66
+761,Italy,EMESA,Power and Utilities,Energy,66,66,66,66,66,66,50,83,100
+31,Belgium,EMESA,Consumer Products,Consumer,50,66,50,50,33,33,50,66,66
+3775,Sweden,EMESA,Automotive & Mobility,Industrial Goods,100,33,66,66,83,66,83,66,66
+8,Sweden,EMESA,Automotive & Mobility,Industrial Goods,66,33,66,50,50,83,66,50,83
+6216,Switzerland,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,66,100,66,66,33,50,83,83,17
+422,United States,NAMR,Medtech,Healthcare,100,50,100,50,50,50,50,100,100
+273,United States,NAMR,Biopharma,Healthcare,66,33,66,66,50,50,33,66,33
+2727,United States,NAMR,"Providers, Systems & Services",Healthcare,17,17,0,33,0,17,17,33,33
+801,Philippines,APAC,Power and Utilities,Energy,17,33,50,50,50,33,33,50,33
+3567,United Arab Emirates,EMESA,Logistics & Postal Services,TCI,66,33,33,33,33,66,33,66,66
+3779,United States,NAMR,Software,TMT,17,0,33,33,33,33,33,33,33
+233,Spain,EMESA,Renewables,Energy,33,50,33,50,0,17,50,33,17
+1754,France,EMESA,Rail & Hospitality,TCI,33,66,33,66,0,33,33,0,0
+644,Netherlands,EMESA,Global Asset Managers,Financial Institutions,66,33,33,33,17,66,33,50,33
+2110,United States,NAMR,Insurance,Insurance,50,66,33,66,50,83,100,83,50
+2669,United States,NAMR,Media,TMT,100,100,100,66,100,100,100,100,100
+217,Saudi Arabia,EMESA,Renewables,Energy,100,33,33,33,33,33,100,66,0
+4655,India,APAC,Renewables,Energy,100,100,100,100,100,100,100,100,100
+1295,India,APAC,Logistics & Postal Services,TCI,50,66,66,50,33,33,50,66,50
+466,Germany,EMESA,Consumer Products,Consumer,0,100,66,33,17,66,66,100,33
+1466,United Kingdom,EMESA,Insurance,Insurance,33,33,33,66,50,33,33,66,66
+670,United States,NAMR,Software,TMT,83,100,100,66,100,100,100,83,100
+P817,Germany,EMESA,Public Sector,Public Sector,66,33,33,100,33,50,66,17,17
+5315,Germany,EMESA,Medtech,Healthcare,100,33,8,33,17,33,17,17,17
+3429,United States,NAMR,"Devices, Components, and Semiconductors",TMT,50,50,50,50,50,50,66,83,83
+5805,Taiwan,APAC,Software,TMT,33,33,33,33,33,33,33,33,33
+1927,United States,NAMR,"Construction, Cities and Infrastructure Development",TCI,33,33,17,33,33,33,17,33,17
+4677,Netherlands,EMESA,Insurance,Insurance,66,66,33,33,33,66,66,33,66
+1417,Japan,APAC,Retail,Consumer,66,33,33,33,33,33,17,50,17
+1411,United States,NAMR,Insurance,Insurance,50,33,33,66,17,33,50,33,33
+3665,United States,NAMR,Payments & Fintech,Financial Institutions,66,66,33,66,66,66,8,83,100
+2359,United States,NAMR,Insurance,Insurance,66,8,8,8,33,50,8,50,83
+5420,South Africa,EMESA,Metals & Mining,Industrial Goods,66,33,66,66,66,0,0,0,0
+4915,Belgium,EMESA,Insurance,Insurance,100,66,66,83,66,66,100,50,66
+33,Belgium,EMESA,Medtech,Healthcare,66,66,0,50,17,17,0,33,17
+451,United States,NAMR,Medtech,Healthcare,33,33,50,17,33,33,17,50,17
+3963,Hong Kong,APAC,Insurance,Insurance,100,66,66,100,66,66,66,100,100
+521,United States,NAMR,Insurance,Insurance,66,33,66,66,33,66,33,33,33
+3532,India,APAC,Airline,TCI,0,66,17,50,17,0,50,33,66
+1334,France,EMESA,Chemicals,Industrial Goods,66,17,66,66,50,66,66,66,66
+3973,Canada,NAMR,Airline,TCI,66,50,33,100,33,17,50,33,17
+4668,United States,NAMR,Chemicals,Industrial Goods,66,66,33,66,0,0,33,33,66
+2029,United States,NAMR,Rail & Hospitality,TCI,66,100,66,66,66,100,66,66,66
+4613,Netherlands,EMESA,Aerospace & Defense,Industrial Goods,66,33,33,83,17,33,17,33,17
+117,India,APAC,Telecommunications,TMT,66,66,33,66,33,33,33,66,100
+4118,Norway,EMESA,Oil & Gas,Energy,83,83,100,83,83,83,83,50,83
+905,United Kingdom,EMESA,Oil & Gas,Energy,50,17,83,17,50,17,0,66,17
+395,Netherlands,EMESA,Chemicals,Industrial Goods,66,66,66,33,33,66,0,17,50
+5322,United States,NAMR,Chemicals,Industrial Goods,17,33,0,17,0,17,0,17,17
+2745,United States,NAMR,Retail,Consumer,33,33,33,33,0,17,33,0,0
+2530,United States,NAMR,Metals & Mining,Industrial Goods,17,33,17,33,33,0,33,33,17
+924,Switzerland,EMESA,Medtech,Healthcare,50,50,83,50,33,50,33,66,33
+3811,United Arab Emirates,EMESA,"Construction, Cities and Infrastructure Development",TCI,100,66,83,66,66,100,100,66,66
+2956,United States,NAMR,Retail,Consumer,66,50,50,33,33,50,33,33,50
+1337,United States,NAMR,Medtech,Healthcare,66,100,100,66,66,66,100,100,100
+387,India,APAC,Biopharma,Healthcare,50,0,33,33,33,33,33,33,0
+3766,Bahrain,EMESA,Global Asset Managers,Financial Institutions,66,33,50,66,50,66,50,50,50
+4228,Germany,EMESA,Insurance,Insurance,33,33,0,66,33,0,33,33,33
+3270,United States,NAMR,Insurance,Insurance,50,33,50,66,50,33,50,50,33
+3476,United States,NAMR,Insurance,Insurance,66,33,66,66,66,33,33,66,33
+2246,United States,NAMR,Biopharma,Healthcare,33,33,33,33,33,33,0,33,33
+503,United States,NAMR,Software,TMT,33,33,0,33,33,50,0,33,33
+208,Spain,EMESA,Software,TMT,66,66,100,83,66,50,83,83,100
+4539,United States,NAMR,Retail,Consumer,50,50,66,83,66,66,83,50,66
+3918,United States,NAMR,"Devices, Components, and Semiconductors",TMT,66,66,17,33,50,50,33,66,33
+1611,United States,NAMR,Media,TMT,66,17,17,50,17,17,0,33,17
+409,Mexico,NAMR,Telecommunications,TMT,100,33,33,66,66,33,33,33,0
+835,United States,NAMR,Payments & Fintech,Financial Institutions,66,66,50,66,50,50,66,66,66
+719,United States,NAMR,Global Asset Managers,Financial Institutions,50,66,66,66,33,66,33,50,66
+1917,United States,NAMR,Biopharma,Healthcare,83,83,66,83,83,83,83,66,50
+3535,United States,NAMR,"Devices, Components, and Semiconductors",TMT,33,50,33,50,33,33,33,33,17
+5081,Canada,NAMR,Banking,Financial Institutions,33,50,33,66,33,33,66,33,33
+150,Spain,EMESA,Retail,Consumer,66,50,66,33,33,50,66,50,17
+1463,United States,NAMR,Rail & Hospitality,TCI,17,33,17,33,17,17,33,17,33
+4661,France,EMESA,Global Asset Managers,Financial Institutions,33,33,66,33,66,33,33,83,33
+4761,Turkey,EMESA,Insurance,Insurance,33,33,33,33,50,66,33,66,33
+3276,United States,NAMR,"Devices, Components, and Semiconductors",TMT,66,33,33,50,50,33,17,33,33
+4919,United States,NAMR,Aerospace & Defense,Industrial Goods,66,66,83,83,66,83,83,83,83
+4608,United Kingdom,EMESA,Metals & Mining,Industrial Goods,33,33,33,33,33,33,66,66,0
+1311,Belgium,EMESA,Consumer Products,Consumer,17,33,66,66,83,66,50,83,33
+1016,Germany,EMESA,Insurance,Insurance,50,66,33,33,33,33,66,33,83
+378,United Kingdom,EMESA,Payments & Fintech,Financial Institutions,66,0,33,33,33,66,8,66,33
+5000,Australia,APAC,Oil & Gas,Energy,33,17,0,33,17,17,17,33,17
+3116,Netherlands,EMESA,Global Asset Managers,Financial Institutions,33,0,0,33,17,0,0,50,0
+2169,United States,NAMR,Global Asset Managers,Financial Institutions,83,66,66,83,50,66,50,50,50
+5213,Ireland,EMESA,Automotive & Mobility,Industrial Goods,50,50,66,66,50,50,50,66,33
+258,United States,NAMR,Retail,Consumer,83,50,83,66,33,50,66,50,50
+5288,Netherlands,EMESA,Aerospace & Defense,Industrial Goods,33,66,50,33,50,66,66,33,33
+3062,Luxembourg,EMESA,Metals & Mining,Industrial Goods,33,33,50,33,17,17,50,33,33
+5376,Luxembourg,EMESA,Metals & Mining,Industrial Goods,66,66,33,66,66,33,33,33,33
+1671,Bermuda,NAMR,Insurance,Insurance,66,66,33,66,33,33,33,66,33
+3265,United States,NAMR,Machinery & Automation incl. Greentech,Industrial Goods,66,66,66,66,66,66,66,83,66
+576,Uruguay,EMESA,Retail,Consumer,66,17,0,33,0,0,33,33,0
+635,France,EMESA,Global Asset Managers,Financial Institutions,66,83,0,50,83,50,8,83,66
+5357,Sweden,EMESA,Medtech,Healthcare,83,66,66,50,66,66,33,66,50
+4222,France,EMESA,Chemicals,Industrial Goods,66,66,66,66,100,66,66,66,66
+3070,Jordan,EMESA,"Devices, Components, and Semiconductors",TMT,66,83,83,66,66,50,83,83,66
+5808,Luxembourg,EMESA,Real Estate,TCI,17,0,17,33,0,0,0,0,0
+2072,United States,NAMR,"Devices, Components, and Semiconductors",TMT,66,33,33,66,0,33,0,33,0
+1290,France,EMESA,"Construction, Cities and Infrastructure Development",TCI,50,0,33,0,33,33,0,33,100
+286,United States,NAMR,Insurance,Insurance,83,66,66,33,50,66,50,50,66
+432,United Kingdom,EMESA,"Construction, Cities and Infrastructure Development",TCI,0,66,66,33,33,33,33,66,33
+5300,Japan,APAC,Chemicals,Industrial Goods,66,66,33,33,33,33,33,33,33
+2563,United States,NAMR,"Providers, Systems & Services",Healthcare,33,50,33,17,0,17,17,17,17
+4536,United Kingdom,EMESA,Retail,Consumer,50,0,33,66,0,0,0,0,0
+18,India,APAC,Automotive & Mobility,Industrial Goods,17,17,17,17,17,17,17,0,0
+131,India,APAC,Chemicals,Industrial Goods,50,33,50,50,50,17,17,33,0
+2402,India,APAC,Fashion & Luxury,Consumer,66,66,33,66,100,66,0,66,33
+2310,Netherlands,EMESA,"Devices, Components, and Semiconductors",TMT,33,66,50,17,33,33,33,17,66
+1315,Poland,EMESA,Payments & Fintech,Financial Institutions,50,33,17,17,33,17,33,17,100
+1943,Japan,APAC,Biopharma,Healthcare,66,33,33,33,33,33,66,33,66
+159,United Kingdom,EMESA,Automotive & Mobility,Industrial Goods,100,17,0,100,33,33,8,33,33
+1025,United Kingdom,EMESA,Biopharma,Healthcare,50,33,66,50,33,50,50,66,83
+1958,United States,NAMR,Telecommunications,TMT,83,66,100,83,33,100,66,100,100
+2219,Australia,APAC,Software,TMT,83,83,83,83,83,66,83,83,50
+227,United Kingdom,EMESA,Software,TMT,100,83,100,100,66,66,100,100,83
+1145,France,EMESA,Retail,Consumer,33,50,66,33,50,50,83,66,33
+5314,Germany,EMESA,Automotive & Mobility,Industrial Goods,0,17,33,33,17,0,8,33,8
+1151,Austria,EMESA,Airline,TCI,66,50,50,33,33,66,33,83,83
+1481,United States,NAMR,"Construction, Cities and Infrastructure Development",TCI,50,33,50,66,50,66,33,66,66
+3142,Norway,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,66,33,33,50,50,50,33,66,33
+680,United States,NAMR,Power and Utilities,Energy,33,33,17,33,0,17,33,33,33
+413,United States,NAMR,Chemicals,Industrial Goods,17,33,17,17,0,0,17,50,33
+3278,Colombia,EMESA,Airline,TCI,33,33,50,66,17,50,33,33,33
+2361,United States,NAMR,Airline,TCI,66,83,33,66,33,33,33,66,83
+209,United Kingdom,EMESA,Insurance,Insurance,0,33,33,33,66,33,33,33,33
+3432,United States,NAMR,"Devices, Components, and Semiconductors",TMT,66,33,50,66,50,50,8,66,50
+163,France,EMESA,Insurance,Insurance,83,66,66,50,66,66,66,83,83
+4177,Malaysia,APAC,Telecommunications,TMT,66,66,33,83,83,66,66,100,33
+2,India,APAC,Banking,Financial Institutions,66,66,83,66,50,66,50,50,50
+29,India,APAC,Insurance,Insurance,66,33,100,66,33,66,66,66,66
+356,Brazil,NAMR,Airline,TCI,0,0,33,33,0,0,0,33,0
+3423,United Kingdom,EMESA,Aerospace & Defense,Industrial Goods,66,33,33,50,17,66,17,66,33
+3641,United Kingdom,EMESA,Aerospace & Defense,Industrial Goods,50,17,50,66,0,17,33,66,33
+2175,Bermuda,NAMR,Consumer Products,Consumer,33,33,0,33,0,0,33,33,33
+5318,United Kingdom,EMESA,Aerospace & Defense,Industrial Goods,66,66,66,33,66,66,33,66,66
+4545,India,APAC,Insurance,Insurance,100,33,0,100,33,33,66,66,0
+4759,India,APAC,Insurance,Insurance,66,66,66,66,33,66,66,66,66
+796,India,APAC,Automotive & Mobility,Industrial Goods,66,33,33,100,100,33,33,33,33
+2464,India,APAC,Payments & Fintech,Financial Institutions,33,50,50,66,66,50,66,33,33
+13,Canada,NAMR,Machinery & Automation incl. Greentech,Industrial Goods,50,33,17,50,17,33,17,33,0
+5668,Switzerland,EMESA,Insurance,Insurance,8,8,33,50,50,50,66,50,50
+1775,Spain,EMESA,Banking,Financial Institutions,83,50,50,66,33,66,33,17,83
+385,India,APAC,Banking,Financial Institutions,33,66,66,66,8,66,0,66,66
+1526,United States,NAMR,Banking,Financial Institutions,50,83,33,50,66,17,66,33,83
+942,India,APAC,Banking,Financial Institutions,66,17,33,17,17,17,33,33,0
+1316,United States,NAMR,"Providers, Systems & Services",Healthcare,83,33,33,83,17,33,66,66,66
+132,Tunisia,EMESA,Banking,Financial Institutions,33,8,33,33,33,33,33,33,50
+P477,United Kingdom,EMESA,Public Sector,Public Sector,66,33,33,83,17,50,83,100,50
+3244,United States,NAMR,Medtech,Healthcare,66,83,50,66,66,100,50,66,66
+186,United States,NAMR,Medtech,Healthcare,17,50,17,33,33,17,50,50,50
+410,Germany,EMESA,Biopharma,Healthcare,50,33,33,33,33,33,50,33,33
+3214,United States,NAMR,"Providers, Systems & Services",Healthcare,66,66,50,66,33,33,33,50,50
+262,United Kingdom,EMESA,Media,TMT,66,33,33,66,66,33,33,33,66
+2093,Spain,EMESA,Banking,Financial Institutions,83,83,66,33,50,17,66,100,8
+1014,United States,NAMR,Medtech,Healthcare,66,33,33,66,33,50,33,17,17
+4232,United States,NAMR,Global Asset Managers,Financial Institutions,66,66,66,66,50,66,66,66,66
+2668,United States,NAMR,Power and Utilities,Energy,50,66,66,66,83,66,66,50,33
+421,Germany,EMESA,Consumer Products,Consumer,66,66,50,50,50,50,50,50,50
+5799,China,APAC,Payments & Fintech,Financial Institutions,66,66,66,66,66,66,66,66,66
+2276,France,EMESA,Consumer Products,Consumer,66,66,66,66,17,33,0,33,17
+1521,United Kingdom,EMESA,Automotive & Mobility,Industrial Goods,100,33,33,33,66,66,66,66,33
+1669,United States,NAMR,Insurance,Insurance,33,50,33,50,17,33,66,66,50
+1905,India,APAC,Aerospace & Defense,Industrial Goods,0,0,0,66,0,0,0,66,33
+735,Australia,APAC,Metals & Mining,Industrial Goods,83,66,33,33,33,50,50,66,100
+1231,France,EMESA,Consumer Products,Consumer,33,33,33,66,0,33,0,33,33
+5359,Germany,EMESA,Oil & Gas,Energy,66,33,33,66,33,33,33,33,33
+P114,United States,NAMR,Public Sector,Public Sector,50,66,50,66,50,33,33,50,66
+420,United States,NAMR,Payments & Fintech,Financial Institutions,33,33,33,50,0,66,66,33,17
+254,United States,NAMR,Biopharma,Healthcare,33,66,33,66,50,66,33,50,33
+213,United States,NAMR,Biopharma,Healthcare,66,33,33,100,33,66,33,33,66
+246,Germany,EMESA,Biopharma,Healthcare,0,33,66,33,50,33,33,33,33
+2824,United States,NAMR,Medtech,Healthcare,50,50,50,66,50,50,33,50,33
+5897,United States,NAMR,Global Asset Managers,Financial Institutions,33,33,33,50,33,17,50,17,0
+4019,United States,NAMR,Machinery & Automation incl. Greentech,Industrial Goods,33,33,0,33,33,33,33,33,0
+1722,United States,NAMR,Media,TMT,50,50,33,33,50,66,50,50,33
+3479,United States,NAMR,Insurance,Insurance,50,17,33,17,50,50,33,50,83
+2303,India,APAC,Logistics & Postal Services,TCI,33,66,33,17,50,33,66,66,66
+2090,United States,NAMR,"Providers, Systems & Services",Healthcare,50,83,50,66,33,33,50,66,66
+478,United States,NAMR,Biopharma,Healthcare,17,0,0,0,17,0,0,33,0
+4469,Australia,APAC,Metals & Mining,Industrial Goods,66,66,33,66,33,66,66,33,66
+172,Canada,NAMR,Banking,Financial Institutions,66,66,83,50,66,66,50,66,83
+3198,Germany,EMESA,Automotive & Mobility,Industrial Goods,66,33,66,66,66,66,83,83,66
+1374,France,EMESA,Banking,Financial Institutions,83,50,66,33,66,50,50,66,66
+917,United States,NAMR,Banking,Financial Institutions,66,66,66,66,83,66,66,66,66
+4656,Hong Kong,APAC,Banking,Financial Institutions,33,0,33,17,0,0,0,33,0
+1918,United Kingdom,EMESA,Fashion & Luxury,Consumer,66,66,33,50,50,66,50,66,0
+2496,United States,NAMR,Rail & Hospitality,TCI,100,100,66,66,66,83,66,100,66
+3424,Germany,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,66,50,33,66,66,50,33,33,50
+403,Germany,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,50,66,50,66,83,83,50,66,83
+1282,France,EMESA,"Construction, Cities and Infrastructure Development",TCI,33,83,50,50,33,17,8,66,50
+822,United Kingdom,EMESA,Oil & Gas,Energy,50,66,100,66,33,66,83,66,17
+3825,Belgium,EMESA,Logistics & Postal Services,TCI,66,66,50,100,17,33,0,66,66
+1362,Brazil,NAMR,Chemicals,Industrial Goods,66,83,66,50,33,50,66,50,66
+1721,Italy,EMESA,Automotive & Mobility,Industrial Goods,66,66,33,50,50,33,17,33,66
+720,Japan,APAC,Automotive & Mobility,Industrial Goods,66,33,66,66,66,0,66,66,33
+2742,United States,NAMR,Biopharma,Healthcare,17,17,17,0,0,17,17,33,17
+2730,United Kingdom,EMESA,Airline,TCI,66,66,8,66,83,66,33,83,66
+369,United Kingdom,EMESA,Oil & Gas,Energy,33,33,33,50,33,17,33,50,33
+2167,United States,NAMR,Software,TMT,17,33,17,66,0,66,66,66,100
+3284,Canada,NAMR,Global Asset Managers,Financial Institutions,66,100,66,100,66,66,100,100,100
+682,Canada,NAMR,Renewables,Energy,33,66,66,0,33,33,0,33,0
+4615,United States,NAMR,Insurance,Insurance,17,33,17,17,17,17,17,17,17
+192,United Kingdom,EMESA,Telecommunications,TMT,83,66,66,83,50,66,50,50,83
+1909,Bulgaria,EMESA,Global Asset Managers,Financial Institutions,66,50,50,50,50,50,17,66,17
+1940,United Kingdom,EMESA,Insurance,Insurance,0,33,33,33,66,100,33,66,66
+1956,United Kingdom,EMESA,Fashion & Luxury,Consumer,0,0,0,17,33,0,0,33,0
+1408,United States,NAMR,Media,TMT,83,66,66,83,50,50,66,66,66
+4958,United States,NAMR,Logistics & Postal Services,TCI,83,66,8,66,33,66,50,66,100
+666,United States,NAMR,Media,TMT,66,66,50,83,50,33,17,50,83
+2768,United States,NAMR,Software,TMT,66,100,66,66,66,66,100,66,66
+1890,Spain,EMESA,Banking,Financial Institutions,100,66,33,66,66,66,33,66,100
+3478,United States,NAMR,Fashion & Luxury,Consumer,100,50,66,66,17,50,33,50,100
+4956,United States,NAMR,Medtech,Healthcare,8,33,8,66,8,33,8,33,8
+5415,United States,NAMR,Insurance,Insurance,66,66,50,66,66,66,33,66,33
+3514,Canada,NAMR,Fashion & Luxury,Consumer,0,0,8,33,0,0,0,8,0
+P112,Canada,NAMR,Public Sector,Public Sector,17,17,17,33,17,17,17,17,0
+160,India,APAC,Banking,Financial Institutions,66,83,66,83,100,66,66,33,66
+5896,Belgium,EMESA,Global Asset Managers,Financial Institutions,66,66,66,33,50,66,66,66,66
+235,United Kingdom,EMESA,Software,TMT,66,100,100,83,83,83,83,100,66
+566,United States,NAMR,Global Asset Managers,Financial Institutions,66,83,50,33,0,33,50,50,66
+5075,United States,NAMR,Medtech,Healthcare,66,100,33,66,33,66,0,33,66
+846,United States,NAMR,Metals & Mining,Industrial Goods,33,33,33,66,66,33,33,33,66
+790,Denmark,EMESA,Consumer Products,Consumer,66,33,66,33,33,33,33,33,8
+3778,United States,NAMR,Rail & Hospitality,TCI,50,33,33,50,50,33,66,66,33
+2284,France,EMESA,Retail,Consumer,33,0,17,50,0,17,17,17,0
+2561,France,EMESA,Fashion & Luxury,Consumer,33,0,33,17,17,17,33,33,33
+6718,Taiwan,APAC,Banking,Financial Institutions,17,66,33,50,50,50,50,33,33
+4021,Hong Kong,APAC,Airline,TCI,50,66,17,66,66,33,33,50,33
+309,United States,NAMR,Retail,Consumer,50,50,50,66,50,50,33,50,33
+2091,United States,NAMR,"Construction, Cities and Infrastructure Development",TCI,17,0,0,33,17,0,17,100,0
+1665,United States,NAMR,Media,TMT,33,66,33,33,33,33,8,8,8
+454,Italy,EMESA,Banking,Financial Institutions,0,0,33,33,0,8,33,0,0
+2149,Philippines,APAC,Airline,TCI,66,33,50,83,33,17,50,66,66
+2831,United States,NAMR,"Providers, Systems & Services",Healthcare,50,66,50,17,33,33,8,33,100
+2137,Mexico,NAMR,"Construction, Cities and Infrastructure Development",TCI,66,33,33,66,33,33,66,33,33
+1251,United States,NAMR,Biopharma,Healthcare,33,33,50,33,17,33,50,33,66
+2080,United States,NAMR,Insurance,Insurance,33,33,33,33,33,33,33,33,33
+P339,United States,NAMR,Public Sector,Public Sector,83,50,50,100,33,83,66,50,50
+2369,Thailand,APAC,Retail,Consumer,83,100,83,66,66,83,33,83,66
+144,Thailand,APAC,Retail,Consumer,0,50,33,17,17,17,33,0,0
+1419,India,APAC,"Construction, Cities and Infrastructure Development",TCI,66,33,17,33,17,66,0,66,0
+5413,United States,NAMR,Medtech,Healthcare,100,100,66,100,66,66,100,100,66
+193,France,EMESA,Logistics & Postal Services,TCI,33,66,66,66,33,33,50,50,83
+676,Czech Republic,EMESA,Power and Utilities,Energy,100,66,0,33,33,33,33,100,0
+763,United States,NAMR,Software,TMT,50,50,66,50,50,33,50,50,50
+221,France,EMESA,Fashion & Luxury,Consumer,33,66,66,66,17,33,50,33,33
+3472,United States,NAMR,Global Asset Managers,Financial Institutions,33,33,33,33,0,0,0,33,0
+2383,United States,NAMR,Global Asset Managers,Financial Institutions,66,33,50,0,17,0,33,66,66
+2059,Israel,EMESA,Software,TMT,50,66,66,50,66,33,50,33,83
+2117,United Kingdom,EMESA,Payments & Fintech,Financial Institutions,83,66,8,66,50,83,50,83,66
+3043,United States,NAMR,Oil & Gas,Energy,33,33,33,0,0,0,0,0,0
+6358,China,APAC,Public Sector,Public Sector,83,83,100,83,83,100,83,83,66
+P2020,China,APAC,Public Sector,Public Sector,66,33,66,66,33,33,33,33,66
+4660,Japan,APAC,Oil & Gas,Energy,0,100,33,33,33,66,0,66,66
+2163,India,APAC,Banking,Financial Institutions,50,66,66,33,66,66,50,50,66
+3570,Hong Kong,APAC,Fashion & Luxury,Consumer,50,17,50,50,33,33,66,33,50
+3672,Hong Kong,APAC,Fashion & Luxury,Consumer,50,17,33,33,33,33,33,50,17
+1252,France,EMESA,Fashion & Luxury,Consumer,17,0,0,50,33,17,17,17,17
+1644,France,EMESA,Fashion & Luxury,Consumer,50,0,33,33,33,0,0,17,66
+807,Switzerland,EMESA,Insurance,Insurance,66,66,33,66,33,33,66,66,33
+2396,United States,NAMR,Consumer Products,Consumer,33,66,66,33,66,33,66,66,66
+4712,United States,NAMR,Insurance,Insurance,33,33,0,33,0,0,8,33,0
+1220,Malaysia,APAC,Banking,Financial Institutions,33,50,33,33,17,33,33,50,50
+267,India,APAC,Biopharma,Healthcare,33,33,66,66,0,33,33,66,33
+433,United States,NAMR,Payments & Fintech,Financial Institutions,100,66,66,100,66,100,100,50,66
+2802,United States,NAMR,Banking,Financial Institutions,0,100,100,100,100,83,100,83,100
+P411,United States,NAMR,Public Sector,Public Sector,50,50,0,50,17,50,0,33,33
+3980,South Korea,APAC,Consumer Products,Consumer,33,17,0,17,0,33,0,33,17
+2475,Switzerland,EMESA,Chemicals,Industrial Goods,66,66,66,66,50,50,33,33,33
+4612,United States,NAMR,Metals & Mining,Industrial Goods,50,33,33,33,50,50,17,33,33
+4220,Hong Kong,APAC,Power and Utilities,Energy,100,66,83,50,66,33,83,100,66
+4288,France,EMESA,Logistics & Postal Services,TCI,100,100,83,100,66,33,66,100,66
+2794,Netherlands,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,100,66,66,66,50,33,66,66,66
+493,France,EMESA,Insurance,Insurance,83,83,50,66,50,66,33,33,50
+1738,Australia,APAC,Medtech,Healthcare,66,33,0,66,0,33,33,100,66
+1281,United States,NAMR,Consumer Products,Consumer,100,66,100,50,100,100,33,100,66
+1650,Denmark,EMESA,Medtech,Healthcare,66,50,50,50,50,33,33,50,66
+5369,United Kingdom,EMESA,Global Asset Managers,Financial Institutions,100,66,66,100,0,100,0,33,66
+3537,United States,NAMR,Telecommunications,TMT,100,0,66,33,0,66,0,8,33
+3202,United States,NAMR,"Providers, Systems & Services",Healthcare,50,0,33,66,50,33,50,33,0
+1455,Switzerland,EMESA,Fashion & Luxury,Consumer,66,17,33,33,17,33,33,66,33
+4665,France,EMESA,Automotive & Mobility,Industrial Goods,83,66,83,66,50,50,66,50,50
+4670,Taiwan,APAC,"Devices, Components, and Semiconductors",TMT,50,50,50,50,50,50,50,33,17
+2397,United States,NAMR,Consumer Products,Consumer,50,66,66,66,50,33,50,33,66
+2451,Germany,EMESA,Automotive & Mobility,Industrial Goods,33,66,66,33,66,33,66,66,66
+1887,United Kingdom,EMESA,Medtech,Healthcare,33,33,0,33,0,50,0,50,33
+3082,Denmark,EMESA,Retail,Consumer,66,33,66,100,66,66,66,33,100
+937,Spain,EMESA,Logistics & Postal Services,TCI,0,0,0,33,0,17,0,0,66
+3979,United States,NAMR,Oil & Gas,Energy,33,0,33,33,33,33,33,33,0
+2746,United States,NAMR,Fashion & Luxury,Consumer,50,50,66,33,17,17,50,66,66
+3154,United States,NAMR,Media,TMT,8,33,17,33,17,0,8,17,50
+2654,Germany,EMESA,Chemicals,Industrial Goods,17,0,0,33,17,0,17,0,0
+2092,United States,NAMR,Automotive & Mobility,Industrial Goods,66,33,83,50,33,66,66,50,33
+1760,United States,NAMR,Software,TMT,33,33,66,33,33,33,33,33,17
+1132,Peru,EMESA,Banking,Financial Institutions,66,66,66,83,66,66,66,66,100
+1226,France,EMESA,Banking,Financial Institutions,33,66,0,33,33,0,0,66,0
+5214,Switzerland,EMESA,Global Asset Managers,Financial Institutions,66,66,0,66,66,66,66,66,66
+4548,Ireland,EMESA,Metals & Mining,Industrial Goods,0,0,17,33,0,0,17,0,0
+1769,United States,NAMR,Fashion & Luxury,Consumer,50,66,50,50,17,50,50,50,66
+1631,India,APAC,Consumer Products,Consumer,66,50,66,66,83,66,66,66,33
+2140,United States,NAMR,Software,TMT,66,100,100,50,66,8,100,50,83
+4673,United States,NAMR,Logistics & Postal Services,TCI,66,17,33,33,33,50,33,17,33
+5037,Hong Kong,APAC,Fashion & Luxury,Consumer,33,33,33,33,33,33,33,33,33
+P415,Australia,APAC,Public Sector,Public Sector,33,33,100,50,66,33,33,33,33
+2156,Australia,APAC,Biopharma,Healthcare,17,50,17,17,17,17,33,33,17
+2447,United States,NAMR,Machinery & Automation incl. Greentech,Industrial Goods,33,17,33,17,33,33,17,33,17
+2638,United States,NAMR,Aerospace & Defense,Industrial Goods,33,0,33,0,17,0,17,17,0
+1030,United States,NAMR,Real Estate,TCI,66,50,50,50,33,66,33,50,66
+218,India,APAC,Software,TMT,66,66,50,50,50,33,33,33,33
+198,India,APAC,Consumer Products,Consumer,50,33,33,33,0,50,17,33,17
+5902,Germany,EMESA,Logistics & Postal Services,TCI,66,0,66,100,0,66,0,33,0
+1715,Japan,APAC,Biopharma,Healthcare,66,66,66,66,33,66,66,33,66
+4716,Germany,EMESA,Automotive & Mobility,Industrial Goods,33,17,33,33,33,17,66,17,17
+1313,United Arab Emirates,EMESA,Insurance,Insurance,66,33,33,33,0,50,33,33,0
+3636,Denmark,EMESA,Software,TMT,83,66,66,66,66,50,100,50,50
+2883,United States,NAMR,Medtech,Healthcare,66,33,33,66,66,66,66,33,66
+4031,France,EMESA,Consumer Products,Consumer,33,0,66,33,33,0,0,33,50
+1011,Denmark,EMESA,Banking,Financial Institutions,66,66,100,100,83,66,66,100,100
+1449,France,EMESA,Software,TMT,100,50,83,66,33,66,66,83,83
+2283,United States,NAMR,Software,TMT,83,50,50,33,66,66,100,66,100
+3201,United States,NAMR,"Providers, Systems & Services",Healthcare,50,17,50,33,50,17,33,33,0
+5765,Germany,EMESA,Logistics & Postal Services,TCI,33,33,33,33,33,33,33,33,33
+P5,Singapore,APAC,Public Sector,Public Sector,0,0,33,17,17,17,50,33,0
+5080,Germany,EMESA,Insurance,Insurance,33,0,33,33,33,33,33,33,33
+289,France,EMESA,Retail,Consumer,33,33,66,50,50,17,66,17,83
+889,India,APAC,Aerospace & Defense,Industrial Goods,66,66,66,66,66,66,66,100,100
+167,Germany,EMESA,Retail,Consumer,66,50,100,100,66,66,100,33,66
+496,United States,NAMR,"Devices, Components, and Semiconductors",TMT,50,66,83,66,66,66,66,66,50
+2192,United States,NAMR,Software,TMT,17,33,17,0,66,50,0,33,0
+949,United States,NAMR,Airline,TCI,66,33,66,100,66,50,100,66,33
+5441,Denmark,EMESA,Medtech,Healthcare,66,66,66,83,50,66,33,66,83
+3055,Japan,APAC,Automotive & Mobility,Industrial Goods,33,33,17,50,17,50,33,33,83
+1031,United States,NAMR,Medtech,Healthcare,33,33,66,50,17,17,50,66,66
+1147,Japan,APAC,Media,TMT,66,17,50,33,33,17,33,83,66
+P376,United Kingdom,EMESA,Public Sector,Public Sector,100,17,0,66,0,17,33,17,33
+P1490,United States,NAMR,Public Sector,Public Sector,17,17,0,0,66,17,33,33,0
+P43,United States,NAMR,Public Sector,Public Sector,0,66,0,33,33,0,33,0,66
+P1920,United Arab Emirates,EMESA,Public Sector,Public Sector,17,0,17,33,0,33,0,33,0
+3132,Germany,EMESA,Logistics & Postal Services,TCI,83,66,17,50,17,33,33,33,17
+2661,Germany,EMESA,Telecommunications,TMT,66,50,50,50,66,50,33,50,66
+3037,India,APAC,Retail,Consumer,50,50,0,33,33,33,33,50,0
+2305,United States,NAMR,Medtech,Healthcare,50,33,50,50,0,50,33,66,50
+2567,Denmark,EMESA,Logistics & Postal Services,TCI,33,33,0,50,17,33,17,33,50
+5320,United Kingdom,EMESA,Insurance,Insurance,33,0,0,33,0,33,0,33,66
+4911,United States,NAMR,Telecommunications,TMT,100,66,66,100,66,66,66,100,66
+1734,India,APAC,"Construction, Cities and Infrastructure Development",TCI,50,50,66,66,33,50,50,50,50
+2304,United States,NAMR,Retail,Consumer,33,0,17,17,0,17,8,17,0
+2501,United States,NAMR,Consumer Products,Consumer,66,33,66,100,33,50,100,50,50
+3266,United States,NAMR,Logistics & Postal Services,TCI,83,83,83,83,83,83,83,66,83
+738,South Korea,APAC,Oil & Gas,Energy,66,33,33,50,33,33,33,66,33
+5523,Australia,APAC,"Construction, Cities and Infrastructure Development",TCI,66,33,33,0,33,33,33,33,33
+38,India,APAC,Biopharma,Healthcare,66,33,33,33,33,66,33,66,33
+2947,Saudi Arabia,EMESA,"Providers, Systems & Services",Healthcare,17,33,17,33,33,33,33,33,33
+1137,United Kingdom,EMESA,Power and Utilities,Energy,66,50,17,0,0,0,17,17,66
+1964,Netherlands,EMESA,Chemicals,Industrial Goods,66,33,50,66,33,50,8,50,66
+1752,Denmark,EMESA,Logistics & Postal Services,TCI,100,33,33,100,50,100,50,66,33
+3191,United Arab Emirates,EMESA,Telecommunications,TMT,66,66,66,66,33,33,66,66,66
+2096,United States,NAMR,Chemicals,Industrial Goods,33,66,100,8,66,66,8,100,8
+4719,Germany,EMESA,Global Asset Managers,Financial Institutions,83,100,66,66,83,83,100,33,66
+37,Germany,EMESA,Automotive & Mobility,Industrial Goods,33,17,33,33,33,33,33,0,33
+1704,United States,NAMR,Software,TMT,100,100,100,100,66,100,100,100,83
+1975,Germany,EMESA,Power and Utilities,Energy,83,33,33,66,50,50,66,100,33
+3460,Germany,EMESA,Automotive & Mobility,Industrial Goods,50,33,33,50,66,33,17,17,17
+293,United States,NAMR,Chemicals,Industrial Goods,83,33,66,100,66,66,66,66,33
+921,India,APAC,Logistics & Postal Services,TCI,66,66,33,33,33,33,33,66,66
+4291,Colombia,EMESA,Oil & Gas,Energy,83,66,50,33,66,66,8,17,50
+2788,United States,NAMR,Consumer Products,Consumer,50,33,50,66,0,17,66,50,50
+1717,Italy,EMESA,Power and Utilities,Energy,66,66,50,50,66,66,66,33,66
+238,Portugal,EMESA,Power and Utilities,Energy,83,66,50,50,33,83,50,50,0
+5305,United States,NAMR,Medtech,Healthcare,33,17,17,0,17,33,17,33,17
+P104,Egypt,EMESA,Public Sector,Public Sector,50,66,50,66,66,66,33,50,66
+1910,Spain,EMESA,Retail,Consumer,50,33,50,66,66,50,33,83,66
+1218,Israel,EMESA,Aerospace & Defense,Industrial Goods,66,33,66,66,33,66,83,66,33
+6215,United States,NAMR,Metals & Mining,Industrial Goods,66,33,0,0,0,0,0,33,0
+4221,Canada,NAMR,Automotive & Mobility,Industrial Goods,66,66,50,83,66,66,83,33,66
+2440,Sweden,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,66,83,66,83,50,50,83,33,50
+2129,United States,NAMR,Media,TMT,66,33,33,50,33,8,8,33,50
+2049,Sweden,EMESA,Medtech,Healthcare,66,0,0,33,0,0,0,33,17
+1336,Brazil,NAMR,Power and Utilities,Energy,17,33,33,33,33,33,17,17,0
+683,United States,NAMR,"Providers, Systems & Services",Healthcare,33,50,33,33,33,17,8,33,50
+1882,United Arab Emirates,EMESA,"Construction, Cities and Infrastructure Development",TCI,33,33,33,33,17,33,33,33,8
+1245,United Arab Emirates,EMESA,Banking,Financial Institutions,66,66,66,66,66,100,66,66,66
+12,Germany,EMESA,Power and Utilities,Energy,33,33,33,66,66,0,66,66,100
+1891,Australia,APAC,Retail,Consumer,50,100,50,66,66,50,66,66,66
+1139,Spain,EMESA,Power and Utilities,Energy,66,66,50,66,50,50,33,66,33
+1468,Italy,EMESA,Renewables,Energy,83,33,50,100,17,33,66,33,66
+1297,Italy,EMESA,Oil & Gas,Energy,50,33,33,66,0,0,33,33,0
+5351,United States,NAMR,"Devices, Components, and Semiconductors",TMT,100,33,33,66,66,33,100,0,8
+3575,United States,NAMR,Automotive & Mobility,Industrial Goods,83,83,83,83,83,83,83,83,83
+5446,United States,NAMR,Oil & Gas,Energy,33,50,33,33,0,0,33,17,17
+3087,United States,NAMR,Media,TMT,66,33,50,66,50,50,33,83,17
+5374,Japan,APAC,Machinery & Automation incl. Greentech,Industrial Goods,0,0,0,0,17,33,0,33,0
+5040,Germany,EMESA,Software,TMT,66,17,0,100,33,33,100,50,17
+3652,Sweden,EMESA,Global Asset Managers,Financial Institutions,66,50,66,66,83,50,83,66,66
+5489,France,EMESA,Metals & Mining,Industrial Goods,66,33,66,66,66,66,33,33,33
+2106,Germany,EMESA,Insurance,Insurance,50,33,50,50,66,66,33,33,33
+1387,Sweden,EMESA,Telecommunications,TMT,33,66,66,50,100,50,66,66,50
+1088,Austria,EMESA,Banking,Financial Institutions,50,33,50,33,33,17,66,66,100
+243,France,EMESA,Fashion & Luxury,Consumer,17,33,17,50,17,0,33,33,66
+1325,Sweden,EMESA,Consumer Products,Consumer,50,50,50,66,50,66,33,33,66
+145,Ethiopia,EMESA,Airline,TCI,33,33,17,50,50,50,33,33,33
+5291,United Arab Emirates,EMESA,Telecommunications,TMT,66,100,33,66,100,33,66,66,100
+471,Kazakhstan,APAC,Metals & Mining,Industrial Goods,33,0,0,33,33,0,17,33,33
+1613,Greece,EMESA,Banking,Financial Institutions,66,83,66,50,66,66,50,8,66
+1642,United States,NAMR,Payments & Fintech,Financial Institutions,33,33,50,33,50,33,0,33,33
+2960,United States,NAMR,Payments & Fintech,Financial Institutions,66,0,8,66,33,33,8,33,0
+P749,Germany,EMESA,Public Sector,Public Sector,66,33,66,33,33,33,66,33,66
+1219,United States,NAMR,Medtech,Healthcare,33,0,33,66,0,33,66,33,33
+502,United States,NAMR,Power and Utilities,Energy,50,50,33,83,50,83,66,100,66
+305,United States,NAMR,Airline,TCI,66,66,100,100,0,8,66,66,0
+2792,United States,NAMR,Logistics & Postal Services,TCI,83,50,8,66,50,8,50,83,33
+1756,United States,NAMR,Software,TMT,33,50,50,33,33,50,50,50,66
+3510,Chile,EMESA,Retail,Consumer,50,66,17,66,33,33,8,33,0
+733,Japan,APAC,Retail,Consumer,33,33,33,17,33,33,33,50,33
+4190,United States,NAMR,Automotive & Mobility,Industrial Goods,66,66,33,33,33,66,8,33,66
+947,United Kingdom,EMESA,Fashion & Luxury,Consumer,100,33,0,66,17,0,8,33,33
+P813,Germany,EMESA,Public Sector,Public Sector,66,50,33,33,33,66,33,33,50
+P812,Nigeria,EMESA,Public Sector,Public Sector,83,50,50,66,50,50,50,50,50
+P647,Germany,EMESA,Public Sector,Public Sector,50,33,8,50,17,17,33,66,17
+3987,United States,NAMR,Global Asset Managers,Financial Institutions,66,50,66,50,33,50,33,50,33
+2405,United States,NAMR,Logistics & Postal Services,TCI,0,0,17,50,50,50,17,17,17
+5905,Taiwan,APAC,Fashion & Luxury,Consumer,100,50,66,83,0,66,33,83,66
+2177,Italy,EMESA,Automotive & Mobility,Industrial Goods,66,17,0,66,0,33,0,33,33
+927,Italy,EMESA,Consumer Products,Consumer,66,33,33,66,33,17,33,66,50
+5307,United States,NAMR,Chemicals,Industrial Goods,66,17,50,66,33,50,33,50,33
+1906,Netherlands,EMESA,"Construction, Cities and Infrastructure Development",TCI,66,66,66,33,50,66,50,100,66
+1711,Germany,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,66,33,33,33,66,50,50,33,33
+1924,Angola,EMESA,Insurance,Insurance,66,17,0,66,0,66,17,50,0
+2148,Germany,EMESA,Logistics & Postal Services,TCI,50,17,0,33,17,17,0,50,0
+2074,United States,NAMR,Banking,Financial Institutions,100,66,66,100,33,66,66,100,66
+2409,Italy,EMESA,Aerospace & Defense,Industrial Goods,66,33,17,50,0,50,17,50,17
+149,United Arab Emirates,EMESA,Banking,Financial Institutions,33,0,33,50,0,0,33,33,0
+2480,United States,NAMR,Insurance,Insurance,50,66,50,66,50,50,33,100,33
+491,United States,NAMR,Software,TMT,100,66,66,100,33,33,33,66,66
+2290,Finland,EMESA,Consumer Products,Consumer,66,50,33,66,0,33,33,33,33
+3770,Hong Kong,APAC,Logistics & Postal Services,TCI,50,17,50,33,33,33,66,17,17
+1774,Australia,APAC,Airline,TCI,66,50,66,66,33,33,50,50,66
+1054,India,APAC,Retail,Consumer,66,66,66,33,66,66,33,50,33
+5977,Germany,EMESA,Global Asset Managers,Financial Institutions,17,33,0,17,33,33,33,33,8
+910,Ireland,EMESA,Media,TMT,50,33,50,66,17,50,50,66,50
+2827,Saudi Arabia,EMESA,Airline,TCI,0,0,0,33,0,0,33,17,0
+190,New Zealand,APAC,Payments & Fintech,Financial Institutions,83,50,50,66,33,50,66,66,50
+1126,New Zealand,APAC,Consumer Products,Consumer,83,66,83,66,66,100,100,83,66
+488,India,APAC,Automotive & Mobility,Industrial Goods,0,0,33,33,33,0,33,33,0
+767,United States,NAMR,Automotive & Mobility,Industrial Goods,66,33,17,33,0,33,17,66,33
+2036,France,EMESA,Automotive & Mobility,Industrial Goods,33,50,33,83,17,50,50,66,66
+4040,United States,NAMR,Logistics & Postal Services,TCI,33,0,33,33,0,0,0,33,0
+3054,United States,NAMR,Fashion & Luxury,Consumer,17,17,33,0,33,17,0,17,17
+5219,Taiwan,APAC,"Devices, Components, and Semiconductors",TMT,66,66,83,50,50,8,50,83,66
+2108,United States,NAMR,Global Asset Managers,Financial Institutions,50,8,17,8,0,8,33,33,8
+2146,Singapore,APAC,"Construction, Cities and Infrastructure Development",TCI,0,0,0,0,0,0,0,33,0
+5447,United States,NAMR,Metals & Mining,Industrial Goods,66,66,33,66,33,66,66,33,66
+3203,Germany,EMESA,Medtech,Healthcare,66,83,66,50,50,50,66,50,66
+377,Germany,EMESA,Biopharma,Healthcare,83,66,66,50,33,50,50,33,66
+2470,Japan,APAC,Biopharma,Healthcare,66,33,50,33,33,50,83,66,33
+4952,Japan,APAC,Machinery & Automation incl. Greentech,Industrial Goods,33,0,0,33,17,33,17,33,17
+P7,Japan,APAC,Software,TMT,50,66,33,33,50,50,66,66,50
+3810,Hong Kong,APAC,Insurance,Insurance,66,66,66,66,66,100,66,66,66
+2338,United States,NAMR,Fashion & Luxury,Consumer,66,33,33,33,33,33,66,33,33
+1663,United States,NAMR,Software,TMT,66,66,0,66,66,66,66,33,100
+2390,United States,NAMR,Medtech,Healthcare,100,83,100,100,83,100,66,100,83
+275,United States,NAMR,Insurance,Insurance,33,33,33,66,33,33,33,66,33
+3218,United States,NAMR,Software,TMT,66,66,83,66,50,66,100,66,66
+3258,Italy,EMESA,Insurance,Insurance,66,100,66,33,100,100,66,66,66
+1935,India,APAC,Software,TMT,33,66,66,66,66,66,33,33,66
+2112,France,EMESA,Logistics & Postal Services,TCI,83,66,66,66,50,66,66,100,33
+517,Switzerland,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,66,50,50,66,33,50,50,50,33
+1380,Brazil,NAMR,Metals & Mining,Industrial Goods,100,66,66,66,50,50,66,66,66
+P413,Germany,EMESA,Public Sector,Public Sector,17,17,17,17,0,33,17,33,17
+5364,China,APAC,Machinery & Automation incl. Greentech,Industrial Goods,83,66,50,66,33,33,66,66,83
+5794,Taiwan,APAC,Retail,Consumer,33,0,0,33,33,0,33,33,0
+2164,United States,NAMR,Biopharma,Healthcare,66,33,66,33,50,0,50,66,33
+5761,Switzerland,EMESA,Consumer Products,Consumer,66,33,33,66,33,66,33,66,33
+1880,Switzerland,EMESA,Metals & Mining,Industrial Goods,66,66,66,83,66,83,66,83,100
+2351,Switzerland,EMESA,Metals & Mining,Industrial Goods,100,66,66,100,66,100,66,66,66
+2630,United States,NAMR,"Devices, Components, and Semiconductors",TMT,33,33,33,66,33,50,66,50,33
+3917,Philippines,APAC,Telecommunications,TMT,83,66,50,100,66,50,66,50,66
+652,India,APAC,Rail & Hospitality,TCI,50,66,33,17,17,33,17,33,66
+5347,Denmark,EMESA,Medtech,Healthcare,66,50,83,50,33,50,33,33,66
+514,United States,NAMR,Banking,Financial Institutions,33,50,33,33,33,50,50,50,17
+4341,United States,NAMR,Software,TMT,100,83,100,100,100,100,100,100,100
+757,Singapore,APAC,Oil & Gas,Energy,66,66,33,50,83,66,8,100,66
+4883,Singapore,APAC,Insurance,Insurance,50,33,50,66,50,33,50,66,50
+2022,United Kingdom,EMESA,Global Asset Managers,Financial Institutions,33,50,33,66,50,83,17,33,50
+2058,Spain,EMESA,Biopharma,Healthcare,33,17,17,33,33,17,17,33,33
+2511,France,EMESA,Media,TMT,50,33,50,50,33,33,66,100,50
+1969,Denmark,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,66,33,66,100,33,33,8,33,33
+1625,Mexico,NAMR,Metals & Mining,Industrial Goods,100,0,66,100,33,66,33,0,33
+477,Italy,EMESA,Power and Utilities,Energy,50,50,33,50,50,50,50,100,33
+1249,United Kingdom,EMESA,Biopharma,Healthcare,100,100,83,50,100,83,100,100,100
+270,Italy,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,50,50,50,66,83,17,50,50,50
+2967,United States,NAMR,Insurance,Insurance,66,66,83,66,66,66,66,66,50
+3928,Italy,EMESA,Fashion & Luxury,Consumer,66,50,50,50,50,50,50,83,66
+2313,United States,NAMR,Software,TMT,33,33,33,33,50,33,33,33,33
+723,Sweden,EMESA,Fashion & Luxury,Consumer,33,33,66,0,33,33,33,33,33
+214,United States,NAMR,Chemicals,Industrial Goods,17,33,17,17,0,50,50,33,0
+6283,China,APAC,Consumer Products,Consumer,83,100,100,100,83,100,83,100,66
+5289,United States,NAMR,Oil & Gas,Energy,33,33,50,33,50,50,33,33,50
+5804,Hong Kong,APAC,Banking,Financial Institutions,83,50,50,50,66,17,50,100,66
+2438,South Korea,APAC,Chemicals,Industrial Goods,17,33,17,66,33,33,17,17,17
+3774,Germany,EMESA,Insurance,Insurance,33,33,33,50,66,50,50,33,50
+1928,Germany,EMESA,Insurance,Insurance,33,17,33,33,33,0,33,0,33
+2528,South Korea,APAC,Aerospace & Defense,Industrial Goods,83,33,83,50,66,66,50,50,0
+5401,South Korea,APAC,Machinery & Automation incl. Greentech,Industrial Goods,17,0,0,33,0,0,0,33,0
+1448,Germany,EMESA,Logistics & Postal Services,TCI,83,66,83,83,83,50,83,66,66
+5319,United Kingdom,EMESA,Oil & Gas,Energy,50,33,50,50,33,33,50,33,50
+2346,United States,NAMR,Automotive & Mobility,Industrial Goods,33,0,0,33,0,0,0,0,0
+3049,United States,NAMR,"Providers, Systems & Services",Healthcare,50,17,66,83,83,50,66,83,17
+1911,India,APAC,Software,TMT,66,50,50,66,66,50,66,66,33
+753,India,APAC,Banking,Financial Institutions,66,33,66,66,33,66,66,33,33
+4760,India,APAC,Insurance,Insurance,50,33,50,66,17,66,17,33,0
+306,United States,NAMR,"Providers, Systems & Services",Healthcare,83,66,66,66,33,66,33,100,100
+825,United States,NAMR,Consumer Products,Consumer,66,50,33,66,33,33,33,50,50
+2644,United States,NAMR,Automotive & Mobility,Industrial Goods,8,66,17,17,8,0,0,33,66
+3777,Greece,EMESA,Oil & Gas,Energy,66,83,100,66,8,83,83,83,66
+1619,Germany,EMESA,Logistics & Postal Services,TCI,33,33,33,33,33,33,8,33,33
+2477,Germany,EMESA,Consumer Products,Consumer,33,50,66,50,50,50,50,50,66
+362,India,APAC,Automotive & Mobility,Industrial Goods,66,33,33,66,50,66,50,50,66
+1158,United States,NAMR,Automotive & Mobility,Industrial Goods,83,50,66,66,50,66,66,33,17
+1346,United States,NAMR,"Devices, Components, and Semiconductors",TMT,50,33,33,33,17,17,33,33,50
+832,United States,NAMR,Oil & Gas,Energy,17,17,0,17,0,17,17,17,33
+5485,United States,NAMR,Insurance,Insurance,33,33,50,50,33,50,0,33,66
+5682,Singapore,APAC,Global Asset Managers,Financial Institutions,66,66,33,66,33,33,8,66,33
+287,United States,NAMR,Rail & Hospitality,TCI,66,33,33,50,50,50,66,100,33
+269,India,APAC,Metals & Mining,Industrial Goods,66,66,17,66,50,50,33,33,50
+P1854,India,APAC,Oil & Gas,Energy,50,50,50,33,50,33,33,66,33
+2490,United States,NAMR,Insurance,Insurance,66,33,8,33,33,66,66,50,66
+5685,China,APAC,"Devices, Components, and Semiconductors",TMT,0,0,0,0,0,0,0,0,0
+200,Mauritius,EMESA,Payments & Fintech,Financial Institutions,33,33,100,66,66,33,33,33,0
+P825,United Kingdom,EMESA,Public Sector,Public Sector,50,0,66,66,33,66,0,33,50
+3119,United States,NAMR,Medtech,Healthcare,33,33,33,17,17,33,17,17,33
+5417,United States,NAMR,Media,TMT,17,33,17,33,33,17,33,17,17
+2019,Japan,APAC,Automotive & Mobility,Industrial Goods,100,33,66,33,66,66,66,66,100
+4653,United States,NAMR,Aerospace & Defense,Industrial Goods,100,100,100,66,100,100,66,66,66
+411,United States,NAMR,Retail,Consumer,50,33,33,50,33,50,33,66,17
+1741,United States,NAMR,Rail & Hospitality,TCI,66,50,50,66,50,33,83,66,83
+1056,United States,NAMR,"Devices, Components, and Semiconductors",TMT,83,33,33,66,33,33,8,66,33
+820,United Kingdom,EMESA,Banking,Financial Institutions,33,33,33,100,0,33,33,33,33
+1660,Germany,EMESA,Fashion & Luxury,Consumer,50,17,33,33,0,33,8,33,33
+3692,Italy,EMESA,"Providers, Systems & Services",Healthcare,50,17,33,33,33,50,33,33,17
+815,United States,NAMR,Aerospace & Defense,Industrial Goods,66,50,66,66,33,50,83,100,33
+510,United States,NAMR,Automotive & Mobility,Industrial Goods,50,33,33,50,33,33,17,66,33
+6615,New Zealand,APAC,Insurance,Insurance,66,66,66,83,50,66,33,66,83
+2513,Spain,EMESA,Airline,TCI,83,66,83,66,17,50,66,83,66
+308,United States,NAMR,Software,TMT,100,100,66,100,66,100,100,100,100
+426,India,APAC,Insurance,Insurance,66,66,66,33,0,33,66,100,66
+4720,United States,NAMR,Media,TMT,83,33,33,66,33,8,17,50,17
+370,Malaysia,APAC,"Providers, Systems & Services",Healthcare,83,66,50,66,50,66,66,83,66
+1141,India,APAC,Banking,Financial Institutions,66,33,66,66,66,66,66,33,66
+2455,Netherlands,EMESA,Retail,Consumer,50,66,33,100,33,50,50,66,66
+3834,Germany,EMESA,Insurance,Insurance,33,33,33,33,33,33,0,66,33
+2142,France,EMESA,Metals & Mining,Industrial Goods,33,0,8,0,0,0,8,0,0
+606,Canada,NAMR,Biopharma,Healthcare,83,83,100,100,83,50,66,100,83
+2964,United Kingdom,EMESA,Banking,Financial Institutions,66,66,83,66,50,50,66,50,66
+121,United Kingdom,EMESA,Consumer Products,Consumer,50,66,83,66,50,66,33,50,66
+2285,Singapore,APAC,Insurance,Insurance,0,33,66,33,0,33,33,33,33
+2436,India,APAC,Insurance,Insurance,66,66,66,66,83,83,66,100,66
+156,India,APAC,Airline,TCI,17,33,50,17,17,33,33,33,0
+2449,Indonesia,APAC,Renewables,Energy,66,33,66,83,66,33,66,50,50
+P1719,Indonesia,APAC,Global Asset Managers,Financial Institutions,17,17,33,33,0,17,0,33,0
+643,Thailand,APAC,Chemicals,Industrial Goods,8,8,33,66,8,66,33,33,8
+2244,Spain,EMESA,Aerospace & Defense,Industrial Goods,66,33,17,33,0,17,17,83,66
+669,India,APAC,Banking,Financial Institutions,33,0,0,33,17,0,0,33,0
+2297,Spain,EMESA,Fashion & Luxury,Consumer,100,50,33,83,50,33,100,83,50
+3822,United Kingdom,EMESA,Chemicals,Industrial Goods,33,0,0,17,0,0,0,33,17
+1439,Germany,EMESA,"Devices, Components, and Semiconductors",TMT,33,33,33,17,33,33,8,33,33
+2772,India,APAC,Software,TMT,83,83,83,100,50,66,83,66,83
+143,Netherlands,EMESA,Banking,Financial Institutions,66,66,66,83,66,83,50,66,66
+P1488,Italy,EMESA,Public Sector,Public Sector,83,83,66,66,17,83,66,33,50
+1020,United States,NAMR,Global Asset Managers,Financial Institutions,33,100,66,66,66,66,66,8,66
+2481,United States,NAMR,Retail,Consumer,66,100,50,100,100,66,83,83,66
+4745,Taiwan,APAC,Software,TMT,66,50,0,66,50,33,66,83,66
+2495,United States,NAMR,"Devices, Components, and Semiconductors",TMT,50,33,50,33,33,17,0,33,0
+P747,United Kingdom,EMESA,Public Sector,Public Sector,50,33,0,33,50,50,0,50,0
+381,United Kingdom,EMESA,Rail & Hospitality,TCI,0,0,0,0,0,66,0,0,0
+2462,United States,NAMR,Chemicals,Industrial Goods,33,0,33,66,33,0,33,33,33
+2721,United States,NAMR,Media,TMT,33,66,33,0,0,33,33,66,0
+813,Italy,EMESA,Banking,Financial Institutions,66,50,50,50,33,33,50,66,66
+3143,United States,NAMR,Payments & Fintech,Financial Institutions,50,33,66,50,66,66,66,50,66
+2042,United States,NAMR,Medtech,Healthcare,83,83,33,50,66,50,66,66,83
+1965,United States,NAMR,Global Asset Managers,Financial Institutions,50,33,33,66,33,50,66,50,66
+1638,France,EMESA,Biopharma,Healthcare,50,33,66,33,33,33,8,50,17
+5409,United Kingdom,EMESA,Global Asset Managers,Financial Institutions,83,50,83,66,17,66,66,66,83
+745,United States,NAMR,Payments & Fintech,Financial Institutions,66,66,66,66,100,66,100,66,66
+2353,Saudi Arabia,EMESA,Retail,Consumer,0,0,0,0,0,0,8,0,0
+1120,Ireland,EMESA,Biopharma,Healthcare,33,33,33,33,0,0,33,33,33
+4921,United States,NAMR,Machinery & Automation incl. Greentech,Industrial Goods,50,33,17,50,17,33,17,33,0
+642,United Kingdom,EMESA,Airline,TCI,100,33,33,100,0,33,0,33,33
+256,United States,NAMR,Airline,TCI,33,50,50,50,50,33,33,50,33
+648,India,APAC,Chemicals,Industrial Goods,66,33,33,66,33,33,66,66,33
+2492,United States,NAMR,"Construction, Cities and Infrastructure Development",TCI,66,0,0,33,0,0,0,66,66
+2147,United States,NAMR,Machinery & Automation incl. Greentech,Industrial Goods,66,83,83,66,66,66,66,83,66
+4036,United States,NAMR,Insurance,Insurance,100,100,66,66,66,66,100,66,100
+1814,United States,NAMR,"Providers, Systems & Services",Healthcare,66,66,66,66,50,66,66,100,66
+242,United States,NAMR,Biopharma,Healthcare,66,50,66,83,66,66,66,83,100
+973,United States,NAMR,Consumer Products,Consumer,83,33,50,17,33,17,33,33,100
+1019,Ireland,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,66,83,83,83,66,66,66,66,83
+1335,United Kingdom,EMESA,Chemicals,Industrial Goods,33,33,17,33,33,17,8,33,17
+2132,United States,NAMR,Banking,Financial Institutions,100,100,100,100,83,83,66,83,100
+5360,United States,NAMR,Banking,Financial Institutions,100,83,100,100,100,100,100,100,100
+2728,India,APAC,Metals & Mining,Industrial Goods,66,33,33,66,33,17,33,33,0
+P1887,Singapore,APAC,"Construction, Cities and Infrastructure Development",TCI,66,50,50,50,50,50,50,66,50
+1140,India,APAC,Retail,Consumer,66,66,66,83,66,66,66,66,50
+1921,Schweiz,EMESA,Global Asset Managers,Financial Institutions,0,33,0,0,17,0,0,33,8
+1418,United States,NAMR,"Devices, Components, and Semiconductors",TMT,100,100,83,100,100,100,66,100,83
+5801,United Kingdom,EMESA,Global Asset Managers,Financial Institutions,66,33,0,0,33,0,0,33,33
+3052,Netherlands,EMESA,Retail,Consumer,83,66,83,83,66,0,83,66,100
+249,India,APAC,"Construction, Cities and Infrastructure Development",TCI,33,100,50,50,66,66,50,66,17
+1013,Japan,APAC,Consumer Products,Consumer,66,66,33,66,66,66,66,33,66
+2079,Germany,EMESA,Medtech,Healthcare,83,66,100,8,50,50,66,66,100
+1388,Germany,EMESA,Retail,Consumer,0,0,33,66,33,0,50,66,0
+2959,Japan,APAC,Telecommunications,TMT,50,33,0,17,50,33,33,50,0
+2485,Kenya,EMESA,Airline,TCI,33,66,66,33,33,50,33,66,33
+1480,France,EMESA,Fashion & Luxury,Consumer,66,33,17,33,17,33,0,33,33
+1303,Ireland,EMESA,Consumer Products,Consumer,66,33,50,50,17,66,50,50,66
+3561,Hong Kong,APAC,Logistics & Postal Services,TCI,66,66,83,66,66,66,66,66,50
+3942,Hong Kong,APAC,Logistics & Postal Services,TCI,33,33,33,33,33,33,33,33,0
+4549,United States,NAMR,Consumer Products,Consumer,50,17,0,66,17,33,33,50,50
+1458,United States,NAMR,Software,TMT,100,100,100,100,66,66,100,100,66
+2657,South Korea,APAC,Automotive & Mobility,Industrial Goods,66,33,66,66,33,83,50,66,50
+1254,United States,NAMR,Oil & Gas,Energy,33,33,33,33,0,33,0,33,33
+2765,United Kingdom,EMESA,Retail,Consumer,33,66,66,100,66,33,33,33,66
+2793,Canada,NAMR,Metals & Mining,Industrial Goods,33,33,33,33,33,33,33,33,0
+3773,Japan,APAC,"Devices, Components, and Semiconductors",TMT,66,33,66,83,33,66,33,66,33
+3939,United States,NAMR,Global Asset Managers,Financial Institutions,66,66,8,83,8,8,8,83,83
+263,Sweden,EMESA,Payments & Fintech,Financial Institutions,66,66,83,83,100,66,66,66,50
+3076,Germany,EMESA,Automotive & Mobility,Industrial Goods,33,50,66,33,33,33,50,33,66
+1889,Sweden,EMESA,Automotive & Mobility,Industrial Goods,50,50,66,50,66,50,50,50,33
+5287,Finland,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,83,66,83,66,83,66,66,33,33
+1883,Finland,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,33,66,33,33,33,33,0,33,33
+3073,Netherlands,EMESA,Telecommunications,TMT,66,50,50,50,33,33,8,50,83
+2120,United States,NAMR,Retail,Consumer,33,0,33,17,33,0,33,17,33
+1755,India,APAC,Banking,Financial Institutions,0,33,33,33,33,66,50,0,33
+4404,India,APAC,Insurance,Insurance,0,8,8,8,33,0,8,66,66
+2136,United States,NAMR,Software,TMT,66,66,66,33,33,66,66,66,66
+3833,United States,NAMR,Consumer Products,Consumer,33,0,0,0,0,0,0,66,33
+4674,Switzerland,EMESA,Logistics & Postal Services,TCI,83,83,66,83,50,66,66,66,66
+1726,Germany,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,33,50,66,50,33,66,50,50,50
+1027,United States,NAMR,Software,TMT,66,66,83,66,66,66,66,83,100
+2521,Japan,APAC,Biopharma,Healthcare,33,33,17,33,17,33,50,50,66
+5410,India,APAC,Banking,Financial Institutions,33,50,8,33,33,50,50,33,33
+4043,United States,NAMR,Aerospace & Defense,Industrial Goods,66,33,33,66,0,33,33,17,0
+5627,France,EMESA,Logistics & Postal Services,TCI,17,17,17,50,33,50,0,33,33
+2151,United States,NAMR,Medtech,Healthcare,17,0,17,0,0,17,0,33,33
+3826,Morocco,EMESA,Chemicals,Industrial Goods,83,50,83,66,33,66,83,83,66
+1895,Morocco,EMESA,"Construction, Cities and Infrastructure Development",TCI,66,66,33,0,0,33,33,66,8
+133,United Kingdom,EMESA,"Construction, Cities and Infrastructure Development",TCI,33,17,33,17,17,33,0,50,0
+P416,Singapore,APAC,Public Sector,Public Sector,50,50,66,50,50,66,66,66,33
+1323,Chile,EMESA,Airline,TCI,83,66,66,66,33,33,33,66,0
+5491,United States,NAMR,"Devices, Components, and Semiconductors",TMT,33,0,0,66,17,17,17,0,0
+6293,Taiwan,APAC,Chemicals,Industrial Goods,33,33,33,33,33,33,33,66,0
+5813,United States,NAMR,Automotive & Mobility,Industrial Goods,33,33,17,0,8,0,0,33,33
+2027,United Kingdom,EMESA,Insurance,Insurance,66,66,33,83,50,66,66,33,0
+201,United States,NAMR,Insurance,Insurance,33,83,100,66,50,33,50,33,66
+3929,Australia,APAC,"Construction, Cities and Infrastructure Development",TCI,50,17,17,33,17,0,0,17,17
+5762,United States,NAMR,Real Estate,TCI,66,50,66,33,66,50,66,100,66
+3821,Hong Kong,APAC,"Devices, Components, and Semiconductors",TMT,33,50,66,50,66,17,50,66,33
+1753,Italy,EMESA,Aerospace & Defense,Industrial Goods,100,66,83,66,50,66,83,83,66
+2919,United States,NAMR,Fashion & Luxury,Consumer,66,33,66,66,66,66,66,66,100
+1484,United States,NAMR,Machinery & Automation incl. Greentech,Industrial Goods,66,66,66,50,83,50,83,66,83
+3638,Hong Kong,APAC,Logistics & Postal Services,TCI,83,83,66,66,50,66,66,66,66
+2954,United States,NAMR,Insurance,Insurance,66,33,50,66,33,50,50,83,66
+1009,Germany,EMESA,Retail,Consumer,66,0,50,66,0,33,0,17,17
+4814,India,APAC,Insurance,Insurance,0,0,0,0,0,17,0,17,0
+1934,Ireland,EMESA,Chemicals,Industrial Goods,50,33,83,66,33,33,66,50,66
+5354,United States,NAMR,Logistics & Postal Services,TCI,50,33,83,66,50,50,50,66,100
+5677,United States,NAMR,Media,TMT,33,17,0,0,66,17,0,0,33
+1513,United Kingdom,EMESA,Medtech,Healthcare,50,17,17,33,17,33,17,17,33
+1900,United Kingdom,EMESA,Banking,Financial Institutions,66,66,66,66,50,66,66,33,66
+1577,France,EMESA,Consumer Products,Consumer,66,33,50,100,33,66,50,33,50
+2191,United States,NAMR,Aerospace & Defense,Industrial Goods,100,100,100,100,100,100,100,100,100
+5816,Switzerland,EMESA,Global Asset Managers,Financial Institutions,50,33,17,33,17,33,0,33,66
+2389,United States,NAMR,Global Asset Managers,Financial Institutions,66,33,66,50,50,33,50,33,33
+4659,China,APAC,Renewables,Energy,66,17,66,33,17,17,33,17,33
+481,Switzerland,EMESA,Biopharma,Healthcare,33,33,17,50,66,0,0,33,33
+902,France,EMESA,Consumer Products,Consumer,66,0,33,66,33,33,33,66,0
+1227,United Kingdom,EMESA,Automotive & Mobility,Industrial Goods,33,17,17,17,17,0,66,50,0
+1474,United States,NAMR,Global Asset Managers,Financial Institutions,66,66,66,66,83,66,83,83,100
+3947,Poland,EMESA,Fashion & Luxury,Consumer,66,33,66,66,66,33,66,100,100
+129,United Kingdom,EMESA,Payments & Fintech,Financial Institutions,50,17,17,100,0,17,33,17,66
+417,India,APAC,Software,TMT,83,100,100,83,100,83,83,83,83
+5716,United States,NAMR,Automotive & Mobility,Industrial Goods,33,0,17,33,0,33,17,17,17
+425,Germany,EMESA,Airline,TCI,33,66,33,50,33,33,33,33,33
+2448,Germany,EMESA,Airline,TCI,66,50,66,33,17,33,50,17,50
+518,Canada,NAMR,Fashion & Luxury,Consumer,33,17,17,33,17,17,33,33,33
+1656,United States,NAMR,Telecommunications,TMT,83,83,83,50,66,66,83,83,83
+3421,Sweden,EMESA,"Devices, Components, and Semiconductors",TMT,50,50,17,0,100,66,33,83,33
+1399,India,APAC,Biopharma,Healthcare,17,33,17,50,33,33,17,33,17
+1512,Australia,APAC,"Construction, Cities and Infrastructure Development",TCI,66,50,33,100,66,66,100,83,66
+5356,United States,NAMR,Logistics & Postal Services,TCI,66,66,66,50,17,17,66,66,83
+2828,Australia,APAC,Banking,Financial Institutions,83,33,83,66,83,33,50,50,100
+838,United States,NAMR,Retail,Consumer,66,50,66,50,66,66,66,50,66
+1149,Canada,NAMR,Automotive & Mobility,Industrial Goods,33,33,33,33,33,50,33,33,33
+234,India,APAC,Automotive & Mobility,Industrial Goods,50,66,66,33,50,17,66,66,83
+154,United Arab Emirates,EMESA,Retail,Consumer,83,33,83,100,33,83,0,66,0
+5302,India,APAC,Rail & Hospitality,TCI,83,83,83,83,83,83,66,83,50
+294,Malaysia,APAC,Banking,Financial Institutions,83,33,50,66,66,50,33,66,66
+3471,Germany,EMESA,Automotive & Mobility,Industrial Goods,33,17,17,33,0,17,17,17,17
+5445,Hong Kong,APAC,Rail & Hospitality,TCI,33,0,33,0,0,17,0,0,33
+516,United States,NAMR,Software,TMT,66,33,33,66,33,66,33,17,50
+237,Canada,NAMR,Insurance,Insurance,66,33,33,66,50,66,66,66,33
+484,Spain,EMESA,Insurance,Insurance,33,33,50,50,33,17,50,66,100
+5076,United States,NAMR,Insurance,Insurance,66,33,33,33,33,33,33,33,66
+2471,United Kingdom,EMESA,Retail,Consumer,66,0,33,66,66,33,0,50,0
+2494,United States,NAMR,Rail & Hospitality,TCI,83,50,83,50,66,83,33,100,66
+2722,India,APAC,Automotive & Mobility,Industrial Goods,17,33,0,17,33,66,17,33,0
+4188,United States,NAMR,"Devices, Components, and Semiconductors",TMT,66,33,100,100,66,100,100,66,100
+2823,United States,NAMR,MedTech,Healthcare,50,66,33,50,33,33,17,33,66
+4547,United States,NAMR,Insurance,Insurance,50,83,66,50,66,50,66,66,83
+826,United States,NAMR,Payments & Fintech,Financial Institutions,50,66,83,83,66,50,50,66,100
+5481,India,APAC,"Providers, Systems & Services",Healthcare,50,33,50,33,33,33,33,50,17
+2676,United States,NAMR,"Providers, Systems & Services",Healthcare,33,83,50,50,33,50,66,50,100
+3982,Germany,EMESA,Automotive & Mobility,Industrial Goods,0,0,33,0,0,0,0,0,33
+3474,United States,NAMR,Retail,Consumer,66,33,17,33,17,0,33,17,17
+1989,United States,NAMR,"Providers, Systems & Services",Healthcare,66,33,66,33,83,100,0,33,33
+2499,India,APAC,"Providers, Systems & Services",Healthcare,66,100,66,33,66,33,66,83,66
+5979,Taiwan,APAC,"Devices, Components, and Semiconductors",TMT,100,100,100,66,66,66,66,100,33
+3253,Australia,APAC,Insurance,Insurance,66,0,8,33,50,0,8,83,50
+4962,United States,NAMR,Medtech,Healthcare,50,50,66,50,50,50,66,50,50
+1253,Ireland,EMESA,Medtech,Healthcare,50,33,33,66,33,33,50,50,33
+2098,Romania,EMESA,Retail,Consumer,66,50,33,66,33,33,33,66,50
+4016,China,APAC,Retail,Consumer,83,66,66,83,66,66,83,100,8
+468,Germany,EMESA,Automotive & Mobility,Industrial Goods,50,66,50,50,50,33,50,50,66
+2176,Germany,EMESA,Biopharma,Healthcare,66,33,66,66,33,33,33,33,33
+4917,United States,NAMR,Media,TMT,66,50,83,100,83,83,83,50,66
+211,India,APAC,Chemicals,Industrial Goods,50,66,50,66,50,50,50,33,33
+2673,United States,NAMR,Medtech,Healthcare,33,0,0,0,0,33,8,33,0
+4675,United Kingdom,EMESA,Rail & Hospitality,TCI,66,33,0,66,33,83,17,66,66
+P923,United States,NAMR,Public Sector,Public Sector,33,33,66,66,66,33,33,33,33
+1155,United States,NAMR,Media,TMT,83,100,66,100,100,100,100,100,100
+2188,United States,NAMR,Global Asset Managers,Financial Institutions,33,66,50,66,33,50,66,100,50
+897,United States,NAMR,Insurance,Insurance,66,50,66,66,66,66,100,50,83
+480,Canada,NAMR,Retail,Consumer,50,33,33,33,33,17,8,66,50
+5752,Australia,APAC,Metals & Mining,Industrial Goods,66,50,66,83,66,66,50,66,66
+2286,United States,NAMR,Machinery & Automation incl. Greentech,Industrial Goods,0,17,17,17,17,17,17,0,0
+3847,United Kingdom,EMESA,Fashion & Luxury,Consumer,66,33,33,33,33,33,33,66,33
+5416,United States,NAMR,"Devices, Components, and Semiconductors",TMT,8,33,50,83,17,33,33,50,8
+5375,United States,NAMR,"Devices, Components, and Semiconductors",TMT,33,50,50,66,83,66,66,83,50
+1135,United States,NAMR,Software,TMT,83,100,83,100,83,66,100,83,100
+5671,China,APAC,Consumer Products,Consumer,66,33,33,33,66,66,33,50,0
+229,Luxembourg,EMESA,Telecommunications,TMT,66,50,50,66,0,33,50,83,66
+296,India,APAC,Software,TMT,66,66,83,50,66,83,66,50,66
+P1056,United Kingdom,EMESA,Public Sector,Public Sector,66,66,83,66,66,66,83,66,83
+P109,Saudi Arabia,EMESA,Public Sector,Public Sector,100,66,83,83,66,66,100,66,66
+P1987,Indonesia,APAC,Public Sector,Public Sector,66,50,66,66,50,66,50,50,50
+P1656,New Zealand,APAC,Public Sector,Public Sector,17,17,0,17,0,17,0,66,0
+P2122,Indonesia,APAC,Public Sector,Public Sector,66,50,50,50,50,33,50,33,50
+P138,India,APAC,Public Sector,Public Sector,83,33,50,50,17,17,50,50,33
+P410,Saudi Arabia,EMESA,Public Sector,Public Sector,33,33,50,66,50,17,33,66,33
+P958,Saudi Arabia,EMESA,Public Sector,Public Sector,33,0,50,50,66,66,33,50,33
+P1654,New Zealand,APAC,Public Sector,Public Sector,33,50,33,66,33,50,33,33,33
+P1156,Saudi Arabia,EMESA,Public Sector,Public Sector,66,50,66,50,83,66,83,50,50
+5437,Hong Kong,APAC,Rail & Hospitality,TCI,66,33,33,33,0,33,0,33,0
+2356,Japan,APAC,Chemicals,Industrial Goods,66,66,66,33,50,66,50,33,50
+4018,Japan,APAC,"Devices, Components, and Semiconductors",TMT,66,33,50,50,66,66,50,50,66
+5763,Japan,APAC,Global Asset Managers,Financial Institutions,33,33,33,66,66,33,66,33,33
+1461,Japan,APAC,Global Asset Managers,Financial Institutions,66,66,33,100,66,66,66,100,66
+4963,Japan,APAC,Metals & Mining,Industrial Goods,66,66,66,66,66,66,8,66,66
+492,Japan,APAC,Banking,Financial Institutions,33,33,33,33,0,0,33,0,33
+5041,Hong Kong,APAC,Medtech,Healthcare,66,100,83,100,66,83,83,100,66
+3079,Sweden,EMESA,Media,TMT,66,66,66,66,66,66,66,66,83
+2124,Hungary,EMESA,Oil & Gas,Energy,83,33,50,17,33,66,8,66,50
+1992,United States,NAMR,"Providers, Systems & Services",Healthcare,33,17,17,33,33,17,17,33,0
+1438,United States,NAMR,Consumer Products,Consumer,33,17,0,33,0,17,0,33,33
+3765,South Africa,EMESA,Insurance,Insurance,8,0,100,66,8,100,0,100,8
+5342,Italy,EMESA,Fashion & Luxury,Consumer,66,0,0,33,0,0,33,33,0
+5340,United States,NAMR,Consumer Products,Consumer,83,66,66,83,66,83,66,66,66
+4721,United States,NAMR,Aerospace & Defense,Industrial Goods,33,50,33,66,33,66,100,50,66
+277,United States,NAMR,Banking,Financial Institutions,66,50,50,66,50,66,66,50,66
+487,Greece,EMESA,Oil & Gas,Energy,50,50,50,50,50,50,66,66,33
+532,India,APAC,Software,TMT,83,66,100,100,100,83,83,100,33
+5209,Japan,APAC,Insurance,Insurance,8,50,0,17,50,33,8,33,8
+2135,Norway,EMESA,Biopharma,Healthcare,83,50,66,66,50,66,50,33,83
+1024,South Africa,EMESA,Telecommunications,TMT,66,66,66,66,33,66,66,66,33
+401,Germany,EMESA,Insurance,Insurance,66,33,17,33,50,50,33,33,50
+4184,United States,NAMR,Oil & Gas,Energy,83,66,66,83,50,83,66,83,66
+2658,Philippines,APAC,Payments & Fintech,Financial Institutions,100,100,66,100,66,66,66,100,66
+1125,Netherlands,EMESA,Rail & Hospitality,TCI,33,33,33,66,66,33,50,66,17
+367,Australia,APAC,Banking,Financial Institutions,33,66,66,66,66,83,33,66,66
+1217,United Kingdom,EMESA,Power and Utilities,Energy,50,66,66,50,50,33,8,50,66
+1768,United States,NAMR,Insurance,Insurance,83,83,83,66,66,66,83,83,100
+2388,France,EMESA,Global Asset Managers,Financial Institutions,100,66,66,66,100,66,66,100,100
+2949,Brazil,NAMR,Consumer Products,Consumer,50,17,17,33,33,33,0,33,0
+834,Spain,EMESA,Automotive & Mobility,Industrial Goods,33,33,33,33,33,33,66,33,33
+3467,United States,NAMR,Media,TMT,50,66,50,66,33,50,8,33,50
+2880,Australia,APAC,Telecommunications,TMT,66,66,100,83,50,50,83,100,83
+P103,Saudi Arabia,EMESA,Public Sector,Public Sector,50,66,50,50,83,83,66,50,50
+3815,Finland,EMESA,Oil & Gas,Energy,66,50,50,17,33,50,33,83,50
+1006,Switzerland,EMESA,Consumer Products,Consumer,66,33,33,83,33,33,50,83,17
+404,United States,NAMR,Software,TMT,66,66,50,83,66,50,66,83,66
+1023,United States,NAMR,Media,TMT,100,33,33,100,33,100,66,50,66
+302,United States,NAMR,Global Asset Managers,Financial Institutions,50,33,50,17,33,17,0,66,0
+5222,United States,NAMR,Insurance,Insurance,33,17,66,50,0,33,17,33,50
+2282,United States,NAMR,Retail,Consumer,66,33,33,50,17,50,50,50,33
+2815,United States,NAMR,Media,TMT,66,83,66,8,33,17,8,66,17
+1400,United States,NAMR,Media,TMT,83,0,17,17,17,17,33,0,0
+764,United States,NAMR,"Providers, Systems & Services",Healthcare,33,33,100,66,50,33,0,50,33
+1618,United States,NAMR,Renewables,Energy,66,66,66,66,66,66,66,66,66
+640,Israel,EMESA,Payments & Fintech,Financial Institutions,66,17,66,66,17,17,66,33,17
+1360,United States,NAMR,Fashion & Luxury,Consumer,50,33,33,33,17,33,33,33,0
+2241,India,APAC,Insurance,Insurance,66,0,8,8,0,33,8,33,0
+2393,Japan,APAC,Global Asset Managers,Financial Institutions,66,66,66,66,33,66,66,100,66
+1930,Finland,EMESA,Banking,Financial Institutions,50,17,17,50,17,50,17,17,17
+2976,United States,NAMR,Retail,Consumer,33,17,17,33,33,17,17,33,0
+2306,Norway,EMESA,Metals & Mining,Industrial Goods,66,17,33,33,33,33,33,33,33
+1152,United States,NAMR,Banking,Financial Institutions,50,50,33,66,50,33,66,33,33
+776,United States,NAMR,Aerospace & Defense,Industrial Goods,66,33,33,66,33,66,33,33,33
+3153,United States,NAMR,Rail & Hospitality,TCI,33,33,33,100,33,0,33,33,33
+3251,United States,NAMR,Software,TMT,66,66,100,66,100,100,100,100,66
+3245,Netherlands,EMESA,Chemicals,Industrial Goods,66,66,33,33,50,33,50,33,33
+2087,Switzerland,EMESA,Biopharma,Healthcare,100,66,8,66,66,83,8,50,100
+166,Denmark,EMESA,Biopharma,Healthcare,33,50,33,33,33,0,33,17,33
+1670,United States,NAMR,Power and Utilities,Energy,66,66,33,33,17,33,0,33,100
+16,Australia,APAC,"Construction, Cities and Infrastructure Development",TCI,0,0,0,0,17,17,0,17,0
+2097,United Kingdom,EMESA,"Providers, Systems & Services",Healthcare,33,17,50,66,0,0,33,66,50
+2720,United States,NAMR,Global Asset Managers,Financial Institutions,83,83,66,66,66,66,66,66,66
+2181,United States,NAMR,"Devices, Components, and Semiconductors",TMT,66,100,100,66,100,100,100,66,83
+P1653,Saudi Arabia,EMESA,Public Sector,Public Sector,66,50,66,50,33,50,33,33,50
+189,Netherlands,EMESA,"Devices, Components, and Semiconductors",TMT,66,33,33,66,33,66,0,33,33
+142,Singapore,APAC,Banking,Financial Institutions,66,66,33,66,66,33,100,66,66
+5366,United States,NAMR,Metals & Mining,Industrial Goods,83,50,66,66,66,50,50,50,50
+2969,United States,NAMR,"Providers, Systems & Services",Healthcare,33,66,50,50,50,66,33,33,83
+1148,South Korea,APAC,Chemicals,Industrial Goods,66,17,66,50,33,33,33,66,17
+1973,Morocco,EMESA,Chemicals,Industrial Goods,66,33,33,66,33,33,0,33,0
+2253,United States,NAMR,Chemicals,Industrial Goods,33,33,33,33,33,33,0,33,66
+P1757,India,APAC,Oil & Gas,Energy,66,33,0,0,33,17,0,33,0
+1138,United States,NAMR,Software,TMT,66,83,66,66,66,66,66,100,33
+843,India,APAC,Automotive & Mobility,Industrial Goods,33,50,66,50,66,50,33,33,33
+1258,Singapore,APAC,Consumer Products,Consumer,66,66,66,33,0,33,33,100,0
+1018,South Africa,EMESA,Insurance,Insurance,83,66,50,66,100,83,83,66,0
+2712,United States,NAMR,Media,TMT,33,33,66,0,33,66,66,100,0
+4714,Japan,APAC,Machinery & Automation incl. Greentech,Industrial Goods,66,50,83,66,83,33,50,66,50
+148,Austria,EMESA,Oil & Gas,Energy,50,66,33,50,50,33,33,66,50
+3193,Switzerland,EMESA,Fashion & Luxury,Consumer,33,17,0,50,0,0,33,50,0
+1908,United States,NAMR,"Devices, Components, and Semiconductors",TMT,66,100,33,66,33,33,33,66,66
+2628,Qatar,EMESA,Telecommunications,TMT,100,66,66,66,33,66,33,100,0
+1936,Canada,NAMR,Software,TMT,66,50,66,83,33,50,66,66,66
+664,United Kingdom,EMESA,Telecommunications,TMT,66,66,0,33,0,33,33,33,33
+2363,United States,NAMR,Software,TMT,100,100,33,100,100,100,100,100,100
+913,France,EMESA,Telecommunications,TMT,66,17,66,17,66,66,17,33,66
+2502,Egypt,EMESA,Real Estate,TCI,66,66,33,66,33,66,66,66,33
+P753,United States,NAMR,Public Sector,Public Sector,66,0,0,0,0,17,0,17,0
+2678,Australia,APAC,Chemicals,Industrial Goods,100,33,66,66,33,66,66,66,66
+2063,Poland,EMESA,Oil & Gas,Energy,66,33,0,66,0,0,33,0,66
+2798,United States,NAMR,Machinery & Automation incl. Greentech,Industrial Goods,66,33,50,0,50,50,8,50,100
+2371,Japan,APAC,Biopharma,Healthcare,66,66,66,66,100,100,100,66,66
+1026,United States,NAMR,"Providers, Systems & Services",Healthcare,83,33,33,50,83,66,50,33,66
+2767,India,APAC,"Devices, Components, and Semiconductors",TMT,66,100,33,66,33,83,66,66,33
+2507,United States,NAMR,Media,TMT,66,33,66,66,50,50,66,66,66
+656,Finland,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,100,83,17,100,66,83,33,100,50
+5220,Germany,EMESA,Medtech,Healthcare,17,33,0,17,0,17,17,50,33
+2613,United States,NAMR,Payments & Fintech,Financial Institutions,66,100,100,66,66,66,100,100,100
+2071,United Kingdom,EMESA,Payments & Fintech,Financial Institutions,50,66,33,66,0,17,17,33,17
+2633,India,APAC,Payments & Fintech,Financial Institutions,17,17,0,33,0,0,50,0,33
+4216,Hong Kong,APAC,Telecommunications,TMT,66,33,33,66,50,50,50,50,50
+479,United Kingdom,EMESA,Media,TMT,66,66,33,33,33,33,83,83,83
+831,Germany,EMESA,Fashion & Luxury,Consumer,66,33,17,33,33,17,33,50,17
+278,United States,NAMR,Software,TMT,66,100,50,83,66,50,83,83,100
+P1190,Mexico,NAMR,Oil & Gas,Energy,0,66,33,33,33,33,0,33,0
+304,United States,NAMR,Automotive & Mobility,Industrial Goods,66,50,8,83,66,33,50,50,50
+285,United States,NAMR,Consumer Products,Consumer,0,17,17,33,17,33,17,17,0
+3418,Denmark,EMESA,"Construction, Cities and Infrastructure Development",TCI,66,50,66,66,33,66,33,66,66
+2128,United States,NAMR,Medtech,Healthcare,33,66,33,66,33,33,33,0,66
+P2021,Brazil,NAMR,Oil & Gas,Energy,66,0,0,66,0,0,8,33,8
+P1686,Malaysia,APAC,Oil & Gas,Energy,33,33,33,33,33,33,33,33,66
+P924,Malaysia,APAC,Chemicals,Industrial Goods,17,33,33,33,17,33,0,33,17
+1922,United States,NAMR,Biopharma,Healthcare,50,50,66,50,33,50,66,66,33
+1897,United States,NAMR,Consumer Products,Consumer,66,66,66,66,83,66,66,50,100
+1763,Netherlands,EMESA,Medtech,Healthcare,66,66,83,66,66,66,66,66,66
+571,Italy,EMESA,Automotive & Mobility,Industrial Goods,0,17,33,33,17,17,0,17,0
+2065,Switzerland,EMESA,Banking,Financial Institutions,66,50,50,66,50,50,50,66,66
+837,India,APAC,Renewables,Energy,33,17,17,8,33,33,8,50,0
+2476,United States,NAMR,Global Asset Managers,Financial Institutions,50,66,50,66,50,50,66,66,66
+3759,China,APAC,Insurance,Insurance,50,50,33,50,33,50,33,100,66
+1654,United States,NAMR,Payments & Fintech,Financial Institutions,83,50,83,66,50,100,33,66,66
+3669,United States,NAMR,Global Asset Managers,Financial Institutions,17,0,17,33,0,0,33,17,0
+P1620,United States,NAMR,Public Sector,Public Sector,66,50,66,66,66,50,50,33,33
+3122,India,APAC,"Devices, Components, and Semiconductors",TMT,100,66,8,100,8,8,8,66,66
+3180,India,APAC,"Devices, Components, and Semiconductors",TMT,33,33,33,66,33,66,66,66,33
+1554,Malaysia,APAC,Logistics & Postal Services,TCI,33,33,8,33,66,66,66,66,33
+2368,Italy,EMESA,Logistics & Postal Services,TCI,66,33,33,66,66,50,33,33,66
+2962,Norway,EMESA,Logistics & Postal Services,TCI,66,33,33,50,17,17,50,33,66
+5753,Taiwan,APAC,Fashion & Luxury,Consumer,66,66,66,66,66,66,33,66,33
+1146,United States,NAMR,Automotive & Mobility,Industrial Goods,50,33,50,50,0,33,33,33,33
+1410,Italy,EMESA,Fashion & Luxury,Consumer,50,33,17,66,33,33,17,66,66
+759,United States,NAMR,Consumer Products,Consumer,83,33,50,83,50,50,33,83,66
+3137,United States,NAMR,Insurance,Insurance,83,33,50,50,17,50,33,50,66
+1629,United States,NAMR,Software,TMT,66,33,66,66,66,66,66,66,100
+1087,Germany,EMESA,Media,TMT,83,66,66,66,66,50,66,66,50
+2801,United States,NAMR,"Providers, Systems & Services",Healthcare,66,66,33,50,33,17,33,50,66
+762,United States,NAMR,Banking,Financial Institutions,66,33,33,66,50,66,83,33,66
+1301,Indonesia,APAC,Banking,Financial Institutions,83,33,17,66,50,50,33,66,33
+P134,Indonesia,APAC,Public Sector,Public Sector,66,33,50,66,50,66,33,33,33
+P990,Indonesia,APAC,Public Sector,Public Sector,66,66,66,33,33,66,66,100,33
+3238,Indonesia,APAC,Retail,Consumer,50,50,33,33,50,50,33,66,50
+1732,Indonesia,APAC,Real Estate,TCI,0,33,0,33,17,33,66,66,100
+P101,Saudi Arabia,EMESA,Public Sector,Public Sector,66,0,8,66,66,33,8,33,0
+P481,Canada,NAMR,Public Sector,Public Sector,66,33,33,66,66,50,83,50,66
+171,France,EMESA,Media,TMT,66,66,33,66,33,17,50,66,33
+646,Germany,EMESA,Retail,Consumer,50,17,17,33,17,17,33,33,17
+497,United Arab Emirates,EMESA,"Providers, Systems & Services",Healthcare,33,66,17,33,17,17,33,33,0
+1017,Canada,NAMR,Logistics & Postal Services,TCI,17,33,17,33,0,0,0,17,33
+1153,United States,NAMR,Fashion & Luxury,Consumer,33,33,50,17,33,33,66,50,0
+1228,Estonia,EMESA,Insurance,Insurance,66,33,83,83,50,66,50,66,66
+2460,Australia,APAC,Airline,TCI,50,0,17,100,0,33,33,33,33
+1759,Qatar,EMESA,Airline,TCI,66,66,66,83,50,33,66,100,33
+P713,Qatar,EMESA,Public Sector,Public Sector,66,33,0,0,33,66,8,33,33
+3430,Qatar,EMESA,Oil & Gas,Energy,33,66,66,66,100,33,66,66,33
+3563,Australia,APAC,Insurance,Insurance,50,66,66,83,17,50,17,66,66
+1339,Germany,EMESA,Biopharma,Healthcare,50,33,17,33,33,33,66,50,50
+3219,United Kingdom,EMESA,Aerospace & Defense,Industrial Goods,83,0,8,83,0,0,8,33,0
+3213,United States,NAMR,"Devices, Components, and Semiconductors",TMT,83,100,66,100,83,83,66,100,66
+4180,Taiwan,APAC,"Devices, Components, and Semiconductors",TMT,66,17,33,33,33,17,17,33,33
+P1455,Australia,APAC,Public Sector,Public Sector,50,50,50,17,17,17,17,50,83
+2829,United States,NAMR,Medtech,Healthcare,100,66,100,50,33,50,66,100,100
+3428,United States,NAMR,Fashion & Luxury,Consumer,17,33,17,0,17,17,66,17,17
+2819,United States,NAMR,Aerospace & Defense,Industrial Goods,50,83,50,33,33,66,17,50,33
+5490,Taiwan,APAC,"Devices, Components, and Semiconductors",TMT,17,33,0,0,17,0,17,17,0
+1653,United Kingdom,EMESA,Consumer Products,Consumer,66,33,33,17,17,66,33,66,33
+1331,United States,NAMR,Software,TMT,66,66,17,66,50,50,50,50,50
+1429,Saudi Arabia,EMESA,"Construction, Cities and Infrastructure Development",TCI,33,0,0,0,0,17,33,0,0
+P37,France,EMESA,Public Sector,Public Sector,83,83,83,66,66,66,66,83,100
+1475,United States,NAMR,Insurance,Insurance,33,17,50,66,17,17,17,50,17
+360,India,APAC,Oil & Gas,Energy,66,66,66,66,83,83,66,100,33
+152,India,APAC,Retail,Consumer,50,33,66,50,33,33,33,100,33
+3041,France,EMESA,Automotive & Mobility,Industrial Goods,66,66,33,66,33,50,33,33,33
+3949,Japan,APAC,"Devices, Components, and Semiconductors",TMT,66,66,17,66,66,50,66,66,33
+203,Spain,EMESA,Oil & Gas,Energy,66,66,50,50,17,50,33,66,66
+P748,Saudi Arabia,EMESA,Public Sector,Public Sector,66,66,50,66,66,50,50,66,66
+3473,Germany,EMESA,Aerospace & Defense,Industrial Goods,66,66,66,66,66,83,50,50,83
+2421,United Kingdom,EMESA,Metals & Mining,Industrial Goods,50,50,66,66,50,83,50,66,50
+2077,Saudi Arabia,EMESA,Banking,Financial Institutions,33,0,0,17,17,0,17,17,0
+1157,United States,NAMR,Global Asset Managers,Financial Institutions,33,33,0,66,33,33,66,33,0
+482,Switzerland,EMESA,Biopharma,Healthcare,17,0,50,17,17,66,66,33,33
+3527,Canada,NAMR,Telecommunications,TMT,66,50,66,66,50,50,33,50,66
+2666,United States,NAMR,Media,TMT,100,17,33,100,17,33,50,50,0
+176,United Kingdom,EMESA,Power and Utilities,Energy,66,50,66,66,66,66,50,50,66
+374,Russia,EMESA,Oil & Gas,Energy,17,0,0,33,17,0,50,17,0
+5313,United Kingdom,EMESA,"Construction, Cities and Infrastructure Development",TCI,50,33,33,66,33,33,17,33,33
+P135,Saudi Arabia,EMESA,Public Sector,Public Sector,33,33,0,33,33,17,0,8,66
+118,India,APAC,Automotive & Mobility,Industrial Goods,0,0,0,17,0,0,17,0,0
+P884,United Kingdom,EMESA,Public Sector,Public Sector,83,17,0,33,17,33,17,50,0
+1746,United Kingdom,EMESA,Logistics & Postal Services,TCI,0,33,33,33,33,33,33,0,33
+3936,United Kingdom,EMESA,Logistics & Postal Services,TCI,17,0,33,33,33,33,0,33,17
+2085,United States,NAMR,Chemicals,Industrial Goods,50,50,66,50,66,66,50,50,66
+2162,United States,NAMR,Global Asset Managers,Financial Institutions,50,33,33,8,17,17,8,33,17
+126,Germany,EMESA,Power and Utilities,Energy,33,0,33,17,0,17,0,17,33
+1740,Ireland,EMESA,Airline,TCI,66,100,83,50,33,66,66,100,0
+848,United States,NAMR,Logistics & Postal Services,TCI,83,33,100,50,83,100,50,66,50
+4023,Sweden,EMESA,Aerospace & Defense,Industrial Goods,66,66,50,66,50,66,50,83,83
+3422,Turkey,EMESA,Global Asset Managers,Financial Institutions,33,50,33,66,33,66,0,33,17
+811,Saudi Arabia,EMESA,Chemicals,Industrial Goods,17,17,33,17,17,0,33,17,0
+1010,United States,NAMR,Software,TMT,83,50,50,50,17,66,100,100,33
+1926,France,EMESA,Aerospace & Defense,Industrial Goods,66,66,33,33,66,33,33,33,66
+2963,United States,NAMR,Aerospace & Defense,Industrial Goods,33,33,66,33,66,33,66,33,66
+940,United States,NAMR,Software,TMT,100,100,100,100,100,100,100,100,100
+797,United States,NAMR,Consumer Products,Consumer,33,50,50,50,33,50,50,50,33
+434,Italy,EMESA,Fashion & Luxury,Consumer,66,66,33,50,33,33,50,66,66
+P35,Sweden,EMESA,Public Sector,Public Sector,50,17,0,33,0,17,8,17,33
+151,South Korea,APAC,"Devices, Components, and Semiconductors",TMT,33,33,0,33,33,0,33,33,0
+3941,China,APAC,Rail & Hospitality,TCI,33,66,0,0,33,33,66,100,33
+2064,Sweden,EMESA,Metals & Mining,Industrial Goods,66,50,66,50,66,50,66,66,66
+3031,Spain,EMESA,"Providers, Systems & Services",Healthcare,83,66,66,33,33,83,66,83,83
+1312,France,EMESA,Biopharma,Healthcare,83,83,100,66,83,66,83,100,83
+P3,Spain,EMESA,Insurance,Insurance,17,33,17,33,17,33,33,17,33
+4611,Germany,EMESA,Software,TMT,83,66,100,83,50,66,100,66,66
+936,Germany,EMESA,Oil & Gas,Energy,66,66,33,33,50,50,66,50,66
+2642,Singapore,APAC,Airline,TCI,66,33,33,33,33,33,33,66,66
+1946,Saudi Arabia,EMESA,Airline,TCI,17,17,33,17,0,0,33,33,17
+2288,United States,NAMR,Consumer Products,Consumer,100,33,33,66,33,50,66,100,66
+3946,Norway,EMESA,Media,TMT,66,66,100,50,83,66,83,66,33
+1970,France,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,66,66,66,33,83,33,66,50,83
+122,United Kingdom,EMESA,Global Asset Managers,Financial Institutions,33,33,33,33,0,33,33,66,33
+2376,France,EMESA,Insurance,Insurance,83,0,0,33,33,17,83,100,83
+3317,Ireland,EMESA,"Devices, Components, and Semiconductors",TMT,33,17,0,0,17,0,0,17,0
+1404,Spain,EMESA,Automotive & Mobility,Industrial Goods,33,66,66,66,66,100,66,100,33
+P444,Mexico,NAMR,Public Sector,Public Sector,50,17,17,66,17,17,33,17,17
+P340,Germany,EMESA,Public Sector,Public Sector,83,83,17,33,33,66,33,50,50
+P818,United Arab Emirates,EMESA,Public Sector,Public Sector,83,66,50,50,66,50,66,50,66
+1033,United States,NAMR,Software,TMT,66,83,66,50,83,66,83,66,83
+1648,Luxembourg,EMESA,Telecommunications,TMT,50,33,66,83,33,50,50,33,33
+5176,China,APAC,Logistics & Postal Services,TCI,83,83,83,66,66,66,83,100,66
+3647,Hong Kong,APAC,Rail & Hospitality,TCI,66,33,50,83,66,33,66,83,50
+637,United Kingdom,EMESA,Oil & Gas,Energy,66,66,66,66,33,33,66,66,66
+5325,United Kingdom,EMESA,Oil & Gas,Energy,66,0,0,33,17,17,66,0,0
+2478,Japan,APAC,"Construction, Cities and Infrastructure Development",TCI,66,33,33,100,33,66,33,66,33
+2349,South Korea,APAC,Retail,Consumer,0,0,0,0,0,0,0,0,0
+2977,Canada,NAMR,Payments & Fintech,Financial Institutions,33,50,33,66,17,83,83,66,17
+755,South Africa,EMESA,Retail,Consumer,66,83,66,66,66,50,66,66,66
+2770,India,APAC,Banking,Financial Institutions,66,50,33,66,66,66,66,33,0
+1055,Germany,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,50,50,66,66,66,66,66,50,66
+P110,Germany,EMESA,Medtech,Healthcare,66,100,100,66,66,66,66,100,100
+2636,United States,NAMR,Aerospace & Defense,Industrial Goods,33,0,0,50,0,50,17,33,0
+2809,Australia,APAC,"Providers, Systems & Services",Healthcare,33,66,66,66,0,0,100,100,100
+572,Switzerland,EMESA,Chemicals,Industrial Goods,33,33,0,0,50,50,17,33,0
+2984,Indonesia,APAC,"Providers, Systems & Services",Healthcare,33,66,33,66,17,50,33,66,66
+3572,United States,NAMR,"Construction, Cities and Infrastructure Development",TCI,100,66,33,66,100,66,33,100,100
+5295,Singapore,APAC,Airline,TCI,100,100,100,83,83,66,66,100,83
+3241,Singapore,APAC,Telecommunications,TMT,50,66,33,83,83,50,66,83,83
+4544,Hong Kong,APAC,Biopharma,Healthcare,66,33,66,66,66,33,33,33,33
+3564,Saudi Arabia,EMESA,Oil & Gas,Energy,50,33,50,50,50,66,50,33,33
+P71,Saudi Arabia,EMESA,Public Sector,Public Sector,66,66,66,66,66,50,33,50,17
+2647,India,APAC,"Providers, Systems & Services",Healthcare,66,66,66,66,50,33,83,66,66
+854,United States,NAMR,Media,TMT,33,33,33,33,33,33,0,33,17
+2385,United States,NAMR,Rail & Hospitality,TCI,66,0,50,17,17,17,33,0,33
+5478,Poland,EMESA,"Construction, Cities and Infrastructure Development",TCI,50,66,33,66,50,66,50,66,33
+3976,United States,NAMR,Fashion & Luxury,Consumer,66,50,66,66,50,66,66,66,50
+3931,United Kingdom,EMESA,Media,TMT,33,33,33,0,17,17,33,33,33
+684,United States,NAMR,Software,TMT,83,66,66,83,50,83,66,100,100
+506,United Kingdom,EMESA,Medtech,Healthcare,50,33,33,50,33,33,33,33,66
+5945,United States,NAMR,Media,TMT,66,83,66,50,66,66,83,66,66
+6110,France,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,66,0,66,66,0,33,0,33,33
+P68,Sweden,EMESA,Biopharma,Healthcare,66,33,17,33,33,33,33,0,17
+598,France,EMESA,Consumer Products,Consumer,83,100,100,66,66,83,66,83,66
+1920,Germany,EMESA,Software,TMT,33,50,66,50,66,50,50,83,50
+1617,Switzerland,EMESA,Software,TMT,66,66,66,50,50,33,50,50,66
+3046,Japan,APAC,Automotive & Mobility,Industrial Goods,100,0,33,33,17,50,66,33,66
+1739,Israel,EMESA,Renewables,Energy,50,66,100,50,66,66,100,66,66
+2515,Belgium,EMESA,Chemicals,Industrial Goods,66,33,0,66,17,17,17,33,33
+5758,Portugal,EMESA,Metals & Mining,Industrial Goods,66,33,33,66,33,0,66,0,33
+1710,Algeria,EMESA,Oil & Gas,Energy,66,17,33,66,33,50,17,17,17
+2800,Australia,APAC,"Providers, Systems & Services",Healthcare,83,50,83,50,83,66,100,66,83
+394,Switzerland,EMESA,Medtech,Healthcare,66,33,33,66,0,17,50,50,50
+3135,Japan,APAC,"Devices, Components, and Semiconductors",TMT,50,50,50,100,50,50,50,50,100
+1636,United States,NAMR,Media,TMT,83,100,50,66,66,83,66,83,83
+P34,Austria,EMESA,Public Sector,Public Sector,66,33,17,33,17,0,17,33,17
+P41,South Africa,EMESA,Public Sector,Public Sector,0,0,0,0,0,0,0,0,0
+355,United States,NAMR,Power and Utilities,Energy,66,66,33,50,33,50,50,33,33
+3419,Singapore,APAC,Media,TMT,66,66,50,50,50,66,66,50,33
+4920,Sweden,EMESA,Software,TMT,83,66,66,33,33,50,66,33,33
+809,Singapore,APAC,Aerospace & Defense,Industrial Goods,66,66,100,66,66,33,66,66,33
+2617,Australia,APAC,"Providers, Systems & Services",Healthcare,17,17,17,17,0,0,17,17,33
+674,United Kingdom,EMESA,Banking,Financial Institutions,66,66,100,66,100,66,66,66,66
+2780,United States,NAMR,Consumer Products,Consumer,33,33,33,33,0,33,0,0,66
+1121,India,APAC,Insurance,Insurance,50,50,50,17,66,66,50,66,33
+3569,United States,NAMR,Retail,Consumer,33,33,0,33,0,0,0,33,0
+5828,Taiwan,APAC,Airline,TCI,33,0,0,0,0,0,0,0,0
+4235,United States,NAMR,Insurance,Insurance,66,66,33,66,66,17,50,33,17
+524,United States,NAMR,Banking,Financial Institutions,50,66,66,66,50,66,66,66,50
+2081,Norway,EMESA,Power and Utilities,Energy,66,17,83,50,50,33,8,50,100
+1242,Netherlands,EMESA,Automotive & Mobility,Industrial Goods,66,66,66,66,83,50,50,50,83
+2089,United States,NAMR,Medtech,Healthcare,50,50,0,100,33,50,0,50,17
+2278,Switzerland,EMESA,"Devices, Components, and Semiconductors",TMT,66,33,17,83,33,50,33,33,66
+5341,Austria,EMESA,"Construction, Cities and Infrastructure Development",TCI,66,17,50,33,0,33,0,33,33
+424,Switzerland,EMESA,Medtech,Healthcare,33,0,0,66,33,33,33,33,0
+2170,United States,NAMR,Medtech,Healthcare,33,0,17,33,17,33,8,33,17
+2159,United States,NAMR,Retail,Consumer,0,17,0,17,17,17,17,17,66
+912,France,EMESA,Power and Utilities,Energy,50,66,50,50,50,50,8,66,66
+456,Japan,APAC,Banking,Financial Institutions,66,66,50,33,33,66,50,100,83
+709,Japan,APAC,Biopharma,Healthcare,66,66,66,83,66,66,50,50,66
+3477,Japan,APAC,Global Asset Managers,Financial Institutions,17,33,50,33,0,33,33,50,50
+6352,Hong Kong,APAC,Real Estate,TCI,0,0,0,33,0,0,0,33,0
+1961,Canada,NAMR,Global Asset Managers,Financial Institutions,50,66,33,50,33,50,50,50,50
+1637,Japan,APAC,Automotive & Mobility,Industrial Goods,0,0,17,0,17,0,17,0,8
+1366,Japan,APAC,Automotive & Mobility,Industrial Goods,17,17,17,17,17,17,17,33,17
+1925,Switzerland,EMESA,Fashion & Luxury,Consumer,17,17,0,17,17,0,0,8,0
+5223,Sweden,EMESA,"Construction, Cities and Infrastructure Development",TCI,33,33,33,66,33,66,66,33,33
+5293,Sweden,EMESA,"Construction, Cities and Infrastructure Development",TCI,33,66,33,33,0,0,33,33,33
+1894,Switzerland,EMESA,Insurance,Insurance,83,50,50,50,33,33,50,66,83
+3115,Switzerland,EMESA,Telecommunications,TMT,83,50,66,83,50,66,66,83,66
+2777,United States,NAMR,Biopharma,Healthcare,50,50,66,66,33,17,50,33,17
+3824,Switzerland,EMESA,Chemicals,Industrial Goods,66,50,50,66,50,50,50,83,83
+4968,United States,NAMR,"Devices, Components, and Semiconductors",TMT,0,33,17,0,17,50,17,33,33
+2109,United States,NAMR,Consumer Products,Consumer,33,33,66,33,0,33,33,33,33
+671,United States,NAMR,Retail,Consumer,66,83,66,66,50,33,83,100,100
+5803,Taiwan,APAC,Telecommunications,TMT,33,50,50,66,33,33,50,50,33
+2026,Portugal,EMESA,Airline,TCI,83,33,50,83,0,33,0,66,0
+185,United States,NAMR,Retail,Consumer,66,33,0,66,33,17,33,33,33
+5907,India,APAC,Insurance,Insurance,66,66,66,50,50,50,50,83,50
+130,India,APAC,Software,TMT,100,100,100,100,100,100,66,100,100
+1372,India,APAC,Automotive & Mobility,Industrial Goods,66,50,83,50,66,66,50,66,66
+178,India,APAC,"Construction, Cities and Infrastructure Development",TCI,83,0,17,0,33,0,17,50,0
+1123,India,APAC,Metals & Mining,Industrial Goods,66,66,66,66,66,66,50,66,66
+2172,Saudi Arabia,EMESA,Insurance,Insurance,50,33,17,66,17,50,66,83,33
+2650,Japan,APAC,"Devices, Components, and Semiconductors",TMT,17,33,50,66,33,33,33,50,33
+2197,Switzerland,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,66,33,33,66,66,66,66,66,66
+2516,Germany,EMESA,Software,TMT,33,33,33,50,17,33,50,33,50
+7,India,APAC,Software,TMT,50,66,66,50,66,33,33,33,33
+3925,France,EMESA,Oil & Gas,Energy,50,33,17,100,33,33,33,66,66
+5681,Canada,NAMR,Metals & Mining,Industrial Goods,66,100,66,66,66,50,50,33,66
+4728,United States,NAMR,Media,TMT,8,83,50,17,17,33,17,33,0
+2500,United States,NAMR,"Providers, Systems & Services",Healthcare,100,66,83,83,50,66,83,50,83
+1745,Sweden,EMESA,Telecommunications,TMT,66,33,33,66,33,17,8,33,50
+3762,Egypt,EMESA,Telecommunications,TMT,66,33,66,66,66,33,33,33,33
+1884,Spain,EMESA,Telecommunications,TMT,33,33,33,66,33,33,66,66,33
+2131,Norway,EMESA,Telecommunications,TMT,66,33,33,33,33,33,33,33,0
+2130,Sweden,EMESA,Telecommunications,TMT,83,50,66,50,50,33,50,33,66
+1214,Australia,APAC,Telecommunications,TMT,66,66,100,83,66,66,66,100,83
+2787,Canada,NAMR,Software,TMT,33,50,33,33,66,17,33,33,66
+2968,United States,NAMR,"Devices, Components, and Semiconductors",TMT,83,50,83,83,8,83,50,66,50
+2020,Italy,EMESA,Power and Utilities,Energy,83,33,66,66,33,66,66,50,50
+3763,Luxembourg,EMESA,Metals & Mining,Industrial Goods,50,50,50,50,50,50,83,66,50
+2697,Japan,APAC,Medtech,Healthcare,66,66,66,66,50,66,100,33,66
+4149,United Kingdom,EMESA,Retail,Consumer,100,33,0,100,33,66,33,33,33
+4186,United States,NAMR,"Devices, Components, and Semiconductors",TMT,50,50,8,17,8,50,33,17,17
+3930,France,EMESA,Aerospace & Defense,Industrial Goods,100,100,66,66,50,66,66,50,100
+1246,United States,NAMR,Aerospace & Defense,Industrial Goods,100,50,50,66,33,33,33,100,33
+6117,United States,NAMR,Global Asset Managers,Financial Institutions,66,66,66,66,33,33,66,100,66
+1942,United States,NAMR,Consumer Products,Consumer,66,50,66,66,83,83,50,50,50
+2503,United States,NAMR,Consumer Products,Consumer,66,66,100,66,66,50,66,33,66
+1255,Japan,APAC,Insurance,Insurance,0,0,0,0,0,0,0,17,33
+1329,United States,NAMR,Fashion & Luxury,Consumer,33,66,33,17,17,17,17,17,33
+P780,Australia,APAC,Public Sector,Public Sector,66,66,66,66,66,66,50,50,50
+1159,United States,NAMR,Retail,Consumer,33,50,66,50,50,66,50,33,17
+932,Netherlands,EMESA,Consumer Products,Consumer,66,83,66,66,66,50,100,66,100
+P69,Norway,EMESA,Public Sector,Public Sector,50,17,50,50,33,17,17,33,33
+3846,United States,NAMR,Chemicals,Industrial Goods,66,50,50,50,50,66,50,50,33
+2804,United States,NAMR,Insurance,Insurance,50,33,50,83,33,17,50,17,66
+717,United States,NAMR,Global Asset Managers,Financial Institutions,66,66,33,66,66,66,66,83,66
+888,New Zealand,APAC,Payments & Fintech,Financial Institutions,66,33,33,66,66,50,17,66,33
+1256,United States,NAMR,Medtech,Healthcare,50,50,66,17,33,33,66,17,83
+2119,United States,NAMR,Global Asset Managers,Financial Institutions,33,50,33,8,33,8,8,33,33
+2168,Canada,NAMR,Fashion & Luxury,Consumer,66,66,83,66,100,83,83,83,83
+2811,Germany,EMESA,Automotive & Mobility,Industrial Goods,66,50,50,33,50,33,33,33,66
+3986,United States,NAMR,Fashion & Luxury,Consumer,66,33,33,33,33,33,33,33,66
+3809,United States,NAMR,Media,TMT,66,66,66,66,33,66,66,33,33
+458,Italy,EMESA,Telecommunications,TMT,33,50,66,33,50,17,33,33,66
+4078,United States,NAMR,Media,TMT,66,83,83,66,50,66,66,66,66
+372,India,APAC,Fashion & Luxury,Consumer,33,17,0,33,17,17,0,17,0
+206,Germany,EMESA,"Construction, Cities and Infrastructure Development",TCI,33,33,33,33,33,0,0,33,0
+3261,Netherlands,EMESA,Logistics & Postal Services,TCI,66,17,50,83,50,66,50,83,50
+775,United States,NAMR,Software,TMT,50,50,50,50,66,50,50,50,66
+4214,Turkey,EMESA,Automotive & Mobility,Industrial Goods,66,66,66,66,33,33,66,66,33
+3971,Japan,APAC,Insurance,Insurance,33,66,17,17,33,17,50,83,50
+3919,Japan,APAC,"Devices, Components, and Semiconductors",TMT,66,33,66,33,33,66,33,66,66
+4927,Japan,APAC,"Construction, Cities and Infrastructure Development",TCI,17,0,17,8,33,17,17,33,8
+2017,Australia,APAC,Logistics & Postal Services,TCI,0,0,0,0,0,0,0,0,0
+1464,United States,NAMR,Fashion & Luxury,Consumer,33,33,33,33,33,66,33,33,66
+2484,Netherlands,EMESA,Software,TMT,66,66,66,66,33,33,100,66,66
+1982,Netherlands,EMESA,Software,TMT,100,33,66,83,33,50,50,100,66
+3783,Japan,APAC,Chemicals,Industrial Goods,33,17,17,0,17,33,0,33,0
+2364,France,EMESA,Oil & Gas,Energy,100,50,33,33,66,66,50,83,66
+3965,Taiwan,APAC,Payments & Fintech,Financial Institutions,33,50,66,66,33,66,66,33,33
+1143,United States,NAMR,Insurance,Insurance,66,66,33,66,66,66,66,100,66
+4403,China,APAC,Rail & Hospitality,TCI,83,83,66,66,66,66,66,100,66
+3182,Thailand,APAC,Telecommunications,TMT,83,100,66,66,66,50,66,83,100
+2404,Denmark,EMESA,Insurance,Insurance,66,33,0,66,0,33,8,66,33
+3926,Turkey,EMESA,Telecommunications,TMT,83,66,83,50,66,66,66,100,33
+3220,Turkey,EMESA,Airline,TCI,66,50,100,83,66,83,50,83,33
+4286,Turkey,EMESA,Oil & Gas,Energy,66,66,50,66,66,50,50,83,50
+4292,India,APAC,Automotive & Mobility,Industrial Goods,33,33,33,33,33,33,33,33,33
+175,United States,NAMR,Software,TMT,33,0,8,0,0,0,66,100,50
+P377,United States,NAMR,Public Sector,Public Sector,66,66,83,66,50,66,83,50,66
+P105,United States,NAMR,Public Sector,Public Sector,33,33,0,17,0,0,0,33,33
+673,United States,NAMR,Automotive & Mobility,Industrial Goods,83,66,83,66,83,83,50,66,66
+2166,France,EMESA,Software,TMT,83,33,66,66,33,33,50,50,83
+3938,Switzerland,EMESA,Global Asset Managers,Financial Institutions,33,50,50,50,33,17,17,33,50
+P145,United Kingdom,EMESA,Public Sector,Public Sector,33,66,33,66,33,8,33,66,66
+P816,United Kingdom,EMESA,Public Sector,Public Sector,33,17,0,33,17,17,33,50,0
+P746,United Kingdom,EMESA,Public Sector,Public Sector,66,50,83,66,66,83,83,66,33
+P1090,Denmark,EMESA,Public Sector,Public Sector,83,50,33,66,33,50,83,66,50
+650,India,APAC,Airline,TCI,100,66,66,66,66,100,66,66,66
+485,United Kingdom,EMESA,Consumer Products,Consumer,33,33,17,17,50,33,33,33,33
+3246,Italy,EMESA,Insurance,Insurance,50,83,50,33,17,66,66,50,50
+916,Austria,EMESA,Insurance,Insurance,50,33,17,50,50,17,33,33,66
+2392,United States,NAMR,Telecommunications,TMT,66,50,50,50,33,33,66,66,66
+2134,United States,NAMR,Airline,TCI,50,50,50,50,66,50,66,66,50
+1370,Germany,EMESA,Telecommunications,TMT,83,50,17,66,66,66,50,66,66
+P40,Switzerland,EMESA,Public Sector,Public Sector,66,33,50,66,33,0,66,33,0
+845,United States,NAMR,Automotive & Mobility,Industrial Goods,83,33,50,66,50,33,66,33,50
+855,Singapore,APAC,Automotive & Mobility,Industrial Goods,50,50,83,50,66,83,66,66,66
+P820,United States,NAMR,Public Sector,Public Sector,66,50,83,100,50,66,66,50,83
+357,United States,NAMR,Telecommunications,TMT,66,33,17,50,50,50,17,50,17
+P1389,United States,NAMR,Public Sector,Public Sector,66,0,0,0,33,0,0,33,0
+1412,United States,NAMR,Media,TMT,66,50,33,50,0,50,66,33,33
+766,Denmark,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,66,66,66,66,50,33,33,50,17
+225,India,APAC,Chemicals,Industrial Goods,33,33,50,66,33,17,33,50,0
+2043,Finland,EMESA,Chemicals,Industrial Goods,33,66,33,33,33,33,66,66,66
+123,India,APAC,Retail,Consumer,33,17,33,17,17,33,0,17,0
+406,United States,NAMR,Insurance,Insurance,50,50,50,50,17,0,33,33,33
+461,Malaysia,APAC,Global Asset Managers,Financial Institutions,33,33,0,50,17,33,17,33,33
+P74,Netherlands,EMESA,Public Sector,Public Sector,66,66,66,50,33,66,50,66,33
+2051,Brazil,NAMR,Metals & Mining,Industrial Goods,50,66,83,33,66,50,66,50,66
+2141,France,EMESA,Biopharma,Healthcare,66,50,33,33,0,33,33,50,100
+3578,United States,NAMR,Oil & Gas,Energy,0,8,0,50,0,0,8,17,0
+1433,India,APAC,Metals & Mining,Industrial Goods,66,66,100,66,66,66,66,33,66
+464,France,EMESA,Power and Utilities,Energy,83,83,66,83,66,66,83,83,83
+3974,United States,NAMR,Telecommunications,TMT,66,83,100,66,100,83,66,83,66
+1413,United States,NAMR,Telecommunications,TMT,83,66,83,50,66,83,66,50,83
+298,Italy,EMESA,Fashion & Luxury,Consumer,66,33,33,33,0,33,33,50,0
+231,Denmark,EMESA,Renewables,Energy,33,33,50,33,17,33,33,50,33
+2488,United States,NAMR,Fashion & Luxury,Consumer,83,83,50,66,50,33,66,33,66
+224,Brazil,NAMR,Software,TMT,66,17,33,83,66,33,83,66,33
+120,United States,NAMR,Media,TMT,66,66,33,66,17,33,83,50,66
+3937,Brazil,NAMR,Oil & Gas,Energy,50,66,83,66,66,50,50,50,17
+P116,Australia,APAC,Public Sector,Public Sector,33,50,83,50,50,66,50,33,33
+3984,Austria,EMESA,Insurance,Insurance,83,33,66,83,50,33,33,100,50
+3461,France,EMESA,"Construction, Cities and Infrastructure Development",TCI,33,33,17,17,33,33,17,33,33
+3977,Vietnam,APAC,Automotive & Mobility,Industrial Goods,33,0,0,33,33,17,0,33,0
+1124,United Kingdom,EMESA,Airline,TCI,50,100,66,83,66,66,66,66,66
+300,United States,NAMR,Payments & Fintech,Financial Institutions,100,66,100,66,33,33,66,100,100
+4044,United States,NAMR,Global Asset Managers,Financial Institutions,50,17,66,66,50,50,33,33,50
+3951,India,APAC,Airline,TCI,66,0,100,100,66,66,100,100,33
+3113,France,EMESA,Media,TMT,100,33,33,66,50,33,33,66,33
+495,United Kingdom,EMESA,Telecommunications,TMT,33,100,66,66,33,50,66,66,66
+2073,Mexico,NAMR,Airline,TCI,66,33,66,50,33,33,66,50,66
+3581,Germany,EMESA,Automotive & Mobility,Industrial Goods,83,17,0,50,17,17,17,66,0
+4029,Germany,EMESA,"Construction, Cities and Infrastructure Development",TCI,33,17,33,33,17,33,17,33,0
+1645,United States,NAMR,Media,TMT,33,50,33,66,50,66,83,66,33
+794,United States,NAMR,Insurance,Insurance,17,0,8,33,0,0,8,33,0
+2138,Germany,EMESA,Chemicals,Industrial Goods,66,17,17,33,33,33,17,17,33
+2198,United States,NAMR,Insurance,Insurance,17,17,50,83,33,17,17,17,17
+4017,Germany,EMESA,Chemicals,Industrial Goods,50,33,17,50,33,33,50,83,33
+1783,United States,NAMR,Retail,Consumer,17,33,0,17,0,17,0,66,17
+1672,United States,NAMR,Retail,Consumer,66,50,83,66,66,66,50,50,50
+6010,Italy,EMESA,Oil & Gas,Energy,66,66,66,66,33,66,33,66,100
+2161,United States,NAMR,Payments & Fintech,Financial Institutions,100,83,100,100,66,100,100,100,100
+1240,Germany,EMESA,Insurance,Insurance,50,33,50,50,17,50,66,66,33
+359,United States,NAMR,Global Asset Managers,Financial Institutions,0,0,17,50,17,0,0,17,0
+232,United States,NAMR,Banking,Financial Institutions,66,66,66,66,66,100,33,66,33
+41,India,APAC,Consumer Products,Consumer,66,33,66,66,33,66,66,66,66
+124,France,EMESA,Global Asset Managers,Financial Institutions,50,50,50,8,33,50,8,17,17
+P381,United Kingdom,EMESA,Public Sector,Public Sector,50,33,66,33,33,33,33,33,17
+2656,United States,NAMR,Payments & Fintech,Financial Institutions,66,50,66,50,83,33,50,50,33
+2143,United States,NAMR,Consumer Products,Consumer,33,33,33,33,33,33,66,33,66
+3935,United Kingdom,EMESA,Rail & Hospitality,TCI,66,0,8,50,8,17,8,17,17
+3533,United States,NAMR,Retail,Consumer,33,17,50,33,17,17,17,17,17
+6213,Australia,APAC,Global Asset Managers,Financial Institutions,100,66,66,8,66,66,8,100,66
+1467,India,APAC,Software,TMT,66,83,100,66,83,66,83,83,100
+5810,Taiwan,APAC,"Devices, Components, and Semiconductors",TMT,33,100,33,66,33,33,33,100,33
+6646,United States,NAMR,Telecommunications,TMT,66,66,66,66,50,66,66,66,50
+9,Germany,EMESA,Machinery & Automation incl. Greentech,Industrial Goods,66,33,66,66,33,66,66,33,33
+3927,Australia,APAC,Oil & Gas,Energy,66,50,66,50,50,50,66,66,50
+1028,United States,NAMR,Oil & Gas,Energy,50,50,66,66,50,50,83,66,83
+3582,Taiwan,APAC,Retail,Consumer,33,17,17,17,50,0,66,33,66
+363,United Kingdom,EMESA,Media,TMT,66,0,33,33,33,33,0,33,0
+4294,United States,NAMR,Media,TMT,8,100,33,66,50,100,8,100,100
+1396,United States,NAMR,Logistics & Postal Services,TCI,50,50,66,66,66,66,50,50,50
+1232,United States,NAMR,Machinery & Automation incl. Greentech,Industrial Goods,33,33,33,50,50,33,33,33,66
+2612,Japan,APAC,Automotive & Mobility,Industrial Goods,0,0,33,0,0,0,33,0,66
+3571,Taiwan,APAC,Logistics & Postal Services,TCI,33,0,0,0,33,0,17,33,17
+3651,Norway,EMESA,Chemicals,Industrial Goods,50,0,17,17,17,17,0,17,17
+725,India,APAC,Banking,Financial Institutions,100,33,66,83,50,83,100,100,83
+3148,Malaysia,APAC,Oil & Gas,Energy,66,33,33,33,17,33,0,33,33
+2153,Italy,EMESA,Fashion & Luxury,Consumer,66,0,0,33,33,33,0,66,0
+2365,Argentina,EMESA,Oil & Gas,Energy,33,66,66,33,66,66,66,100,33
+1338,United States,NAMR,Retail,Consumer,66,50,66,66,66,66,83,33,33
+3643,Japan,APAC,Logistics & Postal Services,TCI,66,33,17,66,0,33,66,66,17
+1407,Kuwait,EMESA,Telecommunications,TMT,66,33,66,100,100,66,33,66,0
+1706,Germany,EMESA,Fashion & Luxury,Consumer,33,17,33,0,33,33,33,33,66
+4,Italy,EMESA,Biopharma,Healthcare,50,33,33,0,17,33,0,66,33
+668,United States,NAMR,Software,TMT,66,66,66,66,50,50,66,66,66
+452,India,APAC,Software,TMT,100,100,100,100,100,100,100,66,100
+3127,United States,NAMR,Medtech,Healthcare,33,0,17,33,0,33,17,33,50
+1723,United States,NAMR,Biopharma,Healthcare,50,33,50,66,50,33,66,33,17
+15,India,APAC,Logistics & Postal Services,TCI,33,66,33,66,33,33,66,66,33
+112,United States,NAMR,Software,TMT,66,66,66,66,66,66,66,83,50
+135,Germany,EMESA,Insurance,Insurance,100,83,66,100,33,83,83,83,83

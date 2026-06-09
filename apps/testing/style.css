@@ -1,0 +1,96 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', Arial, sans-serif;
+  background: #0f1117;
+  color: #e0e0e0;
+  min-height: 100vh;
+  padding: 48px;
+}
+
+h1 {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 40px;
+}
+
+.section {
+  background: #1a1f2e;
+  border: 1px solid #2a2f3e;
+  border-radius: 14px;
+  padding: 28px;
+  margin-bottom: 20px;
+  max-width: 640px;
+}
+
+.section h2 {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #8b5cf6;
+  margin-bottom: 16px;
+}
+
+.section p {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+textarea, input[type="text"] {
+  width: 100%;
+  background: #0f1117;
+  border: 1px solid #2a2f3e;
+  border-radius: 8px;
+  color: #e0e0e0;
+  font-size: 13px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+textarea:focus, input[type="text"]:focus {
+  outline: none;
+  border-color: #8b5cf6;
+}
+
+button {
+  background: #8b5cf6;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+button:hover { background: #7c3aed; }
+button:disabled { background: #374151; cursor: default; }
+
+.result {
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: #0f1117;
+  border: 1px solid #2a2f3e;
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: 'Fira Mono', 'Consolas', monospace;
+  color: #a3e635;
+  white-space: pre-wrap;
+  word-break: break-all;
+  display: none;
+}
+
+.result.visible { display: block; }
+.result.error { color: #f87171; }
