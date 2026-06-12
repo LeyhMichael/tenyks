@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TDA Request Volume Trends</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #faf6ef; --card: #fff; --soft: #f2ede3;
+    --ink: #1a1a1a; --mute: #888; --rule: #e6dfd1;
+    --accent: #8c2b2b; --teal: #0a5c5e;
+    --desk: #8c2b2b; --rms: #0a5c5e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; font-size: 14px; }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 32px 28px 80px; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 18px; margin-bottom: 28px; }
+  .kicker { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; font-family: monospace; }
+  h1 { font-size: 42px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 8px; }
+  h1 em { font-style: italic; font-weight: 300; color: var(--accent); }
+  .sub { color: #555; font-size: 14px; }
+  .meta { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; font-size: 11px; color: var(--mute); font-family: monospace; letter-spacing: .1em; text-transform: uppercase; }
+  .meta b { color: var(--ink); }
+
+  .kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0; border: 1px solid var(--rule); background: var(--card); margin-bottom: 24px; }
+  .kpi { padding: 16px 18px; border-right: 1px solid var(--rule); }
+  .kpi:last-child { border-right: none; }
+  .kpi .lbl { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); margin-bottom: 6px; font-family: monospace; }
+  .kpi .val { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .kpi .foot { font-size: 11px; color: var(--mute); margin-top: 4px; font-family: monospace; }
+  .kpi.accent .val { color: var(--accent); }
+  .kpi.teal .val { color: var(--teal); }
+
+  .grid { display: grid; gap: 20px; margin-bottom: 20px; }
+  .g2e { grid-template-columns: 1fr 1fr; }
+  .g1  { grid-template-columns: 1fr; }
+
+  .card { background: var(--card); border: 1px solid var(--rule); padding: 20px; }
+  .card-h { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--rule); padding-bottom: 10px; margin-bottom: 14px; }
+  .card-h h3 { font-size: 16px; font-weight: 600; }
+  .card-h .note { font-size: 10px; color: var(--mute); font-family: monospace; letter-spacing: .08em; text-transform: uppercase; }
+  .chart-xl { height: 320px; position: relative; }
+  .chart-lg { height: 260px; position: relative; }
+
+  .src-tag { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border: 1px solid var(--rule); border-radius: 2px; font-size: 11px; font-family: monospace; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot-desk { background: var(--desk); }
+  .dot-rms { background: var(--rms); }
+
+  footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--rule); font-size: 11px; color: var(--mute); font-family: monospace; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">TDA Gen AI Knowledge Team · Request Analysis</div>
+  <h1>Request <em>Volume</em> Trends</h1>
+  <p class="sub">Year-over-year and weekly request intake across Desk and RMS channels · Cancelled requests excluded.</p>
+  <div class="meta">
+    <span><b>5,542</b> total requests</span>
+    <span>Jan 2025 – present</span>
+    <span class="src-tag"><span class="dot dot-desk"></span> Desk 776</span>
+    <span class="src-tag"><span class="dot dot-rms"></span> RMS 4,766</span>
+    <span>Generated 11 Jun 2026, 16:28</span>
+  </div>
+</header>
+
+<div class="kpis">
+  <div class="kpi"><div class="lbl">Total Requests</div><div class="val">5,542</div><div class="foot">All sources</div></div>
+  <div class="kpi accent"><div class="lbl">Desk</div><div class="val">776</div><div class="foot">Vantage</div></div>
+  <div class="kpi teal"><div class="lbl">RMS</div><div class="val">4,766</div><div class="foot">Email / mailbox</div></div>
+  <div class="kpi"><div class="lbl">Open</div><div class="val">96</div><div class="foot">Active requests</div></div>
+  <div class="kpi"><div class="lbl">Closed</div><div class="val">5,441</div><div class="foot">Resolved</div></div>
+  <div class="kpi"><div class="lbl">Avg. Closure</div><div class="val">3.1</div><div class="foot">days (when closed)</div></div>
+</div>
+
+<div class="grid g1">
+  <div class="card">
+    <div class="card-h">
+      <h3>Monthly Volume — Year over Year</h3>
+      <div class="note">2025 vs 2026 · same month axis</div>
+    </div>
+    <div class="chart-xl"><canvas id="c-yoy"></canvas></div>
+  </div>
+</div>
+
+<div class="grid g1">
+  <div class="card">
+    <div class="card-h">
+      <h3>Weekly Request Volume</h3>
+      <div class="note"><span style="color:#2E75B6;font-weight:700;">■</span> 2025 &nbsp; <span style="color:#8c2b2b;font-weight:700;">■</span> 2026</div>
+    </div>
+    <div class="chart-xl"><canvas id="c-weekly"></canvas></div>
+  </div>
+</div>
+
+<div class="grid g2e">
+  <div class="card">
+    <div class="card-h"><h3>Requestor Region</h3><div class="note">Top 12</div></div>
+    <div class="chart-lg"><canvas id="c-region"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>Request Context</h3><div class="note">Classified from text</div></div>
+    <div class="chart-lg"><canvas id="c-context"></canvas></div>
+  </div>
+</div>
+
+<div class="grid g2e">
+  <div class="card">
+    <div class="card-h"><h3>Top Offices</h3><div class="note">By city / office</div></div>
+    <div class="chart-lg"><canvas id="c-office"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>Monthly Breakdown Table</h3><div class="note">Desk vs RMS</div></div>
+    <div style="overflow-y:auto;max-height:260px;">
+      <table id="t-monthly" style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="position:sticky;top:0;background:#faf6ef;">
+            <th style="text-align:left;padding:8px 10px;border-bottom:1px solid #e6dfd1;font-family:monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#888;">Month</th>
+            <th style="text-align:right;padding:8px 10px;border-bottom:1px solid #e6dfd1;font-family:monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8c2b2b;">Desk</th>
+            <th style="text-align:right;padding:8px 10px;border-bottom:1px solid #e6dfd1;font-family:monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#0a5c5e;">RMS</th>
+            <th style="text-align:right;padding:8px 10px;border-bottom:1px solid #e6dfd1;font-family:monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;">Total</th>
+          </tr>
+        </thead>
+        <tbody id="t-monthly-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<footer>TDA Gen AI Knowledge Team · Generated 11 Jun 2026, 16:28 · Source: Desk (Vantage) + RMS export</footer>
+</div>
+
+<script>
+const YOY_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const YOY_2025   = [292, 312, 298, 279, 294, 352, 358, 283, 346, 379, 345, 224];
+const YOY_2026   = [311, 360, 370, 327, 315, 97, null, null, null, null, null, null];
+const WEEK_LBL   = ["Dec '24", "Jan '25", "Jan '25", "Jan '25", "Jan '25", "Feb '25", "Feb '25", "Feb '25", "Feb '25", "Mar '25", "Mar '25", "Mar '25", "Mar '25", "Mar '25", "Apr '25", "Apr '25", "Apr '25", "Apr '25", "May '25", "May '25", "May '25", "May '25", "Jun '25", "Jun '25", "Jun '25", "Jun '25", "Jun '25", "Jul '25", "Jul '25", "Jul '25", "Jul '25", "Aug '25", "Aug '25", "Aug '25", "Aug '25", "Sep '25", "Sep '25", "Sep '25", "Sep '25", "Sep '25", "Oct '25", "Oct '25", "Oct '25", "Oct '25", "Nov '25", "Nov '25", "Nov '25", "Nov '25", "Dec '25", "Dec '25", "Dec '25", "Dec '25", "Dec '25", "Jan '26", "Jan '26", "Jan '26", "Jan '26", "Feb '26", "Feb '26", "Feb '26", "Feb '26", "Mar '26", "Mar '26", "Mar '26", "Mar '26", "Mar '26", "Apr '26", "Apr '26", "Apr '26", "Apr '26", "May '26", "May '26", "May '26", "May '26", "Jun '26", "Jun '26"];
+const WEEK_CNT   = [3, 57, 86, 82, 68, 66, 87, 94, 65, 53, 84, 64, 73, 73, 68, 60, 60, 57, 82, 60, 75, 59, 82, 60, 80, 97, 93, 74, 85, 76, 80, 68, 50, 69, 78, 64, 60, 87, 98, 78, 78, 89, 89, 93, 79, 88, 88, 79, 86, 74, 54, 9, 3, 58, 84, 67, 103, 100, 77, 85, 97, 92, 92, 76, 73, 68, 75, 87, 64, 75, 82, 70, 87, 69, 66, 31];
+const WEEK_CLR   = ["#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#2E75B6", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b", "#8c2b2b"];
+const REGIONS    = {"EMESA": 2557, "NAMR": 1720, "AP": 1184};
+const OFFICES    = {"NDE": 235, "LON": 223, "NYC": 207, "PAR": 200, "DFZ": 195, "MUN": 154, "SFO": 139, "BER": 126, "CHI": 123, "MUM": 120, "TOK": 119, "BOS": 113};
+const CONTEXTS   = {"Proposal / RFP": 3646, "Other": 1031, "Expert Guidance / POV": 508, "Workshop / Training": 179, "Internal": 92, "Case Work": 86};
+const MONTHS     = ["2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06"];
+const DESK       = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 37, 327, 315, 97];
+const RMS        = [292, 312, 298, 279, 294, 352, 358, 283, 346, 379, 345, 224, 311, 360, 333, 0, 0, 0];
+const TOTAL      = [292, 312, 298, 279, 294, 352, 358, 283, 346, 379, 345, 224, 311, 360, 370, 327, 315, 97];
+
+const DESK_C = '#8c2b2b', RMS_C = '#0a5c5e';
+
+function hbar(id, labels, data, color) {
+  new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: { labels, datasets: [{ data, backgroundColor: color, borderRadius: 2 }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false } }, y: { grid: { display: false } } } }
+  });
+}
+
+// YoY line chart — 2025 vs 2026 on same month axis
+new Chart(document.getElementById('c-yoy'), {
+  type: 'line',
+  data: {
+    labels: YOY_LABELS,
+    datasets: [
+      {
+        label: '2025',
+        data: YOY_2025,
+        borderColor: '#2E75B6',
+        backgroundColor: 'rgba(46,117,182,0.08)',
+        fill: true, tension: 0.3, pointRadius: 4, borderWidth: 2,
+      },
+      {
+        label: '2026',
+        data: YOY_2026,
+        borderColor: '#8c2b2b',
+        backgroundColor: 'rgba(140,43,43,0.08)',
+        fill: true, tension: 0.3, pointRadius: 4, borderWidth: 2,
+        spanGaps: false,
+      },
+    ],
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom' } },
+    scales: { x: { grid: { display: false } }, y: { beginAtZero: true } },
+  },
+});
+
+// Weekly bar chart — color by year
+new Chart(document.getElementById('c-weekly'), {
+  type: 'bar',
+  data: {
+    labels: WEEK_LBL,
+    datasets: [{ data: WEEK_CNT, backgroundColor: WEEK_CLR, borderRadius: 2 }],
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 9 }, maxTicksLimit: 30 } },
+      y: { beginAtZero: true },
+    },
+  },
+});
+
+// Region hbar
+hbar('c-region', Object.keys(REGIONS), Object.values(REGIONS), RMS_C);
+
+// Context hbar
+hbar('c-context', Object.keys(CONTEXTS), Object.values(CONTEXTS), '#44546A');
+
+// Offices hbar
+hbar('c-office', Object.keys(OFFICES), Object.values(OFFICES), '#7030A0');
+
+// Monthly table
+const tbody = document.getElementById('t-monthly-body');
+MONTHS.slice().reverse().forEach((m, i) => {
+  const ri = MONTHS.length - 1 - i;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td style="padding:7px 10px;border-bottom:1px solid #f2ede3;">${m}</td>
+    <td style="padding:7px 10px;border-bottom:1px solid #f2ede3;text-align:right;color:#8c2b2b;">${DESK[ri]}</td>
+    <td style="padding:7px 10px;border-bottom:1px solid #f2ede3;text-align:right;color:#0a5c5e;">${RMS[ri]}</td>
+    <td style="padding:7px 10px;border-bottom:1px solid #f2ede3;text-align:right;font-weight:600;">${TOTAL[ri]}</td>`;
+  tbody.appendChild(tr);
+});
+</script>
+</body>
+</html>

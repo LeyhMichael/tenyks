@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Technology & Architecture — TDA Deep Dive</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:#faf6ef; --card:#fff; --soft:#f2ede3;
+    --ink:#1a1a1a; --mute:#888; --rule:#e6dfd1;
+    --accent:#7030A0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:system-ui,sans-serif;font-size:14px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* layout */
+  .wrap{max-width:1280px;margin:0 auto;padding:28px 28px 80px}
+  .top-nav{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+  .back-link{font-size:12px;color:#888;border:1px solid #ddd;border-radius:4px;padding:4px 10px;white-space:nowrap}
+  .back-link:hover{background:#f0f0f0;text-decoration:none}
+  .nav-pill{font-size:11px;border:1px solid #ccc;border-radius:20px;padding:3px 10px;color:#555;white-space:nowrap}
+  .nav-pill:hover{background:#eee;text-decoration:none}
+
+  /* header */
+  .hero{border-bottom:3px solid var(--accent);padding-bottom:16px;margin-bottom:24px}
+  .hero-kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);font-family:monospace;margin-bottom:6px}
+  .hero-title{font-size:36px;font-weight:700;letter-spacing:-.02em;color:var(--accent);margin-bottom:6px}
+  .hero-desc{font-size:13px;color:#555;max-width:800px;line-height:1.6}
+
+  /* KPI row */
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:28px}
+  .kpi{background:var(--card);border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--mute);margin-bottom:4px}
+  .kpi-value{font-size:26px;font-weight:700;line-height:1.1}
+  .kpi-badge{display:inline-block;font-size:11px;font-weight:600;border-radius:4px;padding:2px 7px;margin-top:4px}
+  .kpi-badge.up{background:#e8f5e0;color:#2e7d1f}
+  .kpi-badge.dn{background:#fdecea;color:#c00}
+  .kpi-badge.neutral{background:#eee;color:#555}
+
+  /* grid */
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+  .grid-1{margin-bottom:20px}
+  @media(max-width:900px){.grid-2{grid-template-columns:1fr}}
+
+  /* cards */
+  .card{background:var(--card);border-radius:8px;padding:20px 22px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .card-title{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--mute);margin-bottom:14px;font-weight:600}
+  .chart-wrap{position:relative;height:240px}
+  .chart-wrap-tall{position:relative;height:300px}
+
+  /* section headings */
+  .section-hd{font-size:16px;font-weight:700;color:var(--ink);border-left:4px solid var(--accent);padding-left:10px;margin:32px 0 14px}
+
+  /* NAVI cards */
+  .navi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+  .navi-card{background:var(--card);border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);border-left:3px solid var(--accent)}
+  .navi-card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+  .navi-link{font-weight:600;font-size:13px;color:var(--accent)}
+  .navi-link-plain{font-weight:600;font-size:13px;color:var(--ink)}
+  .navi-tag{font-size:10px;background:#f0f0f0;color:#555;border-radius:3px;padding:2px 6px;white-space:nowrap;flex-shrink:0}
+  .navi-card-meta{font-size:11px;color:var(--mute);margin-bottom:4px}
+  .navi-card-desc{font-size:12px;color:#444;line-height:1.5}
+  .gap-banner{background:#fff8e5;border:1px solid #ffd;border-radius:6px;padding:12px 16px;font-size:13px;color:#7a5c00;margin-bottom:16px}
+  .gap-banner code{font-family:monospace;font-size:12px}
+
+  /* subtopic rows */
+  .st-row{padding:16px 0;border-bottom:1px solid var(--rule)}
+  .st-row:last-child{border-bottom:none}
+  .st-label-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:7px}
+  .st-name{font-size:13px;font-weight:700;color:var(--ink)}
+  .st-stats{font-size:11px;color:var(--mute);white-space:nowrap}
+  .st-bar-wrap{height:7px;background:#eee;border-radius:4px;margin-bottom:10px}
+  .st-bar{height:7px;border-radius:4px;min-width:3px;transition:width .3s}
+  .st-navi-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+  .navi-chip{font-size:11px;background:color-mix(in srgb,var(--accent) 12%,#fff);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 30%,#fff);border-radius:4px;padding:3px 9px;font-weight:500;white-space:nowrap}
+  .navi-chip:hover{background:color-mix(in srgb,var(--accent) 20%,#fff);text-decoration:none}
+  .navi-chip-plain{font-size:11px;background:#f4f4f4;color:#555;border:1px solid #ddd;border-radius:4px;padding:3px 9px;white-space:nowrap}
+  .st-navi-none{font-size:11px;color:var(--mute);font-style:italic;margin-top:4px}
+
+  /* bottom nav */
+  .bottom-nav{display:flex;justify-content:space-between;align-items:center;margin-top:48px;padding-top:20px;border-top:1px solid var(--rule)}
+  .nav-btn{font-size:13px;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:6px 14px}
+  .nav-btn:hover{background:var(--accent);color:#fff;text-decoration:none}
+
+  .footer{font-size:11px;color:var(--mute);margin-top:32px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Top navigation -->
+  <div class="top-nav">
+    <a href="../tda_topic_deepdive.html" class="back-link">← Topic Overview</a>
+    <a href="tda_deepdive_ai_strategy_vision.html" class="nav-pill">AI Strategy & Vision</a>
+<a href="tda_deepdive_ai_use_cases.html" class="nav-pill">AI Use Cases & Value Creation</a>
+<a href="tda_deepdive_agentic_genai.html" class="nav-pill">Agentic & Generative AI</a>
+<a href="tda_deepdive_ai_technology.html" class="nav-pill" style="background:#7030A0;color:#fff;border-color:#7030A0">AI Technology & Architecture</a>
+<a href="tda_deepdive_ai_governance.html" class="nav-pill">AI Governance & Responsible AI</a>
+<a href="tda_deepdive_ai_talent.html" class="nav-pill">AI Talent & Organization</a>
+<a href="tda_deepdive_digital_it.html" class="nav-pill">Digital & IT Modernization</a>
+
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-kicker">TDA Gen AI Knowledge Team · Topic Deep Dive</div>
+    <div class="hero-title">AI Technology & Architecture</div>
+    <div class="hero-desc">Infrastructure and platform decisions for AI systems. Covers RAG pipelines, vector databases, MLOps, model deployment, tech stack and vendor selection, API integration, compute requirements, and embedding strategies.</div>
+  </div>
+
+  <!-- KPI row -->
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-label">Total Requests</div>
+      <div class="kpi-value">346</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">2025 Requests</div>
+      <div class="kpi-value">220</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">2026 YTD</div>
+      <div class="kpi-value">126</div>
+      <div><span class="kpi-badge up">▲ +30.5% YoY</span></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">2026 Annualised</div>
+      <div class="kpi-value">287</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Top Industry</div>
+      <div class="kpi-value" style="font-size:14px;padding-top:4px">Industry agnostic</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Top Request Type</div>
+      <div class="kpi-value" style="font-size:14px;padding-top:4px">Proposal / RFP</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">NAVI Assets</div>
+      <div class="kpi-value">22</div>
+    </div>
+  </div>
+
+  <!-- Section 1: Demand Evolution -->
+  <div class="section-hd">Demand Evolution</div>
+  <div class="grid-1">
+    <div class="card">
+      <div class="card-title">Monthly Requests — 2025 vs 2026</div>
+      <div class="chart-wrap-tall"><canvas id="yoyChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Section 2: What's Being Requested -->
+  <div class="section-hd">What's Being Requested</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Request Type</div>
+      <div class="chart-wrap"><canvas id="ctxChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Industry</div>
+      <div class="chart-wrap"><canvas id="indChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Section 3: Topic Breakdown by Subtopic -->
+  <div class="section-hd">Topic Breakdown</div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title">MECE subtopics · % of topic total · NAVI assets per subtopic</div>
+    <div class="st-row">
+  <div class="st-label-row">
+    <span class="st-name">RAG & Knowledge Systems</span>
+    <span class="st-stats">124 requests &nbsp;·&nbsp; 36% of topic</span>
+  </div>
+  <div class="st-bar-wrap"><div class="st-bar" style="width:35.8%;background:#7030A0"></div></div>
+  <div class="st-navi-chips"><a href="https://pages.navigator.bcg.com/kp/0b4bf67e-c650-436f-844f-e21ed431e3ac" target="_blank" class="navi-chip">Retrieval-Augmented Generation (RAG)</a><a href="https://pages.navigator.bcg.com/kp/ff42f3e2-76c7-49a6-bada-3f242deb9b9d" target="_blank" class="navi-chip">Introduction to Retrieval Augmented Generation (BCG Platinion)</a><a href="https://pages.navigator.bcg.com/kp/9d7b7827-bff5-4ca6-942d-97b5f447d339" target="_blank" class="navi-chip">Architecture for Generative AI</a><a href="https://pages.navigator.bcg.com/kp/05e77748-fa07-40cf-a04d-270857f5254a" target="_blank" class="navi-chip">Gen AI Tool Build for Data Retrieval and Visualization — LLM Techniques Comparison</a><a href="https://pages.navigator.bcg.com/kp/06a0d545-28d5-4c07-a235-b85a049817d0" target="_blank" class="navi-chip">Federated Analytics Data Platform Playbook — GenAI & Data Platform Architecture</a></div>
+</div><div class="st-row">
+  <div class="st-label-row">
+    <span class="st-name">Tech Stack & Vendor Selection</span>
+    <span class="st-stats">81 requests &nbsp;·&nbsp; 23% of topic</span>
+  </div>
+  <div class="st-bar-wrap"><div class="st-bar" style="width:23.4%;background:#7030A0"></div></div>
+  <div class="st-navi-chips"><a href="https://pages.navigator.bcg.com/kp/bb88485b-18f4-4c97-8396-941bbd34ede9" target="_blank" class="navi-chip">Gen AI on Cloud — A Quick Builders Guide</a><a href="https://pages.navigator.bcg.com/kp/ecf1df24-aa1b-48bd-9cae-67689c811dd4" target="_blank" class="navi-chip">Agentic Knowledge Platform — Build vs Buy</a><a href="https://pages.navigator.bcg.com/kp/f25c61f0-b32b-4499-81b9-ed3aa43f3cc3" target="_blank" class="navi-chip">AI 2.0 Technologies: Tech Vendors</a><a href="https://pages.navigator.bcg.com/kp/9d7b7827-bff5-4ca6-942d-97b5f447d339" target="_blank" class="navi-chip">Architecture for Generative AI</a><a href="https://pages.navigator.bcg.com/kp/90b00e9d-cc1a-476a-95a0-015ad86a04b8" target="_blank" class="navi-chip">Agentic AI Hyperscaler Platform Evaluation Compendium</a></div>
+</div><div class="st-row">
+  <div class="st-label-row">
+    <span class="st-name">Other / General</span>
+    <span class="st-stats">72 requests &nbsp;·&nbsp; 21% of topic</span>
+  </div>
+  <div class="st-bar-wrap"><div class="st-bar" style="width:20.8%;background:#7030A0"></div></div>
+  <div class="st-navi-none">No NAVI assets matched yet</div>
+</div><div class="st-row">
+  <div class="st-label-row">
+    <span class="st-name">Cloud & Compute</span>
+    <span class="st-stats">38 requests &nbsp;·&nbsp; 11% of topic</span>
+  </div>
+  <div class="st-bar-wrap"><div class="st-bar" style="width:11.0%;background:#7030A0"></div></div>
+  <div class="st-navi-chips"><a href="https://pages.navigator.bcg.com/kp/f25c61f0-b32b-4499-81b9-ed3aa43f3cc3" target="_blank" class="navi-chip">AI 2.0 Technologies: Tech Vendors</a><a href="https://pages.navigator.bcg.com/kp/bb88485b-18f4-4c97-8396-941bbd34ede9" target="_blank" class="navi-chip">Gen AI on Cloud — A Quick Builders Guide</a><a href="https://pages.navigator.bcg.com/kp/450d8d4a-4115-452c-8e04-82dc7cd9fd4b" target="_blank" class="navi-chip">Framework for Building Effective Data and AI Platforms (AWS + Databricks)</a><a href="https://pages.navigator.bcg.com/kp/06a0d545-28d5-4c07-a235-b85a049817d0" target="_blank" class="navi-chip">Federated Analytics Data Platform Playbook — GenAI & Data Platform Architecture</a><a href="https://pages.navigator.bcg.com/kp/94f58334-fd86-4538-8112-0476757ff4a0" target="_blank" class="navi-chip">The Future of the AI-Driven Tech and People Stack: Data and Digital Platforms</a></div>
+</div><div class="st-row">
+  <div class="st-label-row">
+    <span class="st-name">Data Infrastructure</span>
+    <span class="st-stats">21 requests &nbsp;·&nbsp; 6% of topic</span>
+  </div>
+  <div class="st-bar-wrap"><div class="st-bar" style="width:6.1%;background:#7030A0"></div></div>
+  <div class="st-navi-chips"><a href="https://pages.navigator.bcg.com/kp/fcb6e2ff-8a1a-4335-8eb0-c04250765cee" target="_blank" class="navi-chip">Modern Data Platforms</a><a href="https://pages.navigator.bcg.com/kp/06a0d545-28d5-4c07-a235-b85a049817d0" target="_blank" class="navi-chip">Federated Analytics Data Platform Playbook — GenAI & Data Platform Architecture</a><a href="https://pages.navigator.bcg.com/kp/450d8d4a-4115-452c-8e04-82dc7cd9fd4b" target="_blank" class="navi-chip">Framework for Building Effective Data and AI Platforms (AWS + Databricks)</a><a href="https://pages.navigator.bcg.com/kp/d2416f7c-5817-42ea-bbea-798e4025778c" target="_blank" class="navi-chip">Data Strategy — Buy vs Build Assessment</a><a href="https://pages.navigator.bcg.com/kp/7b6a03dc-2a12-4ad1-8583-a3e7408795de" target="_blank" class="navi-chip">Agentic AI Architecture LCMP — Data & AI Platform Layer</a></div>
+</div><div class="st-row">
+  <div class="st-label-row">
+    <span class="st-name">MLOps & Model Management</span>
+    <span class="st-stats">10 requests &nbsp;·&nbsp; 3% of topic</span>
+  </div>
+  <div class="st-bar-wrap"><div class="st-bar" style="width:2.9%;background:#7030A0"></div></div>
+  <div class="st-navi-chips"><a href="https://pages.navigator.bcg.com/kp/70e8ff1d-f7d2-491b-a7b4-5fd1c3122817" target="_blank" class="navi-chip">Setting up MLOps & DevEx for an IG's AI CoE</a><a href="https://pages.navigator.bcg.com/kp/d364f1fe-de36-4962-b702-b97b626159f6" target="_blank" class="navi-chip">MLOps Playbook for an IG Company</a><a href="https://pages.navigator.bcg.com/kp/038cc3e7-5e45-4a52-baba-d96516c7ff51" target="_blank" class="navi-chip">Industrializing AI with MLOps</a><a href="https://pages.navigator.bcg.com/kp/5c951fd5-9f58-4e22-ab65-02b646d68b4b" target="_blank" class="navi-chip">DataOps, MLOps, AIOps</a><a href="https://pages.navigator.bcg.com/kp/9d7b7827-bff5-4ca6-942d-97b5f447d339" target="_blank" class="navi-chip">Architecture for Generative AI</a></div>
+</div>
+  </div>
+
+  <!-- Section 4: NAVI Content Coverage -->
+  <div class="section-hd">NAVI Content Coverage</div>
+  <div style="margin-bottom:20px">
+    <div class="navi-grid"><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/9d7b7827-bff5-4ca6-942d-97b5f447d339" target="_blank" class="navi-link">Architecture for Generative AI</a><span class="navi-tag">Architecture Blueprint</span></div>
+  <div class="navi-card-meta">Cross-industry · 2023</div>
+  <div class="navi-card-desc">Comprehensive deck covering AI system architecture design, reference architectures, platform selection, model deployment patterns, vector databases, RAG, orchestration, Azure OpenAI, Google Vertex AI, and BCG Llama architecture deep dives.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/a4cc4d00-da0f-4191-a6f5-a428fef30208" target="_blank" class="navi-link">Agentic AI Architectural Decisions and Platform Dynamics</a><span class="navi-tag">Platform Assessment</span></div>
+  <div class="navi-card-meta">Cross-industry · 2025</div>
+  <div class="navi-card-desc">Survey-based analysis (N=283, Nov 2025) of deployment platform retention and switching behaviour among agentic AI users; covers reasons for choosing vs. switching primary platforms (AWS Bedrock, Google Vertex, etc.).</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/90b00e9d-cc1a-476a-95a0-015ad86a04b8" target="_blank" class="navi-link">Agentic AI Hyperscaler Platform Evaluation Compendium</a><span class="navi-tag">Platform Assessment</span></div>
+  <div class="navi-card-meta">Cross-industry · 2025</div>
+  <div class="navi-card-desc">Evaluates three deployment scenarios for agentic AI architecture on hyperscalers: AWS Bedrock-only, Bedrock + Vertex hybrid, and Vertex-only. Assesses observability, guardrails, model flexibility, and vendor lock-in.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/a8c86dc6-60c4-4522-b95c-e1c65cdd2b7e" target="_blank" class="navi-link">Designing an Agentic AI Architecture to Scale an Enterprise GenAI Self-Service Platform</a><span class="navi-tag">Architecture Blueprint</span></div>
+  <div class="navi-card-meta">Cross-industry · 2025</div>
+  <div class="navi-card-desc">Architecture diagram for a scalable GenAI self-service platform on AWS. Covers vector database, LLM provider abstraction, tool management, orchestrator, and monitoring for multi-tenant enterprise use.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/7b6a03dc-2a12-4ad1-8583-a3e7408795de" target="_blank" class="navi-link">Agentic AI Architecture LCMP — Data & AI Platform Layer</a><span class="navi-tag">Data Architecture</span></div>
+  <div class="navi-card-meta">Cross-industry · 2025</div>
+  <div class="navi-card-desc">Illustrates how a centralised Data & AI platform enables scalable AI use cases. Covers AI Data Services, Semantic & Knowledge, data governance, and agent orchestration patterns.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/70e8ff1d-f7d2-491b-a7b4-5fd1c3122817" target="_blank" class="navi-link">Setting up MLOps & DevEx for an IG's AI CoE</a><span class="navi-tag">Case Study</span></div>
+  <div class="navi-card-meta">Energy & Resources · 2022</div>
+  <div class="navi-card-desc">BCG supported a global energy management company (€30B revenue) to design and activate MLOps + Delivery Excellence capabilities for 1,000+ data scientists. Includes use case archetypes, target architecture, and roadmap.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/d364f1fe-de36-4962-b702-b97b626159f6" target="_blank" class="navi-link">MLOps Playbook for an IG Company</a><span class="navi-tag">Architecture Blueprint</span></div>
+  <div class="navi-card-meta">Energy & Resources · 2022</div>
+  <div class="navi-card-desc">Defines MLOps as the automation and monitoring of ML system build, testing, and deployment at scale. Introduces the three-pillar MLOps framework: Tools, Capabilities, and Operating Model.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/038cc3e7-5e45-4a52-baba-d96516c7ff51" target="_blank" class="navi-link">Industrializing AI with MLOps</a><span class="navi-tag">Architecture Blueprint</span></div>
+  <div class="navi-card-meta">Cross-industry · 2023</div>
+  <div class="navi-card-desc">Comparative framework distinguishing DevOps, Data Engineering, and MLOps across users, pipelines, CI/CD, versioning, testing, and drift monitoring. From BCG Platinion.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/5c951fd5-9f58-4e22-ab65-02b646d68b4b" target="_blank" class="navi-link">DataOps, MLOps, AIOps</a><span class="navi-tag">Architecture Blueprint</span></div>
+  <div class="navi-card-meta">Cross-industry · 2022</div>
+  <div class="navi-card-desc">Foundational explainer on MLOps building blocks: Continuous Integration, Continuous Delivery, Continuous Deployment, and Continuous Training. Covers impact levers and role-specific value examples.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/0b4bf67e-c650-436f-844f-e21ed431e3ac" target="_blank" class="navi-link">Retrieval-Augmented Generation (RAG)</a><span class="navi-tag">Architecture Blueprint</span></div>
+  <div class="navi-card-meta">Cross-industry · 2024</div>
+  <div class="navi-card-desc">Comprehensive explainer on RAG: what it is, relevance for LLMs, 5-step process (external data creation, vector retrieval, prompt augmentation, response generation), RAG vs. fine-tuning comparison.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/ff42f3e2-76c7-49a6-bada-3f242deb9b9d" target="_blank" class="navi-link">Introduction to Retrieval Augmented Generation (BCG Platinion)</a><span class="navi-tag">Architecture Blueprint</span></div>
+  <div class="navi-card-meta">Cross-industry · 2024</div>
+  <div class="navi-card-desc">BCG Platinion primer on RAG (V1, December 2024). Introductory deck covering the fundamentals of retrieval-augmented generation for enterprise AI deployment.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/05e77748-fa07-40cf-a04d-270857f5254a" target="_blank" class="navi-link">Gen AI Tool Build for Data Retrieval and Visualization — LLM Techniques Comparison</a><span class="navi-tag">Architecture Blueprint</span></div>
+  <div class="navi-card-meta">Financial Services · 2024</div>
+  <div class="navi-card-desc">Compares four LLM adaptation techniques — RAG, Fine-Tuning, Pretraining, and Prompt Engineering — across data needs, compute requirements, and project use cases.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/fcb6e2ff-8a1a-4335-8eb0-c04250765cee" target="_blank" class="navi-link">Modern Data Platforms</a><span class="navi-tag">Data Architecture</span></div>
+  <div class="navi-card-meta">Cross-industry · 2024</div>
+  <div class="navi-card-desc">Comprehensive playbook covering modern data platform reference architectures, selection methodology (Microsoft Fabric, Snowflake, Redshift, BigQuery, Databricks, SAP Datasphere), data layer design, TCO modelling, and architecture blueprints.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/450d8d4a-4115-452c-8e04-82dc7cd9fd4b" target="_blank" class="navi-link">Framework for Building Effective Data and AI Platforms (AWS + Databricks)</a><span class="navi-tag">Case Study</span></div>
+  <div class="navi-card-meta">Industrial Goods · 2025</div>
+  <div class="navi-card-desc">Case example detailing AWS + Databricks architecture for a global whitegoods manufacturer. Covers ETL/ingestion, bronze/silver/gold data lake, Databricks compute, MLflow, PowerBI/Tableau, and governance.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/06a0d545-28d5-4c07-a235-b85a049817d0" target="_blank" class="navi-link">Federated Analytics Data Platform Playbook — GenAI & Data Platform Architecture</a><span class="navi-tag">Data Architecture</span></div>
+  <div class="navi-card-meta">Cross-industry · 2025</div>
+  <div class="navi-card-desc">Lakehouse federation architecture integrating Azure, AWS, Google, and SAP data platforms with centralised ML model registration (Unity Catalog), GenAI Gateway, agentic frameworks, and vector DB ingestion pipelines.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/bb88485b-18f4-4c97-8396-941bbd34ede9" target="_blank" class="navi-link">Gen AI on Cloud — A Quick Builders Guide</a><span class="navi-tag">Cloud / Infra Strategy</span></div>
+  <div class="navi-card-meta">Cross-industry · 2023</div>
+  <div class="navi-card-desc">Practical guide covering: why cloud for Gen AI, Gen AI value chain in cloud, tech stacks offered by CSPs (Azure, Google, AWS), commercial models, and Gen AI platform selection criteria.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/f25c61f0-b32b-4499-81b9-ed3aa43f3cc3" target="_blank" class="navi-link">AI 2.0 Technologies: Tech Vendors</a><span class="navi-tag">Platform Assessment</span></div>
+  <div class="navi-card-meta">TMT (Tech / Media / Telecom) · 2023</div>
+  <div class="navi-card-desc">Research compendium profiling cloud AI 2.0 megatrends and vendor landscape. Profiles 15+ companies including Microsoft Azure, Databricks, AWS, Google Cloud, NVIDIA, OpenAI. Covers AI software platform market evolution.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/94f58334-fd86-4538-8112-0476757ff4a0" target="_blank" class="navi-link">The Future of the AI-Driven Tech and People Stack: Data and Digital Platforms</a><span class="navi-tag">Cloud / Infra Strategy</span></div>
+  <div class="navi-card-meta">Cross-industry · 2024</div>
+  <div class="navi-card-desc">CTO-focused practical roadmap for AI transformation: setting AI aspiration, understanding current stack gaps, investing in foundational data layer and scalable infrastructure, building GenAI layer (models, guardrails, orchestration).</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/c962a063-a8ab-41a4-86ee-fbe1a983eeb1" target="_blank" class="navi-link">GenAI Build vs Buy Framework</a><span class="navi-tag">Build vs Buy / Make</span></div>
+  <div class="navi-card-meta">Cross-industry · 2024</div>
+  <div class="navi-card-desc">Decision flowchart for GenAI use cases: evaluates technology maturity, key criteria (cost, performance, speed), and guides toward off-the-shelf SaaS, building on existing models, or building a foundational model.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/ecf1df24-aa1b-48bd-9cae-67689c811dd4" target="_blank" class="navi-link">Agentic Knowledge Platform — Build vs Buy</a><span class="navi-tag">Build vs Buy / Make</span></div>
+  <div class="navi-card-meta">Cross-industry · 2025</div>
+  <div class="navi-card-desc">Full build vs. buy decision section for AI-enabled knowledge platforms. Evaluates commercial vs. custom solutions with a build-buy-evolve decision matrix, assessing vendors (Glean, Ema).</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/0a041554-fe51-477b-88dd-c0574991ade1" target="_blank" class="navi-link">The Build-or-Buy Dilemma in AI</a><span class="navi-tag">Build vs Buy / Make</span></div>
+  <div class="navi-card-meta">Cross-industry · 2024</div>
+  <div class="navi-card-desc">BCG thought leadership on the AI build-or-buy dilemma. Introduces a 2x2 framework (value potential vs. differentiated data access) with four strategic postures.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/d2416f7c-5817-42ea-bbea-798e4025778c" target="_blank" class="navi-link">Data Strategy — Buy vs Build Assessment</a><span class="navi-tag">Build vs Buy / Make</span></div>
+  <div class="navi-card-meta">Cross-industry · 2025</div>
+  <div class="navi-card-desc">Three-step process framework for specifying tools in a target data architecture and assessing buy vs. build trade-offs. Covers current-state assessment, data product design, and structured evaluation criteria.</div>
+</div></div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <a href="tda_deepdive_agentic_genai.html" class="nav-btn">← Agentic & Generative AI</a>
+    <a href="../tda_topic_deepdive.html" style="font-size:12px;color:#888">← Back to Overview</a>
+    <a href="tda_deepdive_ai_governance.html" class="nav-btn">AI Governance & Responsible AI →</a>
+  </div>
+
+  <div class="footer">Generated 11 Jun 2026, 16:28 · TDA Gen AI Knowledge Team</div>
+</div>
+
+<script>
+const YOY_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const YOY_25    = [16, 20, 21, 18, 13, 17, 30, 16, 14, 23, 18, 14];
+const YOY_26    = [26, 18, 26, 28, 21, 7, null, null, null, null, null, null];
+const CTX_DATA  = {"Proposal / RFP": 258, "Other": 34, "Expert Guidance / POV": 30, "Workshop / Training": 18, "Case Work": 4, "Internal": 2};
+const IND_DATA  = {"Industry agnostic": 169, "Financial Services": 67, "Healthcare / Life Sciences": 27, "Consumer & Retail": 16, "Industrial Goods": 14, "Telco": 13, "Public Sector": 12, "Technology": 10};
+const COLOR     = "#7030A0";
+
+const FONT = { family: 'system-ui, sans-serif', size: 12 };
+Chart.defaults.font = FONT;
+Chart.defaults.plugins.legend.labels.font = FONT;
+
+// ── YoY line chart ──────────────────────────────────────────────────────────
+new Chart(document.getElementById('yoyChart'), {
+  type: 'line',
+  data: {
+    labels: YOY_LABELS,
+    datasets: [
+      {
+        label: '2025', data: YOY_25,
+        borderColor: '#2E75B6', backgroundColor: 'rgba(46,117,182,.08)',
+        borderWidth: 2, pointRadius: 4, fill: true, spanGaps: false, tension: .3
+      },
+      {
+        label: '2026', data: YOY_26,
+        borderColor: '#8c2b2b', backgroundColor: 'rgba(140,43,43,.08)',
+        borderWidth: 2.5, pointRadius: 4, fill: true, spanGaps: false, tension: .3
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: { mode: 'index', intersect: false }
+    },
+    scales: {
+      x: { grid: { color: '#f0ebe0' } },
+      y: { beginAtZero: true, grid: { color: '#f0ebe0' }, ticks: { stepSize: 1 } }
+    }
+  }
+});
+
+// ── Horizontal bar helpers ──────────────────────────────────────────────────
+function hbar(id, dataObj, color) {
+  const labels = Object.keys(dataObj);
+  const vals   = Object.values(dataObj);
+  new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ data: vals, backgroundColor: color + 'cc', borderColor: color, borderWidth: 1 }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, grid: { color: '#f0ebe0' }, ticks: { stepSize: 1 } },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+hbar('ctxChart', CTX_DATA, COLOR);
+hbar('indChart', IND_DATA, COLOR);
+</script>
+</body>
+</html>

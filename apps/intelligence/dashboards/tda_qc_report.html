@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TDA Request Analysis — Data Quality Report</title>
+<style>
+  :root {
+    --bg: #faf6ef; --card: #fff; --soft: #f2ede3;
+    --ink: #1a1a1a; --mute: #888; --rule: #e6dfd1;
+    --accent: #8c2b2b; --teal: #0a5c5e; --warn: #a8600c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; font-size: 14px; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 28px 80px; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 18px; margin-bottom: 28px; }
+  .kicker { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; font-family: monospace; }
+  h1 { font-size: 38px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 8px; }
+  h1 em { font-style: italic; font-weight: 300; color: var(--accent); }
+  .sub { color: #555; font-size: 14px; }
+  .meta { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; font-size: 11px; color: var(--mute); font-family: monospace; letter-spacing: .1em; text-transform: uppercase; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 1px solid var(--rule); background: var(--card); margin-bottom: 24px; }
+  .kpi { padding: 16px 18px; border-right: 1px solid var(--rule); }
+  .kpi:last-child { border-right: none; }
+  .kpi .lbl { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); margin-bottom: 6px; font-family: monospace; }
+  .kpi .val { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .kpi .foot { font-size: 11px; color: var(--mute); margin-top: 4px; font-family: monospace; }
+  .kpi.accent .val { color: var(--accent); }
+  .kpi.teal .val { color: var(--teal); }
+  .card { background: var(--card); border: 1px solid var(--rule); padding: 20px; margin-bottom: 20px; }
+  .card-h { border-bottom: 1px solid var(--rule); padding-bottom: 10px; margin-bottom: 14px; }
+  .card-h h3 { font-size: 16px; font-weight: 600; }
+  .card-h .note { font-size: 11px; color: var(--mute); margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--rule); }
+  th { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); font-family: monospace; font-weight: 600; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.drop { color: var(--accent); }
+  td.note { color: var(--mute); font-size: 12px; }
+  .pct { color: var(--mute); font-size: 11px; }
+  .cov { max-height: 360px; overflow-y: auto; }
+  .warn { background: #fdf3e7; border: 1px solid #e7c79a; padding: 16px 20px; margin-bottom: 24px; }
+  .warn h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: var(--warn); font-family: monospace; margin-bottom: 8px; }
+  .warn ul { margin: 0 0 0 18px; }
+  .warn li { margin: 4px 0; color: #5a3a0c; }
+  .warn li.ok { color: var(--teal); list-style: none; margin-left: -18px; }
+  footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--rule); font-size: 11px; color: var(--mute); font-family: monospace; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">TDA Gen AI Knowledge Team · Pipeline Quality Control</div>
+  <h1>Data <em>Quality</em> Report</h1>
+  <p class="sub">Stage-by-stage intake funnel, field completeness, source temporal coverage and classification health for the unified request database.</p>
+  <div class="meta">
+    <span><b>13,561</b> rows loaded</span>
+    <span><b>6,028</b> in final DB</span>
+    <span>Generated 11 Jun 2026, 16:28</span>
+  </div>
+</header>
+
+<div class="kpis">
+  <div class="kpi"><div class="lbl">Rows Loaded</div><div class="val">13,561</div><div class="foot">Desk 1,907 · RMS 11,654</div></div>
+  <div class="kpi accent"><div class="lbl">Dropped</div><div class="val">7,533</div><div class="foot">across all filters</div></div>
+  <div class="kpi teal"><div class="lbl">Final DB</div><div class="val">6,028</div><div class="foot">44.5% retained</div></div>
+  <div class="kpi"><div class="lbl">Region Coverage</div><div class="val">99%</div><div class="foot">after backfill</div></div>
+</div>
+
+<div class="warn">
+  <h3>⚑ Warnings</h3>
+  <ul><li>1 duplicate record_id(s) in raw RMS export</li><li>Source handoff: Desk spans 2026-03-23→2026-06-09, RMS spans 2025-01-03→2026-03-26 — only 1 overlapping month. Month-over-month trends cross a source boundary; per-source dedup does not catch cross-source duplicates.</li><li>8 record(s) with <15-char classifier text survived the QC gate (stub / repeated-token asks).</li></ul>
+</div>
+
+<div class="card">
+  <div class="card-h"><h3>Intake Funnel</h3>
+    <div class="note">Each filter, in pipeline order, with rows in → dropped → rows out.</div></div>
+  <table>
+    <thead><tr><th>Stage</th><th class="num">Rows In</th><th class="num">Dropped</th><th class="num">Rows Out</th><th class="num">Drop %</th><th>Rule</th></tr></thead>
+    <tbody><tr><td>Pre-2025 created date</td><td class='num'>13,561</td><td class='num drop'>−5,875</td><td class='num'>7,686</td><td class='num'>43.3%</td><td class='note'>kept 2025-onward only</td></tr><tr><td>Cancelled status</td><td class='num'>7,686</td><td class='num drop'>−110</td><td class='num'>7,576</td><td class='num'>1.4%</td><td class='note'>status contains 'cancel'</td></tr><tr><td>QC gate — low-information</td><td class='num'>7,576</td><td class='num drop'>−977</td><td class='num'>6,599</td><td class='num'>12.9%</td><td class='note'>empty / placeholder / OOO asks</td></tr><tr><td>Deduplication</td><td class='num'>6,599</td><td class='num drop'>−571</td><td class='num'>6,028</td><td class='num'>8.7%</td><td class='note'>same requestor + same ask</td></tr></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-h"><h3>Field Completeness — Final DB</h3>
+    <div class="note">Blank / missing values per source (count and % of that source's rows). "Short text" = classifier input under 15 characters.</div></div>
+  <table>
+    <thead><tr><th>Source</th><th class="num">Title</th><th class="num">Body</th><th class="num">Requestor</th><th class="num">Region</th><th class="num">Short text</th></tr></thead>
+    <tbody><tr><td><b>Desk</b> <span class='pct'>n=920</span></td><td class='num'>0<span class='pct'> (0.0%)</span></td><td class='num'>0<span class='pct'> (0.0%)</span></td><td class='num'>2<span class='pct'> (0.2%)</span></td><td class='num'>8<span class='pct'> (0.9%)</span></td><td class='num'>6<span class='pct'> (0.7%)</span></td></tr><tr><td><b>RMS</b> <span class='pct'>n=5,108</span></td><td class='num'>76<span class='pct'> (1.5%)</span></td><td class='num'>0<span class='pct'> (0.0%)</span></td><td class='num'>0<span class='pct'> (0.0%)</span></td><td class='num'>78<span class='pct'> (1.5%)</span></td><td class='num'>2<span class='pct'> (0.0%)</span></td></tr></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-h"><h3>Source Temporal Coverage</h3>
+    <div class="note">Requests per month by source — exposes the Desk⇄RMS handoff. Months where only one source contributes mean trend lines cross a system boundary.</div></div>
+  <div class="cov">
+  <table>
+    <thead><tr><th>Month</th><th class="num">Desk</th><th class="num">RMS</th><th class="num">Total</th><th>Active source</th></tr></thead>
+    <tbody><tr><td>2025-01</td><td class='num'>0</td><td class='num'>310</td><td class='num'>310</td><td>RMS</td></tr><tr><td>2025-02</td><td class='num'>0</td><td class='num'>319</td><td class='num'>319</td><td>RMS</td></tr><tr><td>2025-03</td><td class='num'>0</td><td class='num'>312</td><td class='num'>312</td><td>RMS</td></tr><tr><td>2025-04</td><td class='num'>0</td><td class='num'>300</td><td class='num'>300</td><td>RMS</td></tr><tr><td>2025-05</td><td class='num'>0</td><td class='num'>305</td><td class='num'>305</td><td>RMS</td></tr><tr><td>2025-06</td><td class='num'>0</td><td class='num'>369</td><td class='num'>369</td><td>RMS</td></tr><tr><td>2025-07</td><td class='num'>0</td><td class='num'>373</td><td class='num'>373</td><td>RMS</td></tr><tr><td>2025-08</td><td class='num'>0</td><td class='num'>300</td><td class='num'>300</td><td>RMS</td></tr><tr><td>2025-09</td><td class='num'>0</td><td class='num'>380</td><td class='num'>380</td><td>RMS</td></tr><tr><td>2025-10</td><td class='num'>0</td><td class='num'>413</td><td class='num'>413</td><td>RMS</td></tr><tr><td>2025-11</td><td class='num'>0</td><td class='num'>380</td><td class='num'>380</td><td>RMS</td></tr><tr><td>2025-12</td><td class='num'>0</td><td class='num'>247</td><td class='num'>247</td><td>RMS</td></tr><tr><td>2026-01</td><td class='num'>0</td><td class='num'>346</td><td class='num'>346</td><td>RMS</td></tr><tr><td>2026-02</td><td class='num'>0</td><td class='num'>387</td><td class='num'>387</td><td>RMS</td></tr><tr><td>2026-03</td><td class='num'>44</td><td class='num'>367</td><td class='num'>411</td><td>both</td></tr><tr><td>2026-04</td><td class='num'>391</td><td class='num'>0</td><td class='num'>391</td><td>Desk</td></tr><tr><td>2026-05</td><td class='num'>375</td><td class='num'>0</td><td class='num'>375</td><td>Desk</td></tr><tr><td>2026-06</td><td class='num'>110</td><td class='num'>0</td><td class='num'>110</td><td>Desk</td></tr></tbody>
+  </table>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-h"><h3>Classification Health</h3>
+    <div class="note">High residuals can signal noisy intake or keyword gaps rather than genuinely unclassifiable demand.</div></div>
+  <table>
+    <tbody>
+      <tr><td>Topic = "Other" (unmatched)</td><td class="num">22.3%</td></tr>
+      <tr><td>Reshape bucket = Unclassified</td><td class="num">3.6%</td></tr>
+      <tr><td>Requestor region tagged</td><td class="num">98.6%</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<footer>
+  TDA Request Analysis · data-quality report · regenerated on every refresh · do not hand-edit.
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TDA AI Demand Intelligence</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:#faf6ef; --card:#fff; --soft:#f2ede3;
+    --ink:#1a1a1a; --mute:#888; --rule:#e6dfd1;
+    --accent:#1F3864; --gold:#c8960c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:system-ui,sans-serif;font-size:14px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  .wrap{max-width:1400px;margin:0 auto;padding:32px 28px 80px}
+  header{border-bottom:2px solid var(--ink);padding-bottom:18px;margin-bottom:24px}
+  .kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;font-family:monospace}
+  h1{font-size:38px;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin-bottom:8px}
+  h1 em{font-style:italic;font-weight:300;color:var(--accent)}
+  .sub{color:#555;font-size:14px;max-width:920px;line-height:1.55}
+  .meta{display:flex;gap:20px;flex-wrap:wrap;margin-top:12px;font-size:11px;color:var(--mute);font-family:monospace;letter-spacing:.1em;text-transform:uppercase}
+  .meta b{color:var(--ink)}
+
+  .section-hd{font-size:16px;font-weight:700;color:var(--ink);border-left:4px solid var(--accent);padding-left:10px;margin:32px 0 14px}
+
+  .panel{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:18px 20px}
+  .panel-title{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--mute);margin-bottom:14px;font-weight:600;font-family:monospace}
+  .panel-sub{font-size:10px;color:var(--mute);text-transform:none;letter-spacing:0;font-weight:400;margin-left:6px}
+  .yoy-sel{float:right;font-family:system-ui,sans-serif;font-size:12px;color:var(--ink);background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:3px 8px;cursor:pointer}
+  .yoy-sel:focus{outline:none;border-color:var(--accent)}
+  .chart-lg{position:relative;height:340px}
+  .chart-md{position:relative;height:260px}
+
+  /* Demand profile grid (3 panels side-by-side, stacks on narrow viewports) */
+  .profile-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:20px}
+  @media(max-width:760px){.profile-grid{grid-template-columns:1fr}}
+
+  /* Consolidated overview table */
+  table.ov{width:100%;border-collapse:collapse;font-size:13px}
+  table.ov th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--mute);font-weight:600;padding:12px 14px;border-bottom:2px solid var(--rule);font-family:monospace;background:var(--soft)}
+  table.ov th.num{text-align:right}
+  table.ov td{padding:9px 14px;border-bottom:1px solid var(--soft);vertical-align:middle}
+  table.ov td.num{text-align:right;font-variant-numeric:tabular-nums}
+  table.ov td.mute{color:var(--mute)}
+  table.ov td.up{color:#2e7d1f;font-weight:600}
+  table.ov td.dn{color:#c00000;font-weight:600}
+  tr.ov-bucket td{background:#fbf9f4;border-top:1px solid var(--rule);padding-top:11px;padding-bottom:11px;font-size:13.5px}
+  tr.ov-bucket:first-child td{border-top:none}
+  tr.ov-bucket-toggle{cursor:pointer;user-select:none}
+  tr.ov-bucket-toggle:hover td{background:#f4f0e6}
+  tr.ov-bucket-toggle:focus{outline:none}
+  tr.ov-bucket-toggle:focus td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+  .ov-chev{display:inline-block;width:14px;color:var(--mute);font-size:11px;margin-right:4px;transition:transform .15s ease}
+  .ov-chev-empty{visibility:hidden}
+  tr.ov-bucket-toggle[aria-expanded="false"] .ov-chev{transform:rotate(-90deg)}
+  tr.ov-sub td{font-size:12.5px;color:#444}
+  tr.ov-sub td.ov-name-sub{padding-left:30px;color:#555}
+  tr.ov-no-sub td{color:var(--mute);font-style:italic;font-size:12px}
+  .ov-tree{color:var(--mute);font-family:monospace;margin-right:4px}
+  .ov-bar-cell{width:160px;padding-left:14px;padding-right:14px}
+  .ov-bar-col{width:160px}
+  .ov-bar-wrap{height:9px;background:#eee;border-radius:5px;overflow:hidden}
+  .ov-bar-wrap-sub{height:6px}
+  .ov-bar{height:100%;border-radius:5px;min-width:3px;transition:width .3s}
+  .ov-name-col{min-width:280px}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:middle}
+
+  /* Upfront bucket guide */
+  .g-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin-bottom:24px}
+  .g-card{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:16px 18px 18px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .g-head{font-size:15px;font-weight:700;letter-spacing:-.01em;margin-bottom:8px}
+  .g-desc{font-size:12px;color:#444;line-height:1.55;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--rule)}
+  .g-section-label{font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:var(--mute);margin:12px 0 6px;font-weight:600;font-family:monospace}
+  .g-section-label:first-of-type{margin-top:0}
+  .g-scope{font-size:12px;color:#555;line-height:1.5}
+  .g-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+  .g-chip{display:inline-block;font-size:11px;background:#fff;border:1px solid;border-radius:12px;padding:3px 9px;font-weight:500}
+  .g-no-sub{font-size:11px;color:var(--mute);font-style:italic}
+
+  /* Material Gap Analysis */
+  .gap-intro{font-size:12px;color:#555;line-height:1.6;margin-bottom:12px;max-width:1100px}
+  .gap-summary{display:inline-block;margin-left:12px;padding:3px 10px;background:var(--soft);border-radius:12px;color:var(--ink);font-size:11px}
+  table.gap{width:100%;border-collapse:collapse;font-size:13px}
+  table.gap th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--mute);font-weight:600;padding:12px 14px;border-bottom:2px solid var(--rule);font-family:monospace;background:var(--soft)}
+  table.gap th.num{text-align:right}
+  table.gap td{padding:9px 14px;border-bottom:1px solid var(--soft);vertical-align:middle}
+  table.gap td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .gap-name-col{min-width:280px}
+  .gap-status-col{width:110px}
+  tr.gap-bucket td{background:#fbf9f4;border-top:1px solid var(--rule);padding-top:11px;padding-bottom:11px;font-size:13.5px}
+  tr.gap-bucket:first-child td{border-top:none}
+  tr.gap-sub td.gap-name-sub{padding-left:30px;color:#555}
+  .gap-chips{display:flex;flex-wrap:wrap;gap:5px}
+  .gap-chip{display:inline-block;font-size:11px;background:#fff;border:1px solid;border-radius:12px;padding:3px 9px;font-weight:500;text-decoration:none;position:relative}
+  a.gap-chip-link:hover{background:rgba(0,0,0,.04);text-decoration:none}
+  a.gap-chip-link::after{content:" ↗";opacity:.55;font-size:10px}
+  /* Recency colour-coding overrides the bucket-color border */
+  .chip-fresh{border-color:#2e7d1f !important}
+  .chip-aging{border-color:#c8960c !important;background:#fffbef}
+  .chip-stale{border-color:#c00000 !important;background:#fdf2f2;opacity:.75}
+  .chip-date{font-size:10px;color:var(--mute);font-weight:400;margin-left:2px}
+  .gap-empty{font-size:11px;color:var(--mute);font-style:italic}
+  .gap-badge{display:inline-block;font-size:11px;font-weight:600;border-radius:12px;padding:3px 10px;white-space:nowrap}
+  .gap-red{background:#fdecea;color:#c00000}
+  .gap-amber{background:#fef5e0;color:#8a5d00}
+  .gap-green{background:#e8f5e0;color:#2e7d1f}
+
+  /* Suggested content to build (WIP) */
+  .wip-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    background:#fef5e0;color:#8a5d00;border:1px solid var(--gold);border-radius:10px;padding:2px 8px;margin-left:8px;vertical-align:middle}
+  .sg-intro{font-size:12px;color:#555;line-height:1.6;margin-bottom:14px;max-width:1100px;font-style:italic}
+  .sg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:14px}
+  @media(max-width:980px){.sg-grid{grid-template-columns:1fr}}
+  .sg-card{background:var(--card);border:1px solid var(--rule);border-top:4px solid var(--gold);border-radius:8px;
+    padding:16px 18px 18px;box-shadow:0 1px 3px rgba(0,0,0,.04);display:flex;flex-direction:column;gap:10px}
+  .sg-rank{font-size:10px;font-weight:700;font-family:monospace;color:var(--gold);letter-spacing:.1em}
+  .sg-title{font-size:15px;font-weight:700;letter-spacing:-.01em;line-height:1.25;color:var(--ink)}
+  .sg-lead{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#2e7d1f;
+    background:#e8f5e0;border-radius:8px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+  .sg-metrics{display:flex;flex-wrap:wrap;gap:6px}
+  .sg-chip{display:inline-block;font-size:11px;background:#fff;border:1px solid var(--rule);border-radius:12px;padding:3px 9px;font-weight:500;color:#444}
+  .sg-chip-yoy{border-color:#2e7d1f;color:#2e7d1f;font-weight:600}
+  .sg-label{font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:var(--mute);font-weight:600;font-family:monospace;margin-bottom:3px}
+  .sg-block{padding-bottom:10px;border-bottom:1px solid var(--rule)}
+  .sg-ex{font-size:12px;color:#444;line-height:1.5;font-style:italic;border-left:3px solid var(--rule);padding-left:9px}
+  .sg-ex-src{display:block;font-style:normal;font-size:10px;color:var(--mute);margin-top:4px;font-family:monospace}
+  .sg-have{font-size:12px;color:#555;line-height:1.5}
+  .sg-have b{color:var(--ink)}
+  .sg-asset-name{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:5px}
+  .sg-asset ul{margin:0;padding-left:16px;font-size:12px;color:#444;line-height:1.55}
+  .sg-seq{font-size:12px;color:#555;line-height:1.55;background:var(--soft);border-radius:8px;padding:10px 14px}
+
+  /* Executive KPI cards */
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:8px}
+  @media(max-width:1050px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:640px){.kpi-grid{grid-template-columns:1fr}}
+  .kpi-card{background:var(--card);border:1px solid var(--rule);border-top:4px solid var(--accent);
+    border-radius:8px;padding:18px 20px;box-shadow:0 1px 3px rgba(0,0,0,.04);display:flex;flex-direction:column;gap:8px}
+  .kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--mute);font-weight:600;font-family:monospace}
+  .kpi-value{font-size:40px;font-weight:700;line-height:1;letter-spacing:-.02em;color:var(--ink)}
+  .kpi-value-sm{font-size:21px;line-height:1.2}
+  .kpi-foot{font-size:12px;color:#555;line-height:1.5;margin-top:auto}
+  .kpi-delta{display:inline-block;font-size:11px;font-weight:700;border-radius:12px;padding:2px 9px;white-space:nowrap}
+  .kpi-delta-up{background:#e8f5e0;color:#2e7d1f}
+  .kpi-delta-dn{background:#fdecea;color:#c00000}
+  .kpi-delta-flat{background:var(--soft);color:var(--mute)}
+
+  /* Recurring asks table (#4) */
+  table.rc{width:100%;border-collapse:collapse;font-size:13px}
+  table.rc th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--mute);font-weight:600;padding:11px 14px;border-bottom:2px solid var(--rule);font-family:monospace;background:var(--soft)}
+  table.rc th.num{text-align:right}
+  table.rc td{padding:8px 14px;border-bottom:1px solid var(--soft);vertical-align:middle}
+  table.rc td.num{text-align:right;font-variant-numeric:tabular-nums}
+  table.rc tr:hover td{background:#fbf9f4}
+  .rc-phrase{font-weight:600;color:var(--ink)}
+  .rc-bar-cell{width:200px}
+  .rc-bar-wrap{height:8px;background:#eee;border-radius:5px;overflow:hidden}
+  .rc-bar{height:100%;border-radius:5px;min-width:3px}
+  .rc-bucket{font-size:12px;color:#555;white-space:nowrap}
+  .rc-share{color:var(--mute);font-size:11px;margin-left:2px}
+  .rc-grouped{display:inline-block;margin-left:6px;padding:1px 6px;background:var(--soft);color:var(--mute);border-radius:8px;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;vertical-align:middle}
+
+  .footer{font-size:11px;color:var(--mute);margin-top:40px;text-align:center;padding-top:20px;border-top:1px solid var(--rule)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker">TDA Gen AI Knowledge Team · Executive View</div>
+    <h1>AI Demand <em>Intelligence</em></h1>
+    <div class="sub">Demand seen by the AI Vantage team across two main channels — the <b>GenAI Proposal Desk</b> and <b>bff@bcg.com</b> — plus ad-hoc requests, organised across five strategic layers from AI ambition and strategy through the enterprise foundations, enablement systems, value-assurance mechanics, and the long tail of AI applications and use cases.</div>
+    <div class="meta">
+      <span>Generated <b>11 Jun 2026, 16:28</b></span>
+    </div>
+  </header>
+
+  <!-- ── Executive summary (headline KPIs) ────────────────────────────── -->
+  <div class="section-hd">Executive Summary — Headline Demand Signals</div>
+  <div class="kpi-grid">
+    <div class="kpi-card" style="border-top-color:#1F3864">
+      <div class="kpi-label">Total Demand · 2026 YTD</div>
+      <div class="kpi-value">2,020</div>
+      <div class="kpi-foot">4,608 annualised vs 4,008 in 2025 &nbsp;<span class="kpi-delta kpi-delta-up">▲ +15.0% YoY</span></div>
+    </div>
+    <div class="kpi-card" style="border-top-color:#C0392B">
+      <div class="kpi-label">Largest Demand Bucket</div>
+      <div class="kpi-value kpi-value-sm">AI Applications & Use Cases</div>
+      <div class="kpi-foot">2,056 requests · 34.1% of all demand</div>
+    </div>
+    <div class="kpi-card" style="border-top-color:#1F3864">
+      <div class="kpi-label">Fastest-growing Bucket</div>
+      <div class="kpi-value kpi-value-sm">AI Ambition & Strategy</div>
+      <div class="kpi-foot"><span class="kpi-delta kpi-delta-up">▲ +51.4% YoY</span> (annualised)</div>
+    </div>
+    <div class="kpi-card" style="border-top-color:var(--gold)">
+      <div class="kpi-label">Fastest-growing Region</div>
+      <div class="kpi-value kpi-value-sm">NAMR</div>
+      <div class="kpi-foot"><span class="kpi-delta kpi-delta-up">▲ +23.3% YoY</span> (annualised) · 1,487 projected</div>
+    </div>
+  </div>
+
+  <!-- ── Detailed analysis ────────────────────────────────────────────── -->
+  <!-- Upfront bucket guide -->
+  <div class="section-hd">The Five Buckets — What They Cover</div>
+  <div class="g-grid">
+    <div class="g-card" style="border-left:4px solid #1F3864">
+  <div class="g-head" style="color:#1F3864">AI Ambition & Strategy</div>
+  <div class="g-desc">Setting the AI vision: articulating ambition, defining value pools, and selecting priority opportunities. Includes all Build for the Future (BFF) requests as the flagship strategic engagement vehicle.</div>
+  <div class="g-section-label">What's included</div>
+  <div class="g-scope">Build for the Future (BFF) decks and inquiries · AI / digital maturity assessments, readiness diagnostics and the Digital Acceleration Index · AI strategy, vision and roadmap requests, ambition and investment cases.</div>
+  <div class="g-section-label">Sub-buckets</div>
+  <div class="g-chips"><span class="g-chip" style="border-color:#1F3864;color:#1F3864">Build for the Future (BFF)</span><span class="g-chip" style="border-color:#1F3864;color:#1F3864">Maturity Assessment & Diagnostics</span><span class="g-chip" style="border-color:#1F3864;color:#1F3864">AI Strategy, Vision & Roadmap</span></div>
+</div><div class="g-card" style="border-left:4px solid #C8960C">
+  <div class="g-head" style="color:#C8960C">Enterprise Value Assurance</div>
+  <div class="g-desc">Orchestrating delivery and value: governance and programme management, value tracking and resource management, delivery model and ecosystem partnerships.</div>
+  <div class="g-section-label">What's included</div>
+  <div class="g-scope">Value tracking, impact and forecasting (ROI, KPI, demand planning, cost) · programme and delivery management (TMO / PMO, delivery model, portfolio) · ecosystems and partnerships (vendors, alliances, build-vs-buy).</div>
+  <div class="g-section-label">Sub-buckets</div>
+  <div class="g-chips"><span class="g-chip" style="border-color:#C8960C;color:#C8960C">Value Tracking, Impact & Forecasting</span><span class="g-chip" style="border-color:#C8960C;color:#C8960C">Ecosystems & Partnerships</span><span class="g-chip" style="border-color:#C8960C;color:#C8960C">Program & Delivery Management</span></div>
+</div><div class="g-card" style="border-left:4px solid #A0418A">
+  <div class="g-head" style="color:#A0418A">Enterprise Enablement</div>
+  <div class="g-desc">Making AI stick across the organisation: AI-first org and operating model, workforce reinvention, and leadership / culture activation.</div>
+  <div class="g-section-label">What's included</div>
+  <div class="g-scope">Operating model and org design (AI-first org, CoE, process/workflow redesign) · workforce, talent and upskilling (productivity, academies) · adoption, change management and culture / literacy programmes.</div>
+  <div class="g-section-label">Sub-buckets</div>
+  <div class="g-chips"><span class="g-chip" style="border-color:#A0418A;color:#A0418A">Operating Model & Org Design</span><span class="g-chip" style="border-color:#A0418A;color:#A0418A">Workforce, Talent & Upskilling</span><span class="g-chip" style="border-color:#A0418A;color:#A0418A">Adoption, Change & Culture</span></div>
+</div><div class="g-card" style="border-left:4px solid #2E8B57">
+  <div class="g-head" style="color:#2E8B57">Enterprise Foundations</div>
+  <div class="g-desc">The tech and data backbone for AI at scale: platforms, data foundations, and the Risk & Responsible AI layer (cyber, evals, regulatory compliance).</div>
+  <div class="g-section-label">What's included</div>
+  <div class="g-scope">Agentic frameworks and orchestration (LangGraph, CrewAI, AutoGen) and AI/tech platform selection, MLOps, RAG and architecture · data foundations, fabric and governance · Risk & Responsible AI (guardrails, cyber, EU AI Act, GDPR) · digital transformation and legacy IT modernisation.</div>
+  <div class="g-section-label">Sub-buckets</div>
+  <div class="g-chips"><span class="g-chip" style="border-color:#2E8B57;color:#2E8B57">Agentic & AI Platform / Tech Stack</span><span class="g-chip" style="border-color:#2E8B57;color:#2E8B57">Data Foundations</span><span class="g-chip" style="border-color:#2E8B57;color:#2E8B57">Risk & Responsible AI</span><span class="g-chip" style="border-color:#2E8B57;color:#2E8B57">Digital Transformation & IT Modernisation</span></div>
+</div><div class="g-card" style="border-left:4px solid #C0392B">
+  <div class="g-head" style="color:#C0392B">AI Applications & Use Cases</div>
+  <div class="g-desc">Demand for AI applications across business functions and industries — Gen AI / LLM use cases, agentic solutions, and the long tail of credentials, proposals, and case examples requested by case teams.</div>
+  <div class="g-section-label">What's included</div>
+  <div class="g-scope">Agentic use cases and solutions — agents, copilots, assistants and automation · Function use cases — AI applied to business functions (sales, marketing, HR, finance, procurement, operations, customer service) · Industry use cases — Gen AI demand cut by sector (banking, retail, telco, healthcare, energy, public sector, etc.).</div>
+  <div class="g-section-label">Sub-buckets</div>
+  <div class="g-chips"><span class="g-chip" style="border-color:#C0392B;color:#C0392B">Agentic Use Cases & Solutions</span><span class="g-chip" style="border-color:#C0392B;color:#C0392B">Function Use Cases</span><span class="g-chip" style="border-color:#C0392B;color:#C0392B">Industry Use Cases</span></div>
+</div><div class="g-card" style="border-left:4px solid #7F7F7F">
+  <div class="g-head" style="color:#7F7F7F">Other / Unclassified Demand</div>
+  <div class="g-desc">Requests that don't fit any of the five strategic layers. Mostly low-information records — empty or single-character titles, generic administrative labels ('AD HOC', 'request', staffing-role names), and substantive but goal-less asks. Signal for data-capture quality at intake.</div>
+  <div class="g-section-label">What's included</div>
+  <div class="g-scope">Title-less or single-character records · generic admin labels (AD HOC, request, holiday) · staffing-role labels (Consultant, Partner, BCG Vantage Analyst) · substantive but goal-less asks where the requester didn't specify the intent.</div>
+  <div class="g-section-label">Sub-buckets</div>
+  <div class="g-no-sub">No sub-buckets — single category.</div>
+</div>
+  </div>
+
+  <!-- Consolidated distribution & YoY table (bucket + sub-bucket hierarchy) -->
+  <div class="section-hd">Volumes &amp; YoY Trend — by Bucket and Sub-bucket</div>
+  <div class="panel" style="margin-bottom:20px;padding:0;overflow:hidden">
+    <table class="ov">
+      <thead>
+        <tr>
+          <th class="ov-name-col">Bucket / Sub-bucket</th>
+          <th class="num">Volume</th>
+          <th class="num">Share</th>
+          <th class="ov-bar-col">Distribution</th>
+          <th class="num">2025</th>
+          <th class="num">2026 YTD</th>
+          <th class="num">2026 Ann.</th>
+          <th class="num">YoY %</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="ov-bucket ov-bucket-toggle" data-bucket="ai_ambition_strategy" role="button" tabindex="0" aria-expanded="false">
+  <td class="ov-name">
+    <span class="ov-chev">▾</span><span class="dot" style="background:#1F3864"></span><b>AI Ambition & Strategy</b>
+  </td>
+  <td class="num"><b>1,847</b></td>
+  <td class="num">30.6%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap"><div class="ov-bar" style="width:89.8%;background:#1F3864"></div></div>
+  </td>
+  <td class="num">1,110</td>
+  <td class="num">737</td>
+  <td class="num">1,681</td>
+  <td class="num up">+51.4%</td>
+</tr><tr class="ov-sub" data-parent="ai_ambition_strategy" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> AI Strategy, Vision & Roadmap
+  </td>
+  <td class="num">971</td>
+  <td class="num">52.6%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:52.6%;background:#1F3864;opacity:.55"></div></div>
+  </td>
+  <td class="num">578</td>
+  <td class="num">393</td>
+  <td class="num">897</td>
+  <td class="num up">+55.2%</td>
+</tr><tr class="ov-sub" data-parent="ai_ambition_strategy" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Build for the Future (BFF)
+  </td>
+  <td class="num">462</td>
+  <td class="num">25.0%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:25.0%;background:#1F3864;opacity:.55"></div></div>
+  </td>
+  <td class="num">246</td>
+  <td class="num">216</td>
+  <td class="num">493</td>
+  <td class="num up">+100.4%</td>
+</tr><tr class="ov-sub" data-parent="ai_ambition_strategy" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Maturity Assessment & Diagnostics
+  </td>
+  <td class="num">371</td>
+  <td class="num">20.1%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:20.1%;background:#1F3864;opacity:.55"></div></div>
+  </td>
+  <td class="num">252</td>
+  <td class="num">119</td>
+  <td class="num">271</td>
+  <td class="num up">+7.5%</td>
+</tr><tr class="ov-sub" data-parent="ai_ambition_strategy" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Other (uncategorised)
+  </td>
+  <td class="num">43</td>
+  <td class="num">2.3%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:2.3%;background:#1F3864;opacity:.55"></div></div>
+  </td>
+  <td class="num">34</td>
+  <td class="num">9</td>
+  <td class="num">21</td>
+  <td class="num dn">-38.2%</td>
+</tr><tr class="ov-bucket ov-bucket-toggle" data-bucket="enterprise_value_assurance" role="button" tabindex="0" aria-expanded="false">
+  <td class="ov-name">
+    <span class="ov-chev">▾</span><span class="dot" style="background:#C8960C"></span><b>Enterprise Value Assurance</b>
+  </td>
+  <td class="num"><b>637</b></td>
+  <td class="num">10.6%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap"><div class="ov-bar" style="width:31.0%;background:#C8960C"></div></div>
+  </td>
+  <td class="num">433</td>
+  <td class="num">204</td>
+  <td class="num">465</td>
+  <td class="num up">+7.4%</td>
+</tr><tr class="ov-sub" data-parent="enterprise_value_assurance" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Value Tracking, Impact & Forecasting
+  </td>
+  <td class="num">335</td>
+  <td class="num">52.6%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:52.6%;background:#C8960C;opacity:.55"></div></div>
+  </td>
+  <td class="num">232</td>
+  <td class="num">103</td>
+  <td class="num">235</td>
+  <td class="num up">+1.3%</td>
+</tr><tr class="ov-sub" data-parent="enterprise_value_assurance" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Ecosystems & Partnerships
+  </td>
+  <td class="num">227</td>
+  <td class="num">35.6%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:35.6%;background:#C8960C;opacity:.55"></div></div>
+  </td>
+  <td class="num">158</td>
+  <td class="num">69</td>
+  <td class="num">157</td>
+  <td class="num dn">-0.6%</td>
+</tr><tr class="ov-sub" data-parent="enterprise_value_assurance" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Program & Delivery Management
+  </td>
+  <td class="num">58</td>
+  <td class="num">9.1%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:9.1%;background:#C8960C;opacity:.55"></div></div>
+  </td>
+  <td class="num">32</td>
+  <td class="num">26</td>
+  <td class="num">59</td>
+  <td class="num up">+84.4%</td>
+</tr><tr class="ov-sub" data-parent="enterprise_value_assurance" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Other (uncategorised)
+  </td>
+  <td class="num">17</td>
+  <td class="num">2.7%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:2.7%;background:#C8960C;opacity:.55"></div></div>
+  </td>
+  <td class="num">11</td>
+  <td class="num">6</td>
+  <td class="num">14</td>
+  <td class="num up">+27.3%</td>
+</tr><tr class="ov-bucket ov-bucket-toggle" data-bucket="enterprise_enablement" role="button" tabindex="0" aria-expanded="false">
+  <td class="ov-name">
+    <span class="ov-chev">▾</span><span class="dot" style="background:#A0418A"></span><b>Enterprise Enablement</b>
+  </td>
+  <td class="num"><b>604</b></td>
+  <td class="num">10.0%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap"><div class="ov-bar" style="width:29.4%;background:#A0418A"></div></div>
+  </td>
+  <td class="num">407</td>
+  <td class="num">197</td>
+  <td class="num">449</td>
+  <td class="num up">+10.3%</td>
+</tr><tr class="ov-sub" data-parent="enterprise_enablement" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Workforce, Talent & Upskilling
+  </td>
+  <td class="num">238</td>
+  <td class="num">39.4%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:39.4%;background:#A0418A;opacity:.55"></div></div>
+  </td>
+  <td class="num">173</td>
+  <td class="num">65</td>
+  <td class="num">148</td>
+  <td class="num dn">-14.5%</td>
+</tr><tr class="ov-sub" data-parent="enterprise_enablement" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Operating Model & Org Design
+  </td>
+  <td class="num">182</td>
+  <td class="num">30.1%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:30.1%;background:#A0418A;opacity:.55"></div></div>
+  </td>
+  <td class="num">106</td>
+  <td class="num">76</td>
+  <td class="num">173</td>
+  <td class="num up">+63.2%</td>
+</tr><tr class="ov-sub" data-parent="enterprise_enablement" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Adoption, Change & Culture
+  </td>
+  <td class="num">168</td>
+  <td class="num">27.8%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:27.8%;background:#A0418A;opacity:.55"></div></div>
+  </td>
+  <td class="num">122</td>
+  <td class="num">46</td>
+  <td class="num">105</td>
+  <td class="num dn">-13.9%</td>
+</tr><tr class="ov-sub" data-parent="enterprise_enablement" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Other (uncategorised)
+  </td>
+  <td class="num">16</td>
+  <td class="num">2.6%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:2.6%;background:#A0418A;opacity:.55"></div></div>
+  </td>
+  <td class="num">6</td>
+  <td class="num">10</td>
+  <td class="num">23</td>
+  <td class="num up">+283.3%</td>
+</tr><tr class="ov-bucket ov-bucket-toggle" data-bucket="enterprise_foundations" role="button" tabindex="0" aria-expanded="false">
+  <td class="ov-name">
+    <span class="ov-chev">▾</span><span class="dot" style="background:#2E8B57"></span><b>Enterprise Foundations</b>
+  </td>
+  <td class="num"><b>669</b></td>
+  <td class="num">11.1%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap"><div class="ov-bar" style="width:32.5%;background:#2E8B57"></div></div>
+  </td>
+  <td class="num">454</td>
+  <td class="num">215</td>
+  <td class="num">490</td>
+  <td class="num up">+7.9%</td>
+</tr><tr class="ov-sub" data-parent="enterprise_foundations" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Agentic & AI Platform / Tech Stack
+  </td>
+  <td class="num">323</td>
+  <td class="num">48.3%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:48.3%;background:#2E8B57;opacity:.55"></div></div>
+  </td>
+  <td class="num">219</td>
+  <td class="num">104</td>
+  <td class="num">237</td>
+  <td class="num up">+8.2%</td>
+</tr><tr class="ov-sub" data-parent="enterprise_foundations" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Digital Transformation & IT Modernisation
+  </td>
+  <td class="num">184</td>
+  <td class="num">27.5%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:27.5%;background:#2E8B57;opacity:.55"></div></div>
+  </td>
+  <td class="num">128</td>
+  <td class="num">56</td>
+  <td class="num">128</td>
+  <td class="num dn">0.0%</td>
+</tr><tr class="ov-sub" data-parent="enterprise_foundations" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Risk & Responsible AI
+  </td>
+  <td class="num">148</td>
+  <td class="num">22.1%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:22.1%;background:#2E8B57;opacity:.55"></div></div>
+  </td>
+  <td class="num">98</td>
+  <td class="num">50</td>
+  <td class="num">114</td>
+  <td class="num up">+16.3%</td>
+</tr><tr class="ov-sub" data-parent="enterprise_foundations" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Data Foundations
+  </td>
+  <td class="num">14</td>
+  <td class="num">2.1%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:2.1%;background:#2E8B57;opacity:.55"></div></div>
+  </td>
+  <td class="num">9</td>
+  <td class="num">5</td>
+  <td class="num">11</td>
+  <td class="num up">+22.2%</td>
+</tr><tr class="ov-bucket ov-bucket-toggle" data-bucket="ai_applications_use_cases" role="button" tabindex="0" aria-expanded="false">
+  <td class="ov-name">
+    <span class="ov-chev">▾</span><span class="dot" style="background:#C0392B"></span><b>AI Applications & Use Cases</b>
+  </td>
+  <td class="num"><b>2,056</b></td>
+  <td class="num">34.1%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap"><div class="ov-bar" style="width:100.0%;background:#C0392B"></div></div>
+  </td>
+  <td class="num">1,460</td>
+  <td class="num">596</td>
+  <td class="num">1,360</td>
+  <td class="num dn">-6.8%</td>
+</tr><tr class="ov-sub" data-parent="ai_applications_use_cases" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Industry Use Cases
+  </td>
+  <td class="num">1,207</td>
+  <td class="num">58.7%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:58.7%;background:#C0392B;opacity:.55"></div></div>
+  </td>
+  <td class="num">868</td>
+  <td class="num">339</td>
+  <td class="num">773</td>
+  <td class="num dn">-10.9%</td>
+</tr><tr class="ov-sub" data-parent="ai_applications_use_cases" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Agentic Use Cases & Solutions
+  </td>
+  <td class="num">431</td>
+  <td class="num">21.0%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:21.0%;background:#C0392B;opacity:.55"></div></div>
+  </td>
+  <td class="num">297</td>
+  <td class="num">134</td>
+  <td class="num">306</td>
+  <td class="num up">+3.0%</td>
+</tr><tr class="ov-sub" data-parent="ai_applications_use_cases" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Function Use Cases
+  </td>
+  <td class="num">298</td>
+  <td class="num">14.5%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:14.5%;background:#C0392B;opacity:.55"></div></div>
+  </td>
+  <td class="num">212</td>
+  <td class="num">86</td>
+  <td class="num">196</td>
+  <td class="num dn">-7.5%</td>
+</tr><tr class="ov-sub" data-parent="ai_applications_use_cases" style="display:none">
+  <td class="ov-name ov-name-sub">
+    <span class="ov-tree">└─</span> Other (uncategorised)
+  </td>
+  <td class="num">120</td>
+  <td class="num">5.8%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap ov-bar-wrap-sub"><div class="ov-bar" style="width:5.8%;background:#C0392B;opacity:.55"></div></div>
+  </td>
+  <td class="num">83</td>
+  <td class="num">37</td>
+  <td class="num">84</td>
+  <td class="num up">+1.2%</td>
+</tr><tr class="ov-bucket">
+  <td class="ov-name">
+    <span class="ov-chev ov-chev-empty"></span><span class="dot" style="background:#7F7F7F"></span><b>Other / Unclassified Demand</b>
+  </td>
+  <td class="num"><b>215</b></td>
+  <td class="num">3.6%</td>
+  <td class="ov-bar-cell">
+    <div class="ov-bar-wrap"><div class="ov-bar" style="width:10.5%;background:#7F7F7F"></div></div>
+  </td>
+  <td class="num">144</td>
+  <td class="num">71</td>
+  <td class="num">162</td>
+  <td class="num up">+12.5%</td>
+</tr><tr class="ov-sub ov-no-sub">
+  <td class="ov-name ov-name-sub" colspan="8"><span class="ov-tree">└─</span> <i>No sub-buckets — single category</i></td>
+</tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Time series -->
+  <div class="section-hd">Demand Evolution Over Time</div>
+  <div class="panel" style="margin-bottom:20px">
+    <div class="panel-title">Monthly request volume per bucket <span class="panel-sub">· Jun 2026 is partial — projected to a full-month estimate (×3.3)</span></div>
+    <div class="chart-lg"><canvas id="seriesChart"></canvas></div>
+  </div>
+
+  <!-- YoY monthly change per bucket (#1) -->
+  <div class="section-hd">Monthly Change — 2025 vs 2026 (Year over Year)</div>
+  <div class="panel" style="margin-bottom:20px">
+    <div class="panel-title">Same-month demand, 2025 vs 2026
+      <span class="panel-sub">actual counts · 2026 line stops at the latest month · Jun 2026 is partial — projected to a full-month estimate (×3.3)</span>
+      <select id="yoyBucketSel" class="yoy-sel" aria-label="Choose bucket"><option value="All buckets">All buckets</option><option value="AI Ambition & Strategy">AI Ambition & Strategy</option><option value="Enterprise Value Assurance">Enterprise Value Assurance</option><option value="Enterprise Enablement">Enterprise Enablement</option><option value="Enterprise Foundations">Enterprise Foundations</option><option value="AI Applications & Use Cases">AI Applications & Use Cases</option><option value="Other / Unclassified Demand">Other / Unclassified Demand</option></select>
+    </div>
+    <div class="chart-lg"><canvas id="yoyChart"></canvas></div>
+  </div>
+
+  <!-- Demand profile -->
+  <div class="section-hd">Where the Demand Comes From</div>
+  <div class="profile-grid">
+    <div class="panel">
+      <div class="panel-title">Top requestor regions <span class="panel-sub">(bars = volume · ▲▼ = YoY annualised growth)</span></div>
+      <div class="chart-md"><canvas id="regionChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Top industries <span class="panel-sub">(45% sector-specific · 55% industry-agnostic)</span></div>
+      <div class="chart-md"><canvas id="industryChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Business function <span class="panel-sub">(multi-label · 54% tagged · 46% not specified)</span></div>
+      <div class="chart-md"><canvas id="functionChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Request context</div>
+      <div class="chart-md"><canvas id="contextChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Recurring asks (#4) -->
+  <div class="section-hd">Top Recurring Asks</div>
+  <div class="gap-intro">
+    Two-word phrases that recur most often across request titles, surfaced bottom-up
+    (not from a predefined list). The same specific ask arriving again and again is the
+    clearest pointer to what to build or make easier to find. The bucket shows where
+    each phrase most often lands, with the share of its requests in that bucket.
+  </div>
+  <div class="panel" style="margin-bottom:20px;padding:0;overflow:hidden">
+    <table class="rc">
+      <thead>
+        <tr>
+          <th>Recurring ask</th>
+          <th class="num">Requests</th>
+          <th class="rc-bar-cell">Frequency</th>
+          <th>Most-common bucket</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+  <td class="rc-phrase">BFF / maturity assessment <span class="rc-grouped">grouped</span></td>
+  <td class="num"><b>183</b></td>
+  <td class="rc-bar-cell">
+    <div class="rc-bar-wrap"><div class="rc-bar" style="width:100.0%;background:#1F3864"></div></div>
+  </td>
+  <td class="rc-bucket"><span class="dot" style="background:#1F3864"></span>AI Ambition & Strategy <span class="rc-share">97%</span></td>
+</tr><tr>
+  <td class="rc-phrase">“case studies”</td>
+  <td class="num"><b>44</b></td>
+  <td class="rc-bar-cell">
+    <div class="rc-bar-wrap"><div class="rc-bar" style="width:24.0%;background:#C0392B"></div></div>
+  </td>
+  <td class="rc-bucket"><span class="dot" style="background:#C0392B"></span>AI Applications & Use Cases <span class="rc-share">45%</span></td>
+</tr><tr>
+  <td class="rc-phrase">“operating model”</td>
+  <td class="num"><b>23</b></td>
+  <td class="rc-bar-cell">
+    <div class="rc-bar-wrap"><div class="rc-bar" style="width:12.6%;background:#A0418A"></div></div>
+  </td>
+  <td class="rc-bucket"><span class="dot" style="background:#A0418A"></span>Enterprise Enablement <span class="rc-share">52%</span></td>
+</tr><tr>
+  <td class="rc-phrase">“off shelf”</td>
+  <td class="num"><b>22</b></td>
+  <td class="rc-bar-cell">
+    <div class="rc-bar-wrap"><div class="rc-bar" style="width:12.0%;background:#C0392B"></div></div>
+  </td>
+  <td class="rc-bucket"><span class="dot" style="background:#C0392B"></span>AI Applications & Use Cases <span class="rc-share">45%</span></td>
+</tr><tr>
+  <td class="rc-phrase">“digital tech”</td>
+  <td class="num"><b>22</b></td>
+  <td class="rc-bar-cell">
+    <div class="rc-bar-wrap"><div class="rc-bar" style="width:12.0%;background:#1F3864"></div></div>
+  </td>
+  <td class="rc-bucket"><span class="dot" style="background:#1F3864"></span>AI Ambition & Strategy <span class="rc-share">68%</span></td>
+</tr><tr>
+  <td class="rc-phrase">“case vignettes”</td>
+  <td class="num"><b>22</b></td>
+  <td class="rc-bar-cell">
+    <div class="rc-bar-wrap"><div class="rc-bar" style="width:12.0%;background:#C0392B"></div></div>
+  </td>
+  <td class="rc-bucket"><span class="dot" style="background:#C0392B"></span>AI Applications & Use Cases <span class="rc-share">45%</span></td>
+</tr><tr>
+  <td class="rc-phrase">“customer service”</td>
+  <td class="num"><b>20</b></td>
+  <td class="rc-bar-cell">
+    <div class="rc-bar-wrap"><div class="rc-bar" style="width:10.9%;background:#C0392B"></div></div>
+  </td>
+  <td class="rc-bucket"><span class="dot" style="background:#C0392B"></span>AI Applications & Use Cases <span class="rc-share">65%</span></td>
+</tr><tr>
+  <td class="rc-phrase">“case study”</td>
+  <td class="num"><b>19</b></td>
+  <td class="rc-bar-cell">
+    <div class="rc-bar-wrap"><div class="rc-bar" style="width:10.4%;background:#C0392B"></div></div>
+  </td>
+  <td class="rc-bucket"><span class="dot" style="background:#C0392B"></span>AI Applications & Use Cases <span class="rc-share">47%</span></td>
+</tr><tr>
+  <td class="rc-phrase">“value digital”</td>
+  <td class="num"><b>19</b></td>
+  <td class="rc-bar-cell">
+    <div class="rc-bar-wrap"><div class="rc-bar" style="width:10.4%;background:#1F3864"></div></div>
+  </td>
+  <td class="rc-bucket"><span class="dot" style="background:#1F3864"></span>AI Ambition & Strategy <span class="rc-share">79%</span></td>
+</tr><tr>
+  <td class="rc-phrase">“boosting value”</td>
+  <td class="num"><b>19</b></td>
+  <td class="rc-bar-cell">
+    <div class="rc-bar-wrap"><div class="rc-bar" style="width:10.4%;background:#1F3864"></div></div>
+  </td>
+  <td class="rc-bucket"><span class="dot" style="background:#1F3864"></span>AI Ambition & Strategy <span class="rc-share">74%</span></td>
+</tr><tr>
+  <td class="rc-phrase">“digital transformation”</td>
+  <td class="num"><b>18</b></td>
+  <td class="rc-bar-cell">
+    <div class="rc-bar-wrap"><div class="rc-bar" style="width:9.8%;background:#2E8B57"></div></div>
+  </td>
+  <td class="rc-bucket"><span class="dot" style="background:#2E8B57"></span>Enterprise Foundations <span class="rc-share">50%</span></td>
+</tr><tr>
+  <td class="rc-phrase">“supply chain”</td>
+  <td class="num"><b>18</b></td>
+  <td class="rc-bar-cell">
+    <div class="rc-bar-wrap"><div class="rc-bar" style="width:9.8%;background:#C0392B"></div></div>
+  </td>
+  <td class="rc-bucket"><span class="dot" style="background:#C0392B"></span>AI Applications & Use Cases <span class="rc-share">39%</span></td>
+</tr><tr>
+  <td class="rc-phrase">“asset management”</td>
+  <td class="num"><b>17</b></td>
+  <td class="rc-bar-cell">
+    <div class="rc-bar-wrap"><div class="rc-bar" style="width:9.3%;background:#C0392B"></div></div>
+  </td>
+  <td class="rc-bucket"><span class="dot" style="background:#C0392B"></span>AI Applications & Use Cases <span class="rc-share">53%</span></td>
+</tr><tr>
+  <td class="rc-phrase">“value chain”</td>
+  <td class="num"><b>14</b></td>
+  <td class="rc-bar-cell">
+    <div class="rc-bar-wrap"><div class="rc-bar" style="width:7.7%;background:#C0392B"></div></div>
+  </td>
+  <td class="rc-bucket"><span class="dot" style="background:#C0392B"></span>AI Applications & Use Cases <span class="rc-share">57%</span></td>
+</tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Material Gap Analysis -->
+  <div class="section-hd">Material Gap Analysis — Catalogued Assets vs Demand</div>
+  <div class="gap-intro">
+    Mapping of TDA playbooks and diagnostic assets to each sub-bucket. Status reflects
+    coverage only (not demand volume): <span class="gap-badge gap-red">Gap</span> = no catalogued material,
+    <span class="gap-badge gap-green">Covered</span> = at least one asset available.
+    <span class="gap-summary"><b>0</b> gap · <b>16</b> covered</span>
+    <div style="margin-top:8px;font-size:11px;color:var(--mute)">
+      Year label colour shows recency:
+      <span style="color:#2e7d1f;font-weight:700">Fresh ≤ 12 mo</span> ·
+      <span style="color:#c8960c;font-weight:700">Aging 12–24 mo</span> ·
+      <span style="color:#c00000;font-weight:700">Stale &gt; 24 mo</span>
+    </div>
+  </div>
+  <div class="panel" style="margin-bottom:20px;padding:0;overflow:hidden">
+    <table class="gap">
+      <thead>
+        <tr>
+          <th class="gap-name-col">Bucket / Sub-bucket</th>
+          <th class="num">Demand</th>
+          <th>Catalogued material</th>
+          <th class="gap-status-col">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="gap-bucket">
+  <td class="gap-name"><span class="dot" style="background:#1F3864"></span><b>AI Ambition & Strategy</b></td>
+  <td class="num"><b>1,847</b></td>
+  <td></td>
+  <td></td>
+</tr><tr class="gap-sub">
+  <td class="gap-name gap-name-sub"><span class="ov-tree">└─</span> AI Strategy, Vision & Roadmap</td>
+  <td class="num">971</td>
+  <td><div class="gap-chips"><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/10c50bcd-f427-491c-aa87-d7d4a038889e" target="_blank" rel="noopener" style="border-color:#1F3864;color:#1F3864">(Gen)AI & Agentic Reshape Playbook <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2026-05</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/80436c0e-8e04-4819-aa6b-fcba91a8b8ff" target="_blank" rel="noopener" style="border-color:#1F3864;color:#1F3864">AI Reshape Playbook – Executive Version <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2026-05</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/8d7008a5-03d2-442b-910d-8b23e6401e74" target="_blank" rel="noopener" style="border-color:#1F3864;color:#1F3864">AI Invent Approach & Playbook <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2026-05</span></a></div></td>
+  <td><span class="gap-badge gap-green">Covered</span></td>
+</tr><tr class="gap-sub">
+  <td class="gap-name gap-name-sub"><span class="ov-tree">└─</span> Build for the Future (BFF)</td>
+  <td class="num">462</td>
+  <td><div class="gap-chips"><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/216c5895-af14-4d49-a5de-d088b98e96a8" target="_blank" rel="noopener" style="border-color:#1F3864;color:#1F3864">BFF x AI 2025 Global Insights (cross-sector) <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025</span></a></div></td>
+  <td><span class="gap-badge gap-green">Covered</span></td>
+</tr><tr class="gap-sub">
+  <td class="gap-name gap-name-sub"><span class="ov-tree">└─</span> Maturity Assessment & Diagnostics</td>
+  <td class="num">371</td>
+  <td><div class="gap-chips"><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/8ad2cbcc-0250-437f-83c3-554420dac517" target="_blank" rel="noopener" style="border-color:#1F3864;color:#1F3864">BFFxAI Maturity Assessment <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025</span></a></div></td>
+  <td><span class="gap-badge gap-green">Covered</span></td>
+</tr><tr class="gap-bucket">
+  <td class="gap-name"><span class="dot" style="background:#C8960C"></span><b>Enterprise Value Assurance</b></td>
+  <td class="num"><b>637</b></td>
+  <td></td>
+  <td></td>
+</tr><tr class="gap-sub">
+  <td class="gap-name gap-name-sub"><span class="ov-tree">└─</span> Value Tracking, Impact & Forecasting</td>
+  <td class="num">335</td>
+  <td><div class="gap-chips"><a class="gap-chip gap-chip-link chip-aging" href="https://pages.navigator.bcg.com/kp/145ceb22-0c91-4df6-847a-b8f9824461f6" target="_blank" rel="noopener" style="border-color:#C8960C;color:#C8960C">Cost Transformation Playbook <span class="chip-date" style="color:#c8960c;font-weight:700">· 2024-08</span></a></div></td>
+  <td><span class="gap-badge gap-green">Covered</span></td>
+</tr><tr class="gap-sub">
+  <td class="gap-name gap-name-sub"><span class="ov-tree">└─</span> Ecosystems & Partnerships</td>
+  <td class="num">227</td>
+  <td><div class="gap-chips"><a class="gap-chip gap-chip-link chip-aging" href="https://pages.navigator.bcg.com/kp/feaa55be-1207-4cc6-b982-9ce70e83a0f7" target="_blank" rel="noopener" style="border-color:#C8960C;color:#C8960C">Partnerships & Global Models (GA Worldwide '25) <span class="chip-date" style="color:#c8960c;font-weight:700">· 2025-04</span></a></div></td>
+  <td><span class="gap-badge gap-green">Covered</span></td>
+</tr><tr class="gap-sub">
+  <td class="gap-name gap-name-sub"><span class="ov-tree">└─</span> Program & Delivery Management</td>
+  <td class="num">58</td>
+  <td><div class="gap-chips"><a class="gap-chip gap-chip-link chip-aging" href="https://pages.navigator.bcg.com/kp/55edda82-5c32-4e16-bcd3-734994ec7c0f" target="_blank" rel="noopener" style="border-color:#C8960C;color:#C8960C">AI Delivery Office <span class="chip-date" style="color:#c8960c;font-weight:700">· 2024</span></a><a class="gap-chip gap-chip-link chip-aging" href="https://pages.navigator.bcg.com/kp/4733ae37-7dcb-4c9b-80ad-3c07a445b9b3" target="_blank" rel="noopener" style="border-color:#C8960C;color:#C8960C">E2E Transformation Playbook <span class="chip-date" style="color:#c8960c;font-weight:700">· 2024</span></a><a class="gap-chip gap-chip-link chip-aging" href="https://pages.navigator.bcg.com/kp/e693f6e4-8053-444f-b58e-5ff5c629d30b" target="_blank" rel="noopener" style="border-color:#C8960C;color:#C8960C">Tech-Accel. Business Transformation <span class="chip-date" style="color:#c8960c;font-weight:700">· 2025-04</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/d3d4fcf9-119f-4c8d-901f-1697d61f420e" target="_blank" rel="noopener" style="border-color:#C8960C;color:#C8960C">Transform Playbooks <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025</span></a></div></td>
+  <td><span class="gap-badge gap-green">Covered</span></td>
+</tr><tr class="gap-bucket">
+  <td class="gap-name"><span class="dot" style="background:#A0418A"></span><b>Enterprise Enablement</b></td>
+  <td class="num"><b>604</b></td>
+  <td></td>
+  <td></td>
+</tr><tr class="gap-sub">
+  <td class="gap-name gap-name-sub"><span class="ov-tree">└─</span> Workforce, Talent & Upskilling</td>
+  <td class="num">238</td>
+  <td><div class="gap-chips"><a class="gap-chip gap-chip-link chip-stale" href="https://pages.navigator.bcg.com/kp/ec6ec6da-e720-43b2-b711-1d109e540ec3" target="_blank" rel="noopener" style="border-color:#A0418A;color:#A0418A">Workforce Productivity Diagnostic <span class="chip-date" style="color:#c00000;font-weight:700">· 2023-11</span></a></div></td>
+  <td><span class="gap-badge gap-green">Covered</span></td>
+</tr><tr class="gap-sub">
+  <td class="gap-name gap-name-sub"><span class="ov-tree">└─</span> Operating Model & Org Design</td>
+  <td class="num">182</td>
+  <td><div class="gap-chips"><a class="gap-chip gap-chip-link chip-aging" href="https://pages.navigator.bcg.com/kp/ac5b8d3b-ec6b-4b1e-abd8-7dacc5fba174" target="_blank" rel="noopener" style="border-color:#A0418A;color:#A0418A">AI-First Organization <span class="chip-date" style="color:#c8960c;font-weight:700">· 2024</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/83fc8a22-fa68-48f4-8118-d0f95567e5af" target="_blank" rel="noopener" style="border-color:#A0418A;color:#A0418A">Process Redesign Workshop <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2026-02</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/cfcc170c-1a2a-4af1-914a-bde9005c4a56" target="_blank" rel="noopener" style="border-color:#A0418A;color:#A0418A">Agentic Workflow Redesign <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025-07</span></a></div></td>
+  <td><span class="gap-badge gap-green">Covered</span></td>
+</tr><tr class="gap-sub">
+  <td class="gap-name gap-name-sub"><span class="ov-tree">└─</span> Adoption, Change & Culture</td>
+  <td class="num">168</td>
+  <td><div class="gap-chips"><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/a204b169-d16b-4464-b3c1-08f2e2228a58" target="_blank" rel="noopener" style="border-color:#A0418A;color:#A0418A">Tackling The 70: Overview <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025-12</span></a><a class="gap-chip gap-chip-link chip-stale" href="https://pages.navigator.bcg.com/kp/c1662b62-5ef4-45b4-b1fc-784c97891861" target="_blank" rel="noopener" style="border-color:#A0418A;color:#A0418A">Driving (Gen)AI Adoption <span class="chip-date" style="color:#c00000;font-weight:700">· 2023</span></a></div></td>
+  <td><span class="gap-badge gap-green">Covered</span></td>
+</tr><tr class="gap-bucket">
+  <td class="gap-name"><span class="dot" style="background:#2E8B57"></span><b>Enterprise Foundations</b></td>
+  <td class="num"><b>669</b></td>
+  <td></td>
+  <td></td>
+</tr><tr class="gap-sub">
+  <td class="gap-name gap-name-sub"><span class="ov-tree">└─</span> Agentic & AI Platform / Tech Stack</td>
+  <td class="num">323</td>
+  <td><div class="gap-chips"><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/13a4f54b-26d0-4ccc-a5f0-6587d219e744" target="_blank" rel="noopener" style="border-color:#2E8B57;color:#2E8B57">Agentic AI Ecosystems <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/954dbae7-a3f8-4749-b4c0-f3b2213a285a" target="_blank" rel="noopener" style="border-color:#2E8B57;color:#2E8B57">Agentic AI Platforms <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/a8acd2b4-2261-4cd0-8df3-6f77eb959bf9" target="_blank" rel="noopener" style="border-color:#2E8B57;color:#2E8B57">Building Effective Enterprise Agents <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025</span></a></div></td>
+  <td><span class="gap-badge gap-green">Covered</span></td>
+</tr><tr class="gap-sub">
+  <td class="gap-name gap-name-sub"><span class="ov-tree">└─</span> Digital Transformation & IT Modernisation</td>
+  <td class="num">184</td>
+  <td><div class="gap-chips"><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/e9a08c29-1a06-4ecd-812f-ff4583a4a340" target="_blank" rel="noopener" style="border-color:#2E8B57;color:#2E8B57">Playbook – Legacy Core Modernization with GenAI <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025-10</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/86edca36-8b20-46e9-9b0f-b55f0bf4de4e" target="_blank" rel="noopener" style="border-color:#2E8B57;color:#2E8B57">Playbook – Legacy Core Banking Replacement with GenAI <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025-10</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/33d1bcf9-87f2-4fe6-bd27-bc4da1d469b2" target="_blank" rel="noopener" style="border-color:#2E8B57;color:#2E8B57">Agentic AI for Core Insurance IT Modernization <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2026-01</span></a></div></td>
+  <td><span class="gap-badge gap-green">Covered</span></td>
+</tr><tr class="gap-sub">
+  <td class="gap-name gap-name-sub"><span class="ov-tree">└─</span> Risk & Responsible AI</td>
+  <td class="num">148</td>
+  <td><div class="gap-chips"><a class="gap-chip gap-chip-link chip-aging" href="https://pages.navigator.bcg.com/kp/4d6e7c63-14b0-4bc3-abd1-8b51e6e1dcda" target="_blank" rel="noopener" style="border-color:#2E8B57;color:#2E8B57">FAST – Framework for Agentic AI Secure Tech <span class="chip-date" style="color:#c8960c;font-weight:700">· 2024</span></a><a class="gap-chip gap-chip-link chip-aging" href="https://pages.navigator.bcg.com/kp/b2983677-051b-4615-b5ab-e3861347d3b8" target="_blank" rel="noopener" style="border-color:#2E8B57;color:#2E8B57">Enterprise Foundation – Risk and Responsible AI <span class="chip-date" style="color:#c8960c;font-weight:700">· 2024</span></a></div></td>
+  <td><span class="gap-badge gap-green">Covered</span></td>
+</tr><tr class="gap-sub">
+  <td class="gap-name gap-name-sub"><span class="ov-tree">└─</span> Data Foundations</td>
+  <td class="num">14</td>
+  <td><div class="gap-chips"><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/78b7833f-ab2b-44a9-ae8a-706f93724c2b" target="_blank" rel="noopener" style="border-color:#2E8B57;color:#2E8B57">Agentic AI Data Foundations <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025-12</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/21615943-1489-45e4-98e2-7a7e8fce2aca" target="_blank" rel="noopener" style="border-color:#2E8B57;color:#2E8B57">Unstructured Data for Agentic AI <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2026-03</span></a></div></td>
+  <td><span class="gap-badge gap-green">Covered</span></td>
+</tr><tr class="gap-bucket">
+  <td class="gap-name"><span class="dot" style="background:#C0392B"></span><b>AI Applications & Use Cases</b></td>
+  <td class="num"><b>2,056</b></td>
+  <td></td>
+  <td></td>
+</tr><tr class="gap-sub">
+  <td class="gap-name gap-name-sub"><span class="ov-tree">└─</span> Industry Use Cases</td>
+  <td class="num">1,207</td>
+  <td><div class="gap-chips"><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/3fd91c26-586f-4c79-afb1-c4c18e913afe" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">AI-First Companies Win the Future (master EP) <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025-06</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/d177138a-8b08-40d7-b4eb-5424412943d9" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Consumer Products <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025-07</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/9b480337-7fe0-41a3-982f-f144d1d38b27" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Retail <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025-11</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/5624067f-f0a2-465e-bc91-d17b5cb9cfbe" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Fashion & Luxury <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025-11</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/fd1f3199-1b5e-4855-a134-02e32c646923" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Hospitality <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/79a10c37-bd50-4f60-9076-06096ae33a32" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Airline <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025-09</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/5848f525-3270-4ab6-b0cb-2a289213fc16" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Automotive <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/df09eace-f9e4-4b9d-8eab-1445d2048023" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Aerospace & Defense <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/4c854a04-508c-49a0-8f03-bfc0ff34d770" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Telecommunications <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2026-02</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/4918b9c7-b1ab-4a70-a2f9-9d16b7ca1b2f" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Payments <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2026-04</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/ee2cb17e-a7bb-4ef3-9162-b9db4283ca7f" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Life Insurance & Annuity <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025-12</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/eb7728fc-079d-4831-9b49-78ed1aebc7d6" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Property & Casualty Insurance <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/e8bac12d-bcbc-4f9f-8839-5cb8a6c35e3d" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Private Equity <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025-12</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/6a55491b-bd5e-40c9-be44-bd61ba16245e" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Healthcare Providers <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/8abe6bc1-b7d5-497f-99f6-25268282e778" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — MedTech <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/78f93421-63f0-4428-8767-e75459ba40cc" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — BioPharma <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/19b55f27-0c7f-4bb4-bf67-3478eac60504" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Chemicals <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/8a72cf7f-6fab-495b-906a-df3ed8156404" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Mining & Metals <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025-12</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/68f15b93-6a3f-48aa-bff1-bec76459c580" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Oil & Gas <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/ebe578ed-168d-4876-b65d-c0f2b82d4c78" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Power & Utilities <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2026-03</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/eae3d873-821f-4a23-bfa8-6c71ac08e4fb" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Economic Affairs / Public Sector <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025</span></a></div></td>
+  <td><span class="gap-badge gap-green">Covered</span></td>
+</tr><tr class="gap-sub">
+  <td class="gap-name gap-name-sub"><span class="ov-tree">└─</span> Agentic Use Cases & Solutions</td>
+  <td class="num">431</td>
+  <td><div class="gap-chips"><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/9f4b2a7c-aa2b-4eff-befc-94ed70538580" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">Agentic AI Use-Case Playbooks (by industry & function) <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2026-05</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/d1e058b4-a81d-43f8-958d-3532dbb62681" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">BCG Perspective – Agentic AI Process Transformations <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025-12</span></a><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/9b3308f6-a942-4dcd-91dd-b2bb9f267f27" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">Agentic AI Impact on E2E Processes <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025-10</span></a></div></td>
+  <td><span class="gap-badge gap-green">Covered</span></td>
+</tr><tr class="gap-sub">
+  <td class="gap-name gap-name-sub"><span class="ov-tree">└─</span> Function Use Cases</td>
+  <td class="num">298</td>
+  <td><div class="gap-chips"><a class="gap-chip gap-chip-link chip-fresh" href="https://pages.navigator.bcg.com/kp/ff538dec-9562-41c1-9cd1-f72e0a79e33a" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — NextGenHR (HR) <span class="chip-date" style="color:#2e7d1f;font-weight:700">· 2025-11</span></a><a class="gap-chip gap-chip-link chip-aging" href="https://media-publications.bcg.com/BCG-Executive-Perspectives-Future-of-Procurement-with-AI-2025-27Feb2025.pdf" target="_blank" rel="noopener" style="border-color:#C0392B;color:#C0392B">EP — Future of Procurement with AI <span class="chip-date" style="color:#c8960c;font-weight:700">· 2025-02</span></a></div></td>
+  <td><span class="gap-badge gap-green">Covered</span></td>
+</tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Suggested Content to Build (WIP) -->
+  <div class="section-hd">Suggested Content to Build<span class="wip-badge">WIP</span></div>
+  <div class="sg-intro">
+    Illustrative — the three highest-potential asset gaps surfaced by a deep-dive on the request corpus.
+    For discussion, not a committed roadmap.
+  </div>
+  <div class="sg-grid">
+
+    <div class="sg-card">
+      <div>
+        <div class="sg-rank">OPPORTUNITY 1</div>
+        <div class="sg-title">Agent Productionization Economics<span class="sg-lead">Lead rec</span></div>
+      </div>
+      <div class="sg-metrics">
+        <span class="sg-chip">114 requests</span>
+        <span class="sg-chip sg-chip-yoy">+260% YoY (Q1)</span>
+      </div>
+      <div class="sg-block">
+        <div class="sg-label">Example request</div>
+        <div class="sg-ex">
+          "Agentic AI in Biopharma Operations — capabilities required (people, data, tech,
+          process) … we are supporting UCB TechOps through a transformation."
+          <span class="sg-ex-src">Desk · Vantage</span>
+        </div>
+      </div>
+      <div class="sg-block">
+        <div class="sg-label">Closest material today</div>
+        <div class="sg-have">
+          <b>Building Effective Enterprise Agents</b> &amp; the agentic platform / ecosystem
+          primers — all <b>architecture-led</b>. None covers the economics or
+          POC→production sequencing teams keep asking for.
+        </div>
+      </div>
+      <div class="sg-asset">
+        <div class="sg-label">Proposed asset to close the gap</div>
+        <div class="sg-asset-name">Agent Productionization Pack</div>
+        <ul>
+          <li>Cost-to-productionize driver tree</li>
+          <li>Scaling / ROI estimator (tool)</li>
+          <li>Deployed-agent credentials library with quantified impact</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sg-card">
+      <div>
+        <div class="sg-rank">OPPORTUNITY 2</div>
+        <div class="sg-title">Chief AI Officer Launch Pad</div>
+      </div>
+      <div class="sg-metrics">
+        <span class="sg-chip">51 requests</span>
+        <span class="sg-chip sg-chip-yoy">dormant → 15 (Q1-26)</span>
+      </div>
+      <div class="sg-block">
+        <div class="sg-label">Example request</div>
+        <div class="sg-ex">
+          "We are preparing materials for a pharma client ahead of a meeting with their
+          new CAIO this Thursday."
+          <span class="sg-ex-src">Desk · Vantage — "Request for AI operating model materials"</span>
+        </div>
+      </div>
+      <div class="sg-block">
+        <div class="sg-label">Closest material today</div>
+        <div class="sg-have">
+          <b>AI-First Organization</b> covers operating-model / org design, but there is
+          <b>no dedicated CAIO asset</b> — no mandate, first-100-days, or "when to appoint"
+          benchmark.
+        </div>
+      </div>
+      <div class="sg-asset">
+        <div class="sg-label">Proposed asset to close the gap</div>
+        <div class="sg-asset-name">CAIO Launch Pad</div>
+        <ul>
+          <li>Mandate &amp; first-100-days playbook + org-placement guide</li>
+          <li>Board / C-suite AI-narrative templates</li>
+          <li>"When to appoint a CAIO" maturity benchmark</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sg-card">
+      <div>
+        <div class="sg-rank">OPPORTUNITY 3</div>
+        <div class="sg-title">AI / GenAI Spend &amp; Investment Benchmarks</div>
+      </div>
+      <div class="sg-metrics">
+        <span class="sg-chip">65 requests</span>
+        <span class="sg-chip sg-chip-yoy">+133% YoY (Q1)</span>
+      </div>
+      <div class="sg-block">
+        <div class="sg-label">Example request</div>
+        <div class="sg-ex">
+          "AI Investments — IT budget Benchmark / Trends … the '1.7% of revenue on AI'
+          you mention comes from the AI Radar — do we have more?"
+          <span class="sg-ex-src">Desk · Vantage</span>
+        </div>
+      </div>
+      <div class="sg-block">
+        <div class="sg-label">Closest material today</div>
+        <div class="sg-have">
+          Only <b>scattered one-off datapoints</b> (AI Radar headline %, BFF AI-budget
+          charts). No <b>maintained</b> spend-benchmark dataset — and demand is perishable
+          and partly investor / PE-diligence driven.
+        </div>
+      </div>
+      <div class="sg-asset">
+        <div class="sg-label">Proposed asset to close the gap</div>
+        <div class="sg-asset-name">AI Investment Benchmark</div>
+        <ul>
+          <li>Maintained spend dataset (% revenue / % IT, by sector + geography)</li>
+          <li>GenAI allocation view (share to agents / infra)</li>
+          <li>AI investment calculator (tool)</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+  <div class="sg-seq">
+    <b>Fund it (3) → lead it (2) → build &amp; scale it (1).</b>
+    #3 and #2 are C-suite door-openers; #1 is the high-volume, fast-growing practitioner workhorse —
+    if you build one first, build #1.
+  </div>
+
+  <div class="footer">Generated 11 Jun 2026, 16:28 · TDA Gen AI Knowledge Team · Source: Vantage Desk + RMS · Catalogue: Reshape Playbook Apr 2026, slide 33</div>
+</div>
+
+<script>
+const BUCKETS = ["AI Ambition & Strategy", "Enterprise Value Assurance", "Enterprise Enablement", "Enterprise Foundations", "AI Applications & Use Cases", "Other / Unclassified Demand"];
+const COLORS  = ["#1F3864", "#C8960C", "#A0418A", "#2E8B57", "#C0392B", "#7F7F7F"];
+const MONTHS  = ["2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06 (proj.)"];
+const SERIES  = {"AI Ambition & Strategy": [72, 64, 74, 74, 63, 106, 98, 79, 124, 147, 120, 89, 126, 107, 134, 152, 171, 157], "Enterprise Value Assurance": [27, 40, 31, 31, 37, 25, 40, 28, 58, 38, 47, 31, 36, 40, 50, 43, 30, 17], "Enterprise Enablement": [34, 44, 30, 26, 30, 33, 43, 39, 30, 37, 40, 21, 38, 43, 40, 28, 38, 33], "Enterprise Foundations": [45, 41, 31, 38, 40, 48, 49, 27, 35, 35, 34, 31, 33, 44, 51, 43, 31, 43], "AI Applications & Use Cases": [128, 115, 132, 121, 127, 136, 128, 112, 125, 140, 125, 71, 108, 133, 126, 111, 88, 100], "Other / Unclassified Demand": [4, 15, 14, 10, 8, 21, 15, 15, 8, 16, 14, 4, 5, 20, 10, 14, 17, 17]};
+const REGION_LABELS = ["EMESA", "NAMR", "AP"];
+const REGION_DATA   = [2816, 1858, 1268];
+const REGION_YOY    = [22.7, 23.3, -11.0];
+const INDUSTRY_LABELS = ["Financial Services", "Healthcare / Life Sciences", "Consumer & Retail", "Energy & Resources", "Industrial Goods", "Public Sector", "Transport & Logistics", "Technology", "Telco", "Automotive"];
+const INDUSTRY_DATA   = [778, 416, 373, 206, 190, 187, 179, 146, 146, 66];
+const CONTEXT_LABELS  = ["Proposal / RFP", "Expert Guidance / POV", "Workshop / Training", "Case Work", "Internal", "No context"];
+const CONTEXT_DATA    = [3859, 573, 202, 99, 97, 1198];
+const FUNCTION_LABELS = ["Sales & Commercial", "Operations", "Finance", "Supply Chain & Procurement", "HR / People", "Marketing", "Legal / Risk / Compliance", "R&D / Product", "IT / Technology", "Customer Service", "Strategy / Corporate Development"];
+const FUNCTION_DATA   = [930, 766, 694, 652, 650, 535, 517, 467, 383, 326, 215];
+const YOY_BUCKET = {"All buckets": {"y2025": [310, 319, 312, 300, 305, 369, 373, 300, 380, 413, 380, 247], "y2026": [346, 387, 411, 391, 375, 367, null, null, null, null, null, null]}, "AI Ambition & Strategy": {"y2025": [72, 64, 74, 74, 63, 106, 98, 79, 124, 147, 120, 89], "y2026": [126, 107, 134, 152, 171, 157, null, null, null, null, null, null]}, "Enterprise Value Assurance": {"y2025": [27, 40, 31, 31, 37, 25, 40, 28, 58, 38, 47, 31], "y2026": [36, 40, 50, 43, 30, 17, null, null, null, null, null, null]}, "Enterprise Enablement": {"y2025": [34, 44, 30, 26, 30, 33, 43, 39, 30, 37, 40, 21], "y2026": [38, 43, 40, 28, 38, 33, null, null, null, null, null, null]}, "Enterprise Foundations": {"y2025": [45, 41, 31, 38, 40, 48, 49, 27, 35, 35, 34, 31], "y2026": [33, 44, 51, 43, 31, 43, null, null, null, null, null, null]}, "AI Applications & Use Cases": {"y2025": [128, 115, 132, 121, 127, 136, 128, 112, 125, 140, 125, 71], "y2026": [108, 133, 126, 111, 88, 100, null, null, null, null, null, null]}, "Other / Unclassified Demand": {"y2025": [4, 15, 14, 10, 8, 21, 15, 15, 8, 16, 14, 4], "y2026": [5, 20, 10, 14, 17, 17, null, null, null, null, null, null]}};
+const YOY_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const YOY_COLORS = {"All buckets": "#1F3864", "AI Ambition & Strategy": "#1F3864", "Enterprise Value Assurance": "#C8960C", "Enterprise Enablement": "#A0418A", "Enterprise Foundations": "#2E8B57", "AI Applications & Use Cases": "#C0392B", "Other / Unclassified Demand": "#7F7F7F"};
+
+const FONT = { family: 'system-ui, sans-serif', size: 12 };
+Chart.defaults.font = FONT;
+Chart.defaults.plugins.legend.labels.font = FONT;
+
+// ── Monthly series (stacked area) ───────────────────────────────────────────
+const datasets = BUCKETS.map((b, i) => ({
+  label: b,
+  data: SERIES[b],
+  backgroundColor: COLORS[i] + 'DD',
+  borderColor: COLORS[i],
+  borderWidth: 1,
+  fill: true,
+  tension: 0.25,
+  pointRadius: 0,
+}));
+
+new Chart(document.getElementById('seriesChart'), {
+  type: 'line',
+  data: { labels: MONTHS, datasets },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y } }
+    },
+    scales: {
+      x: { ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 45 } },
+      y: { stacked: true, beginAtZero: true }
+    }
+  }
+});
+
+// ── YoY monthly change per bucket (line overlay, bucket selector) ───────────
+const yoySel = document.getElementById('yoyBucketSel');
+function yoySeries(b) { return YOY_BUCKET[b] || YOY_BUCKET['All buckets']; }
+const yoyInit = yoySeries(yoySel.value);
+const yoyChart = new Chart(document.getElementById('yoyChart'), {
+  type: 'line',
+  data: {
+    labels: YOY_MONTHS,
+    datasets: [
+      { label: '2025', data: yoyInit.y2025, borderColor: '#bbb', backgroundColor: '#bbb',
+         borderWidth: 2, borderDash: [5, 4], tension: 0.3, pointRadius: 2, spanGaps: false },
+      { label: '2026', data: yoyInit.y2026, borderColor: YOY_COLORS[yoySel.value],
+         backgroundColor: YOY_COLORS[yoySel.value], borderWidth: 2.5, tension: 0.3,
+         pointRadius: 2, spanGaps: false }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + (ctx.parsed.y ?? '—') } }
+    },
+    scales: {
+      x: { ticks: { font: { size: 10 } } },
+      y: { beginAtZero: true, ticks: { font: { size: 10 } } }
+    }
+  }
+});
+yoySel.addEventListener('change', () => {
+  const d = yoySeries(yoySel.value);
+  const c = YOY_COLORS[yoySel.value] || '#1F3864';
+  yoyChart.data.datasets[0].data = d.y2025;
+  yoyChart.data.datasets[1].data = d.y2026;
+  yoyChart.data.datasets[1].borderColor = c;
+  yoyChart.data.datasets[1].backgroundColor = c;
+  yoyChart.update();
+});
+
+// ── Demand profile: region / industry / context (horizontal bars) ───────────
+function hbar(canvasId, labels, data, color) {
+  new Chart(document.getElementById(canvasId), {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{ data: data, backgroundColor: color, borderWidth: 0 }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ctx.parsed.x.toLocaleString() + ' requests' } }
+      },
+      scales: {
+        x: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        y: { ticks: { font: { size: 11 }, autoSkip: false } }
+      }
+    }
+  });
+}
+// Region chart: bars = request volume, with YoY annualised growth shown on the
+// second tick line and in the tooltip (green ↑ / red ↓ in the label text).
+(function regionChart() {
+  const fmtYoY = v => (v === null || v === undefined)
+    ? 'n/a' : (v > 0 ? '▲ +' : (v < 0 ? '▼ ' : '')) + v + '%';
+  new Chart(document.getElementById('regionChart'), {
+    type: 'bar',
+    data: {
+      labels: REGION_LABELS,
+      datasets: [{ data: REGION_DATA, backgroundColor: '#1F3864', borderWidth: 0 }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: {
+          label: ctx => ctx.parsed.x.toLocaleString() + ' requests',
+          afterLabel: ctx => 'YoY: ' + fmtYoY(REGION_YOY[ctx.dataIndex]) + ' (annualised)'
+        } }
+      },
+      scales: {
+        x: { beginAtZero: true, ticks: { font: { size: 10 } } },
+        y: { ticks: { font: { size: 11 }, autoSkip: false,
+          callback: function(v) { return [this.getLabelForValue(v), fmtYoY(REGION_YOY[v])]; } } }
+      }
+    }
+  });
+})();
+hbar('industryChart', INDUSTRY_LABELS, INDUSTRY_DATA, '#2E8B57');
+hbar('functionChart', FUNCTION_LABELS, FUNCTION_DATA, '#7030A0');
+hbar('contextChart', CONTEXT_LABELS, CONTEXT_DATA, '#C8960C');
+
+// ── Bucket row expand / collapse ────────────────────────────────────────────
+document.querySelectorAll('tr.ov-bucket-toggle').forEach(row => {
+  const bslug = row.dataset.bucket;
+  const subRows = document.querySelectorAll('tr.ov-sub[data-parent="' + bslug + '"]');
+  const toggle = () => {
+    const expanded = row.getAttribute('aria-expanded') !== 'false';
+    const next = !expanded;
+    row.setAttribute('aria-expanded', next ? 'true' : 'false');
+    subRows.forEach(sr => { sr.style.display = next ? '' : 'none'; });
+  };
+  row.addEventListener('click', toggle);
+  row.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+  });
+});
+</script>
+</body>
+</html>

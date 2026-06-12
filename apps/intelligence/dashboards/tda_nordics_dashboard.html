@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TDA Nordics Request Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #faf6ef; --card: #fff; --soft: #f2ede3;
+    --ink: #1a1a1a; --mute: #888; --rule: #e6dfd1;
+    --accent: #8c2b2b; --teal: #0a5c5e;
+    --desk: #8c2b2b; --rms: #0a5c5e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; font-size: 14px; }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 32px 28px 80px; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 18px; margin-bottom: 28px; }
+  .kicker { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; font-family: monospace; }
+  h1 { font-size: 42px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 8px; }
+  h1 em { font-style: italic; font-weight: 300; color: var(--accent); }
+  .sub { color: #555; font-size: 14px; }
+  .meta { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; font-size: 11px; color: var(--mute); font-family: monospace; letter-spacing: .1em; text-transform: uppercase; }
+  .meta b { color: var(--ink); }
+
+  .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; border: 1px solid var(--rule); background: var(--card); margin-bottom: 24px; }
+  .kpi { padding: 16px 18px; border-right: 1px solid var(--rule); }
+  .kpi:last-child { border-right: none; }
+  .kpi .lbl { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); margin-bottom: 6px; font-family: monospace; }
+  .kpi .val { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .kpi .foot { font-size: 11px; color: var(--mute); margin-top: 4px; font-family: monospace; }
+  .kpi.accent .val { color: var(--accent); }
+  .kpi.teal .val { color: var(--teal); }
+  .kpi .val.up { color: var(--teal); }
+  .kpi .val.down { color: var(--accent); }
+
+  .grid { display: grid; gap: 20px; margin-bottom: 20px; }
+  .g2e { grid-template-columns: 1fr 1fr; }
+  .g1  { grid-template-columns: 1fr; }
+
+  .card { background: var(--card); border: 1px solid var(--rule); padding: 20px; }
+  .card-h { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--rule); padding-bottom: 10px; margin-bottom: 14px; }
+  .card-h h3 { font-size: 16px; font-weight: 600; }
+  .card-h .note { font-size: 10px; color: var(--mute); font-family: monospace; letter-spacing: .08em; text-transform: uppercase; }
+  .chart-xl { height: 320px; position: relative; }
+  .chart-lg { height: 280px; position: relative; }
+
+  ul.titles { list-style: none; }
+  ul.titles li { padding: 8px 10px; border-bottom: 1px solid var(--soft); font-size: 13px; }
+  ul.titles li:before { content: "›"; color: var(--accent); margin-right: 8px; font-weight: 700; }
+
+  .da-list { display: flex; flex-direction: column; }
+  .da-row { padding: 11px 0; border-bottom: 1px solid var(--soft); }
+  .da-row:last-child { border-bottom: none; }
+  .da-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .da-name { font-size: 14px; font-weight: 600; }
+  .da-name .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 8px; vertical-align: baseline; }
+  .da-count { font-family: monospace; font-weight: 700; font-size: 14px; white-space: nowrap; }
+  .da-count .da-pct { color: var(--mute); font-weight: 400; }
+  .da-sub { font-size: 11.5px; color: var(--mute); margin: 4px 0 7px 18px; line-height: 1.4; }
+  .da-track { height: 8px; background: var(--soft); border-radius: 4px; overflow: hidden; }
+  .da-fill { height: 100%; border-radius: 4px; }
+
+  footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--rule); font-size: 11px; color: var(--mute); font-family: monospace; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">TDA Gen AI Knowledge Team · Regional View</div>
+  <h1>Nordics <em>Request</em> Dashboard</h1>
+  <p class="sub">Gen AI request demand from the Nordic offices — Stockholm, Copenhagen, Oslo, Helsinki · Cancelled requests excluded.</p>
+  <div class="meta">
+    <span><b>310</b> Nordics requests</span>
+    <span><b>5.1%</b> of all requests</span>
+    <span>Jan 2025 – present</span>
+    <span>Generated 11 Jun 2026, 16:28</span>
+  </div>
+</header>
+
+<div class="kpis">
+  <div class="kpi"><div class="lbl">Total Requests</div><div class="val">310</div><div class="foot">Jan 2025 – present</div></div>
+  <div class="kpi"><div class="lbl">YoY Growth</div><div class="val up">+108.6%</div><div class="foot">2026 annualised vs 2025</div></div>
+  <div class="kpi"><div class="lbl">Share of Total</div><div class="val">5.1%</div><div class="foot">of 6,028 requests</div></div>
+  <div class="kpi"><div class="lbl">Offices</div><div class="val">4</div><div class="foot">SE · DK · NO · FI</div></div>
+  <div class="kpi"><div class="lbl">Latest Month</div><div class="val">11</div><div class="foot">2026-06</div></div>
+</div>
+
+<div class="grid g1">
+  <div class="card">
+    <div class="card-h"><h3>Monthly Volume — Year over Year</h3><div class="note">2025 vs 2026 · same month axis</div></div>
+    <div class="chart-xl"><canvas id="c-yoy"></canvas></div>
+  </div>
+</div>
+
+<div class="grid g2e">
+  <div class="card">
+    <div class="card-h"><h3>Main Demand Areas</h3><div class="note">Reshape buckets · as in AI Demand Intelligence</div></div>
+    <div class="da-list"><div class="da-row"><div class="da-top"><div class="da-name"><span class="swatch" style="background:#1F3864"></span>AI Ambition & Strategy</div><div class="da-count">101 <span class="da-pct">· 33%</span></div></div><div class="da-sub">BFF decks · AI maturity &amp; readiness diagnostics · strategy, vision &amp; roadmap</div><div class="da-track"><div class="da-fill" style="width:76.5%;background:#1F3864"></div></div></div><div class="da-row"><div class="da-top"><div class="da-name"><span class="swatch" style="background:#C8960C"></span>Enterprise Value Assurance</div><div class="da-count">18 <span class="da-pct">· 6%</span></div></div><div class="da-sub">Value tracking &amp; ROI · programme / delivery (TMO, PMO) · ecosystems &amp; partnerships</div><div class="da-track"><div class="da-fill" style="width:13.6%;background:#C8960C"></div></div></div><div class="da-row"><div class="da-top"><div class="da-name"><span class="swatch" style="background:#A0418A"></span>Enterprise Enablement</div><div class="da-count">22 <span class="da-pct">· 7%</span></div></div><div class="da-sub">Operating model &amp; org design · talent &amp; upskilling · adoption &amp; change management</div><div class="da-track"><div class="da-fill" style="width:16.7%;background:#A0418A"></div></div></div><div class="da-row"><div class="da-top"><div class="da-name"><span class="swatch" style="background:#2E8B57"></span>Enterprise Foundations</div><div class="da-count">31 <span class="da-pct">· 10%</span></div></div><div class="da-sub">Platforms &amp; architecture (MLOps, RAG) · data foundations · Responsible AI &amp; cyber · IT modernisation</div><div class="da-track"><div class="da-fill" style="width:23.5%;background:#2E8B57"></div></div></div><div class="da-row"><div class="da-top"><div class="da-name"><span class="swatch" style="background:#C0392B"></span>AI Applications & Use Cases</div><div class="da-count">132 <span class="da-pct">· 43%</span></div></div><div class="da-sub">Agents, copilots &amp; automation · function use cases · industry use cases · credentials &amp; proposals</div><div class="da-track"><div class="da-fill" style="width:100.0%;background:#C0392B"></div></div></div><div class="da-row"><div class="da-top"><div class="da-name"><span class="swatch" style="background:#7F7F7F"></span>Other / Unclassified Demand</div><div class="da-count">6 <span class="da-pct">· 2%</span></div></div><div class="da-sub">Title-less records · generic admin labels · goal-less asks (intake data-quality signal)</div><div class="da-track"><div class="da-fill" style="width:4.5%;background:#7F7F7F"></div></div></div></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>Requests by Office</h3><div class="note">Harmonised city names</div></div>
+    <div class="chart-xl"><canvas id="c-office"></canvas></div>
+  </div>
+</div>
+
+<div class="grid g2e">
+  <div class="card">
+    <div class="card-h"><h3>Request Context</h3><div class="note">Classified from text</div></div>
+    <div class="chart-lg"><canvas id="c-context"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>Recent Requests</h3><div class="note">Most recent · representative titles</div></div>
+    <ul class="titles" id="t-examples"></ul>
+  </div>
+</div>
+
+<footer>TDA Gen AI Knowledge Team · Generated 11 Jun 2026, 16:28 · Source: Desk (Vantage) + RMS export · Offices: Stockholm, Copenhagen, Oslo, Helsinki</footer>
+</div>
+
+<script>
+const CONTEXTS = {"Proposal / RFP": 219, "Other": 65, "Expert Guidance / POV": 13, "Workshop / Training": 7, "Internal": 6};
+const OFFICES  = {"Copenhagen": 106, "Stockholm": 103, "Oslo": 51, "Helsinki": 50};
+const YOY_LBL  = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const YOY_2025 = [12, 6, 12, 9, 17, 21, 1, 11, 17, 19, 24, 13];
+const YOY_2026 = [17, 26, 25, 35, 34, 11, null, null, null, null, null, null];
+const EXAMPLES = ["Material request: AI governance & HOW to succeed | Scania CFO meeting prep", "AI in product dev. software - CPG examples", "Request for materials on AI-native SaaS operating models", "Request: AI in procurement", "Volvo AI program: Latest BCG materials outlining AI and Agentic", "Request for AI Productivity Materials", "AI Impact on IT Service Towers", "H&M AI Workshop preparation", "Re: BCG Build for the future 2025", "G&A automation levers/examples", "Applied AI transformation for investment company", "AI transformation of investment company", "Competitive view on AI disruption", "Looking for expert on AI in ERP companies", "AI materials for retail proposal | AI across value chain and deep dives for pricing and Personalization"];
+
+function hbar(id, labels, data, color) {
+  new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: { labels, datasets: [{ data, backgroundColor: color, borderRadius: 2 }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { display: false }, beginAtZero: true }, y: { grid: { display: false } } } }
+  });
+}
+
+new Chart(document.getElementById('c-yoy'), {
+  type: 'line',
+  data: { labels: YOY_LBL, datasets: [
+    { label: '2025', data: YOY_2025, borderColor: '#2E75B6', backgroundColor: 'rgba(46,117,182,0.08)', fill: true, tension: 0.3, pointRadius: 4, borderWidth: 2 },
+    { label: '2026', data: YOY_2026, borderColor: '#8c2b2b', backgroundColor: 'rgba(140,43,43,0.08)', fill: true, tension: 0.3, pointRadius: 4, borderWidth: 2, spanGaps: false },
+  ] },
+  options: { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom' } },
+    scales: { x: { grid: { display: false } }, y: { beginAtZero: true } } },
+});
+
+hbar('c-office',  Object.keys(OFFICES),  Object.values(OFFICES),  '#0a5c5e');
+hbar('c-context', Object.keys(CONTEXTS), Object.values(CONTEXTS), '#44546A');
+
+const ul = document.getElementById('t-examples');
+EXAMPLES.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+</script>
+</body>
+</html>

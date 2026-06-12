@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Talent & Organization — TDA Deep Dive</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:#faf6ef; --card:#fff; --soft:#f2ede3;
+    --ink:#1a1a1a; --mute:#888; --rule:#e6dfd1;
+    --accent:#FFC000;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:system-ui,sans-serif;font-size:14px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* layout */
+  .wrap{max-width:1280px;margin:0 auto;padding:28px 28px 80px}
+  .top-nav{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+  .back-link{font-size:12px;color:#888;border:1px solid #ddd;border-radius:4px;padding:4px 10px;white-space:nowrap}
+  .back-link:hover{background:#f0f0f0;text-decoration:none}
+  .nav-pill{font-size:11px;border:1px solid #ccc;border-radius:20px;padding:3px 10px;color:#555;white-space:nowrap}
+  .nav-pill:hover{background:#eee;text-decoration:none}
+
+  /* header */
+  .hero{border-bottom:3px solid var(--accent);padding-bottom:16px;margin-bottom:24px}
+  .hero-kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);font-family:monospace;margin-bottom:6px}
+  .hero-title{font-size:36px;font-weight:700;letter-spacing:-.02em;color:var(--accent);margin-bottom:6px}
+  .hero-desc{font-size:13px;color:#555;max-width:800px;line-height:1.6}
+
+  /* KPI row */
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:28px}
+  .kpi{background:var(--card);border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--mute);margin-bottom:4px}
+  .kpi-value{font-size:26px;font-weight:700;line-height:1.1}
+  .kpi-badge{display:inline-block;font-size:11px;font-weight:600;border-radius:4px;padding:2px 7px;margin-top:4px}
+  .kpi-badge.up{background:#e8f5e0;color:#2e7d1f}
+  .kpi-badge.dn{background:#fdecea;color:#c00}
+  .kpi-badge.neutral{background:#eee;color:#555}
+
+  /* grid */
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+  .grid-1{margin-bottom:20px}
+  @media(max-width:900px){.grid-2{grid-template-columns:1fr}}
+
+  /* cards */
+  .card{background:var(--card);border-radius:8px;padding:20px 22px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .card-title{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--mute);margin-bottom:14px;font-weight:600}
+  .chart-wrap{position:relative;height:240px}
+  .chart-wrap-tall{position:relative;height:300px}
+
+  /* section headings */
+  .section-hd{font-size:16px;font-weight:700;color:var(--ink);border-left:4px solid var(--accent);padding-left:10px;margin:32px 0 14px}
+
+  /* NAVI cards */
+  .navi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+  .navi-card{background:var(--card);border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);border-left:3px solid var(--accent)}
+  .navi-card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+  .navi-link{font-weight:600;font-size:13px;color:var(--accent)}
+  .navi-link-plain{font-weight:600;font-size:13px;color:var(--ink)}
+  .navi-tag{font-size:10px;background:#f0f0f0;color:#555;border-radius:3px;padding:2px 6px;white-space:nowrap;flex-shrink:0}
+  .navi-card-meta{font-size:11px;color:var(--mute);margin-bottom:4px}
+  .navi-card-desc{font-size:12px;color:#444;line-height:1.5}
+  .gap-banner{background:#fff8e5;border:1px solid #ffd;border-radius:6px;padding:12px 16px;font-size:13px;color:#7a5c00;margin-bottom:16px}
+  .gap-banner code{font-family:monospace;font-size:12px}
+
+  /* subtopic rows */
+  .st-row{padding:16px 0;border-bottom:1px solid var(--rule)}
+  .st-row:last-child{border-bottom:none}
+  .st-label-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:7px}
+  .st-name{font-size:13px;font-weight:700;color:var(--ink)}
+  .st-stats{font-size:11px;color:var(--mute);white-space:nowrap}
+  .st-bar-wrap{height:7px;background:#eee;border-radius:4px;margin-bottom:10px}
+  .st-bar{height:7px;border-radius:4px;min-width:3px;transition:width .3s}
+  .st-navi-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+  .navi-chip{font-size:11px;background:color-mix(in srgb,var(--accent) 12%,#fff);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 30%,#fff);border-radius:4px;padding:3px 9px;font-weight:500;white-space:nowrap}
+  .navi-chip:hover{background:color-mix(in srgb,var(--accent) 20%,#fff);text-decoration:none}
+  .navi-chip-plain{font-size:11px;background:#f4f4f4;color:#555;border:1px solid #ddd;border-radius:4px;padding:3px 9px;white-space:nowrap}
+  .st-navi-none{font-size:11px;color:var(--mute);font-style:italic;margin-top:4px}
+
+  /* bottom nav */
+  .bottom-nav{display:flex;justify-content:space-between;align-items:center;margin-top:48px;padding-top:20px;border-top:1px solid var(--rule)}
+  .nav-btn{font-size:13px;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:6px 14px}
+  .nav-btn:hover{background:var(--accent);color:#fff;text-decoration:none}
+
+  .footer{font-size:11px;color:var(--mute);margin-top:32px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Top navigation -->
+  <div class="top-nav">
+    <a href="../tda_topic_deepdive.html" class="back-link">← Topic Overview</a>
+    <a href="tda_deepdive_ai_strategy_vision.html" class="nav-pill">AI Strategy & Vision</a>
+<a href="tda_deepdive_ai_use_cases.html" class="nav-pill">AI Use Cases & Value Creation</a>
+<a href="tda_deepdive_agentic_genai.html" class="nav-pill">Agentic & Generative AI</a>
+<a href="tda_deepdive_ai_technology.html" class="nav-pill">AI Technology & Architecture</a>
+<a href="tda_deepdive_ai_governance.html" class="nav-pill">AI Governance & Responsible AI</a>
+<a href="tda_deepdive_ai_talent.html" class="nav-pill" style="background:#FFC000;color:#fff;border-color:#FFC000">AI Talent & Organization</a>
+<a href="tda_deepdive_digital_it.html" class="nav-pill">Digital & IT Modernization</a>
+
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-kicker">TDA Gen AI Knowledge Team · Topic Deep Dive</div>
+    <div class="hero-title">AI Talent & Organization</div>
+    <div class="hero-desc">Building AI capability within organisations. Covers talent strategy, upskilling programs, centre of excellence design, AI workforce planning, organisational design for AI, and leadership capability building.</div>
+  </div>
+
+  <!-- KPI row -->
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-label">Total Requests</div>
+      <div class="kpi-value">319</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">2025 Requests</div>
+      <div class="kpi-value">193</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">2026 YTD</div>
+      <div class="kpi-value">126</div>
+      <div><span class="kpi-badge up">▲ +48.7% YoY</span></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">2026 Annualised</div>
+      <div class="kpi-value">287</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Top Industry</div>
+      <div class="kpi-value" style="font-size:14px;padding-top:4px">Industry agnostic</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Top Request Type</div>
+      <div class="kpi-value" style="font-size:14px;padding-top:4px">Proposal / RFP</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">NAVI Assets</div>
+      <div class="kpi-value">22</div>
+    </div>
+  </div>
+
+  <!-- Section 1: Demand Evolution -->
+  <div class="section-hd">Demand Evolution</div>
+  <div class="grid-1">
+    <div class="card">
+      <div class="card-title">Monthly Requests — 2025 vs 2026</div>
+      <div class="chart-wrap-tall"><canvas id="yoyChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Section 2: What's Being Requested -->
+  <div class="section-hd">What's Being Requested</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Request Type</div>
+      <div class="chart-wrap"><canvas id="ctxChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Industry</div>
+      <div class="chart-wrap"><canvas id="indChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Section 3: Topic Breakdown by Subtopic -->
+  <div class="section-hd">Topic Breakdown</div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title">MECE subtopics · % of topic total · NAVI assets per subtopic</div>
+    <div class="st-row">
+  <div class="st-label-row">
+    <span class="st-name">Upskilling & Training</span>
+    <span class="st-stats">131 requests &nbsp;·&nbsp; 41% of topic</span>
+  </div>
+  <div class="st-bar-wrap"><div class="st-bar" style="width:41.1%;background:#FFC000"></div></div>
+  <div class="st-navi-chips"><a href="https://pages.navigator.bcg.com/kp/ad414e0d-59c7-4a2e-a08c-f69eddedc492" target="_blank" class="navi-chip">O&G Leader Upskilling with BCG U AI Accelerator Program</a><a href="https://pages.navigator.bcg.com/kp/fc45f148-ffd9-451b-aae8-989824714af0" target="_blank" class="navi-chip">NextGen Change Management (Gen)AI Narrative</a><a href="https://pages.navigator.bcg.com/kp/3900a24b-735b-4db8-9aa9-8af981de833f" target="_blank" class="navi-chip">GenAI Upskilling for Senior IT Leadership Team of Global Telco</a><a href="https://pages.navigator.bcg.com/kp/6128283e-1f0f-4fd4-a139-c7c8900b4bd2" target="_blank" class="navi-chip">Gen AI / AI Talent Trends: Industry Report</a><a href="https://pages.navigator.bcg.com/kp/c0da2bdc-5eab-4605-a11a-969cc92a611f" target="_blank" class="navi-chip">Enterprise-wide AI Upskilling for O&G Client in APAC</a></div>
+</div><div class="st-row">
+  <div class="st-label-row">
+    <span class="st-name">Centre of Excellence</span>
+    <span class="st-stats">73 requests &nbsp;·&nbsp; 23% of topic</span>
+  </div>
+  <div class="st-bar-wrap"><div class="st-bar" style="width:22.9%;background:#FFC000"></div></div>
+  <div class="st-navi-chips"><a href="https://pages.navigator.bcg.com/kp/a64ad675-d8a6-405f-9b95-8c8db782e02b" target="_blank" class="navi-chip">AI Center of Excellence for an O&G Player in Southeast Asia</a><a href="https://pages.navigator.bcg.com/kp/58592c2d-d9c6-4cea-826f-2bb79cacd5dd" target="_blank" class="navi-chip">Global AI Centers of Excellence Benchmarks</a><a href="https://pages.navigator.bcg.com/kp/a6ea6dfd-1d58-466e-9882-56fbfb4c65d4" target="_blank" class="navi-chip">Workforce of 2030: Impact of Generative AI on Future Tech Talent</a><a href="https://pages.navigator.bcg.com/kp/6cd0097d-8673-4816-8609-dba37997fdd5" target="_blank" class="navi-chip">The '70' Gen AI Primer: Org & Op Model Design</a><a href="https://pages.navigator.bcg.com/kp/309b9239-2000-4c78-b4f6-4a70cab79d51" target="_blank" class="navi-chip">Future-proofing Tech Org & Op Models for Era of AI</a></div>
+</div><div class="st-row">
+  <div class="st-label-row">
+    <span class="st-name">Talent Strategy & Workforce</span>
+    <span class="st-stats">53 requests &nbsp;·&nbsp; 17% of topic</span>
+  </div>
+  <div class="st-bar-wrap"><div class="st-bar" style="width:16.6%;background:#FFC000"></div></div>
+  <div class="st-navi-chips"><a href="https://pages.navigator.bcg.com/kp/a6ea6dfd-1d58-466e-9882-56fbfb4c65d4" target="_blank" class="navi-chip">Workforce of 2030: Impact of Generative AI on Future Tech Talent</a><a href="https://pages.navigator.bcg.com/kp/eaa4a035-a115-44e3-9d4f-5bae05a91757" target="_blank" class="navi-chip">Work Reinvention — Re-imagining Workforce & Workflows in the Age of AI</a><a href="https://pages.navigator.bcg.com/kp/d6322a97-373e-4dea-a06b-7b23806c58dd" target="_blank" class="navi-chip">The Future of Strategic Workforce Planning</a><a href="https://pages.navigator.bcg.com/kp/11580531-d33f-4c75-a42f-8e91e9904c12" target="_blank" class="navi-chip">The '70' Gen AI Primer: Talent & Skills Development</a><a href="https://pages.navigator.bcg.com/kp/14f52dd2-f9ae-420f-b581-437b7a3af49d" target="_blank" class="navi-chip">Digital Strategic Workforce Planning for a Global Insurer</a></div>
+</div><div class="st-row">
+  <div class="st-label-row">
+    <span class="st-name">Organizational Design</span>
+    <span class="st-stats">31 requests &nbsp;·&nbsp; 10% of topic</span>
+  </div>
+  <div class="st-bar-wrap"><div class="st-bar" style="width:9.7%;background:#FFC000"></div></div>
+  <div class="st-navi-chips"><a href="https://pages.navigator.bcg.com/kp/6cd0097d-8673-4816-8609-dba37997fdd5" target="_blank" class="navi-chip">The '70' Gen AI Primer: Org & Op Model Design</a><a href="https://pages.navigator.bcg.com/kp/eaa4a035-a115-44e3-9d4f-5bae05a91757" target="_blank" class="navi-chip">Work Reinvention — Re-imagining Workforce & Workflows in the Age of AI</a><a href="https://pages.navigator.bcg.com/kp/58592c2d-d9c6-4cea-826f-2bb79cacd5dd" target="_blank" class="navi-chip">Global AI Centers of Excellence Benchmarks</a><a href="https://pages.navigator.bcg.com/kp/309b9239-2000-4c78-b4f6-4a70cab79d51" target="_blank" class="navi-chip">Future-proofing Tech Org & Op Models for Era of AI</a><a href="https://pages.navigator.bcg.com/kp/ef148ce3-0fa7-4688-af1f-96c932a12662" target="_blank" class="navi-chip">AI-Driven Productivity Potential for Tech Talent</a></div>
+</div><div class="st-row">
+  <div class="st-label-row">
+    <span class="st-name">Other / General</span>
+    <span class="st-stats">30 requests &nbsp;·&nbsp; 9% of topic</span>
+  </div>
+  <div class="st-bar-wrap"><div class="st-bar" style="width:9.4%;background:#FFC000"></div></div>
+  <div class="st-navi-none">No NAVI assets matched yet</div>
+</div><div class="st-row">
+  <div class="st-label-row">
+    <span class="st-name">Change Management</span>
+    <span class="st-stats">1 requests &nbsp;·&nbsp; 0% of topic</span>
+  </div>
+  <div class="st-bar-wrap"><div class="st-bar" style="width:0.3%;background:#FFC000"></div></div>
+  <div class="st-navi-chips"><a href="https://pages.navigator.bcg.com/kp/fc45f148-ffd9-451b-aae8-989824714af0" target="_blank" class="navi-chip">NextGen Change Management (Gen)AI Narrative</a><a href="https://pages.navigator.bcg.com/kp/3e605283-e42a-4aed-a355-e9d6c8221f00" target="_blank" class="navi-chip">GenAI x Culture & Change Management Sales Deck</a><a href="https://pages.navigator.bcg.com/kp/b5c5db00-87bf-40e3-82ab-5d280cf84088" target="_blank" class="navi-chip">Artificial Intelligence (AI) Transformation Change Management Playbook</a></div>
+</div>
+  </div>
+
+  <!-- Section 4: NAVI Content Coverage -->
+  <div class="section-hd">NAVI Content Coverage</div>
+  <div style="margin-bottom:20px">
+    <div class="navi-grid"><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/ef148ce3-0fa7-4688-af1f-96c932a12662" target="_blank" class="navi-link">AI-Driven Productivity Potential for Tech Talent</a><span class="navi-tag">Case Study</span></div>
+  <div class="navi-card-meta">Financial Services · 2026</div>
+  <div class="navi-card-desc">BCG engagement for a global financial institution: assess AI-driven productivity uplift across ~5,000 tech activities, define future workforce model with AI-enabled roles, design upskilling programs, and build AI-first operating model transition roadmap.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/eaa4a035-a115-44e3-9d4f-5bae05a91757" target="_blank" class="navi-link">Work Reinvention — Re-imagining Workforce & Workflows in the Age of AI</a><span class="navi-tag">Org Design</span></div>
+  <div class="navi-card-meta">Cross-industry · 2026</div>
+  <div class="navi-card-desc">BCG selling material covering AI's impact on the economics of work; AI workforce strategy, talent strategy, and org transformation for the AI era.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/6128283e-1f0f-4fd4-a139-c7c8900b4bd2" target="_blank" class="navi-link">Gen AI / AI Talent Trends: Industry Report</a><span class="navi-tag">Other</span></div>
+  <div class="navi-card-meta">Cross-industry · 2024</div>
+  <div class="navi-card-desc">Industry benchmarking report on AI talent demand: Data Scientists and ML Engineers are most in-demand; TMT leads AI hiring; upskilling hubs and onboarding programs as the third pillar of an AI enablement ecosystem.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/a6ea6dfd-1d58-466e-9882-56fbfb4c65d4" target="_blank" class="navi-link">Workforce of 2030: Impact of Generative AI on Future Tech Talent</a><span class="navi-tag">Operating Model / CoE</span></div>
+  <div class="navi-card-meta">Cross-industry · 2024</div>
+  <div class="navi-card-desc">BCG AI-First Organization offer map — from role disruption diagnostics and skills blueprints, to GenAI operating model & governance redesign and AI-First Talent Strategy.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/11580531-d33f-4c75-a42f-8e91e9904c12" target="_blank" class="navi-link">The '70' Gen AI Primer: Talent & Skills Development</a><span class="navi-tag">Capability Building</span></div>
+  <div class="navi-card-meta">Cross-industry · 2023</div>
+  <div class="navi-card-desc">GenAI primer covering workforce planning waterfall (build/buy/borrow/attrition model), evolving skills required across org levels, and the rise of GenAI-specific skills (prompt engineering, foundational model fine-tuning).</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/6cd0097d-8673-4816-8609-dba37997fdd5" target="_blank" class="navi-link">The '70' Gen AI Primer: Org & Op Model Design</a><span class="navi-tag">Operating Model / CoE</span></div>
+  <div class="navi-card-meta">Cross-industry · 2023</div>
+  <div class="navi-card-desc">Dedicated primer section on org and operating model implications of GenAI: org structure redesign, team configurations for human-AI collaboration, workflow redesign, and governance/policy evolution.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/58592c2d-d9c6-4cea-826f-2bb79cacd5dd" target="_blank" class="navi-link">Global AI Centers of Excellence Benchmarks</a><span class="navi-tag">Operating Model / CoE</span></div>
+  <div class="navi-card-meta">Cross-industry · 2024</div>
+  <div class="navi-card-desc">BCG benchmark study of AI Centres of Excellence globally — covers CoE design, structure, goals, and best practices. November 2024.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/a64ad675-d8a6-405f-9b95-8c8db782e02b" target="_blank" class="navi-link">AI Center of Excellence for an O&G Player in Southeast Asia</a><span class="navi-tag">Case Study</span></div>
+  <div class="navi-card-meta">Energy & Resources · 2024</div>
+  <div class="navi-card-desc">Case study on establishing an internal 'Gen AI Foundry' as the client's AI Centre of Excellence; vision to pioneer GenAI application across the organisation.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/309b9239-2000-4c78-b4f6-4a70cab79d51" target="_blank" class="navi-link">Future-proofing Tech Org & Op Models for Era of AI</a><span class="navi-tag">Operating Model / CoE</span></div>
+  <div class="navi-card-meta">Cross-industry · 2024</div>
+  <div class="navi-card-desc">Four core BCG offerings to future-proof org and op model for the AI era: Rapid Diagnostic, Initiatives Execution Acceleration, Enterprise Design for Financial Flexibility, and full Org & Op Model Redesign.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/ee5a7cf4-8544-4b65-bc61-0a7e259f0513" target="_blank" class="navi-link">AI-First Org — Transitioning to AI-First Organizations</a><span class="navi-tag">Operating Model / CoE</span></div>
+  <div class="navi-card-meta">Cross-industry · 2025</div>
+  <div class="navi-card-desc">Workshop deck on building AI-First organisations around agentic AI — overhauls core processes and revolutionises the operating model, moving beyond AI as a process enhancer.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/b5c5db00-87bf-40e3-82ab-5d280cf84088" target="_blank" class="navi-link">Artificial Intelligence (AI) Transformation Change Management Playbook</a><span class="navi-tag">Change Management</span></div>
+  <div class="navi-card-meta">Cross-industry · 2024</div>
+  <div class="navi-card-desc">BCG Digital primer/playbook covering the full change management lifecycle for AI transformations: governance, structure, processes & ways of working, talent & capabilities, and behavioural change.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/fc45f148-ffd9-451b-aae8-989824714af0" target="_blank" class="navi-link">NextGen Change Management (Gen)AI Narrative</a><span class="navi-tag">Change Management</span></div>
+  <div class="navi-card-meta">Cross-industry · 2023</div>
+  <div class="navi-card-desc">Sales narrative for BCG's NextGen Change Management offer applied to GenAI transformations — covers igniting leaders, upskilling the org, behavioural science-driven culture change, and central governance.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/3e605283-e42a-4aed-a355-e9d6c8221f00" target="_blank" class="navi-link">GenAI x Culture & Change Management Sales Deck</a><span class="navi-tag">Change Management</span></div>
+  <div class="navi-card-meta">Cross-industry · 2023</div>
+  <div class="navi-card-desc">Comparative analysis showing GenAI transformations are more extreme than traditional AI, digital, and ERP on all change parameters (skill novelty, emotional engagement, WoW disruption, breadth of impact).</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/05078b39-ec00-481e-9dc4-240ec5d1e45e" target="_blank" class="navi-link">Introduction to BCG U — AI Capability Building</a><span class="navi-tag">Capability Building</span></div>
+  <div class="navi-card-meta">Cross-industry · 2024</div>
+  <div class="navi-card-desc">BCG U offer overview: organisational capability curve for GenAI adoption from limited capability through core AI-fluency tipping point to scaled competitive advantage.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/83302293-0b89-4367-b511-aa8cbc051ad3" target="_blank" class="navi-link">AI Upskilling for Development Leadership Success</a><span class="navi-tag">Case Study</span></div>
+  <div class="navi-card-meta">Public Sector · 2023</div>
+  <div class="navi-card-desc">BCG case: two-track AI upskilling programme for a multilateral development organisation — 850 leaders (4-module, 14.5h journey) and 23,000 staff (3-module, 6h pathway). NPS 69; 45% of leaders reported higher AI usage post-programme.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/ad414e0d-59c7-4a2e-a08c-f69eddedc492" target="_blank" class="navi-link">O&G Leader Upskilling with BCG U AI Accelerator Program</a><span class="navi-tag">Case Study</span></div>
+  <div class="navi-card-meta">Energy & Resources · 2025</div>
+  <div class="navi-card-desc">BCG U AI Accelerator Programme delivering $75M in impact for a global O&G leader through targeted leadership upskilling.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/c0da2bdc-5eab-4605-a11a-969cc92a611f" target="_blank" class="navi-link">Enterprise-wide AI Upskilling for O&G Client in APAC</a><span class="navi-tag">Case Study</span></div>
+  <div class="navi-card-meta">Energy & Resources · 2024</div>
+  <div class="navi-card-desc">POP Openhouse vignette on enterprise-wide AI upskilling deployment for an APAC O&G company.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/1887919f-cab6-4fe0-ab3a-33d719e528e3" target="_blank" class="navi-link">AI/GenAI Upskilling Programme with BCG U for a Shipping and Logistics Player</a><span class="navi-tag">Case Study</span></div>
+  <div class="navi-card-meta">Transport & Logistics · 2025</div>
+  <div class="navi-card-desc">Long vignette of a BCG U AI/GenAI upskilling programme designed and delivered for a shipping and logistics client.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/3900a24b-735b-4db8-9aa9-8af981de833f" target="_blank" class="navi-link">GenAI Upskilling for Senior IT Leadership Team of Global Telco</a><span class="navi-tag">Case Study</span></div>
+  <div class="navi-card-meta">TMT (Tech / Media / Telecom) · 2024</div>
+  <div class="navi-card-desc">Short case vignette on GenAI upskilling programme delivered to the senior IT leadership team of a global telecoms operator.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/d3e22411-f7b4-42c4-a251-7027d37ff5b7" target="_blank" class="navi-link">Leadership 2030 — The Skills Tomorrow's Senior Executives Need</a><span class="navi-tag">Capability Building</span></div>
+  <div class="navi-card-meta">Cross-industry · 2023</div>
+  <div class="navi-card-desc">BCG selling material on leadership skill requirements for 2030 and how to build them — covers digital fluency, AI leadership capability, and development programmes for senior executives.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/d6322a97-373e-4dea-a06b-7b23806c58dd" target="_blank" class="navi-link">The Future of Strategic Workforce Planning</a><span class="navi-tag">Workforce Planning</span></div>
+  <div class="navi-card-meta">Cross-industry · 2024</div>
+  <div class="navi-card-desc">BCG's four-step AI-integrated strategic workforce planning approach — from task-level demand forecasting and skills gap analysis to dynamic supply/demand plans incorporating build/buy/borrow/automate levers.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/14f52dd2-f9ae-420f-b581-437b7a3af49d" target="_blank" class="navi-link">Digital Strategic Workforce Planning for a Global Insurer</a><span class="navi-tag">Case Study</span></div>
+  <div class="navi-card-meta">Financial Services · 2023</div>
+  <div class="navi-card-desc">BCG case: 5-year quantitative workforce plan for three operating entities of a global insurer — clustered thousands of roles into ~50 segments, diagnosed digital skill gaps, and established an annual SWP process.</div>
+</div></div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <a href="tda_deepdive_ai_governance.html" class="nav-btn">← AI Governance & Responsible AI</a>
+    <a href="../tda_topic_deepdive.html" style="font-size:12px;color:#888">← Back to Overview</a>
+    <a href="tda_deepdive_digital_it.html" class="nav-btn">Digital & IT Modernization →</a>
+  </div>
+
+  <div class="footer">Generated 11 Jun 2026, 16:28 · TDA Gen AI Knowledge Team</div>
+</div>
+
+<script>
+const YOY_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const YOY_25    = [10, 22, 19, 11, 11, 20, 26, 11, 17, 20, 11, 15];
+const YOY_26    = [20, 23, 33, 23, 25, 2, null, null, null, null, null, null];
+const CTX_DATA  = {"Proposal / RFP": 244, "Workshop / Training": 27, "Expert Guidance / POV": 20, "Other": 18, "Case Work": 9, "Internal": 1};
+const IND_DATA  = {"Industry agnostic": 157, "Financial Services": 60, "Consumer & Retail": 17, "Healthcare / Life Sciences": 17, "Technology": 15, "Public Sector": 14, "Industrial Goods": 13, "Transport & Logistics": 11};
+const COLOR     = "#FFC000";
+
+const FONT = { family: 'system-ui, sans-serif', size: 12 };
+Chart.defaults.font = FONT;
+Chart.defaults.plugins.legend.labels.font = FONT;
+
+// ── YoY line chart ──────────────────────────────────────────────────────────
+new Chart(document.getElementById('yoyChart'), {
+  type: 'line',
+  data: {
+    labels: YOY_LABELS,
+    datasets: [
+      {
+        label: '2025', data: YOY_25,
+        borderColor: '#2E75B6', backgroundColor: 'rgba(46,117,182,.08)',
+        borderWidth: 2, pointRadius: 4, fill: true, spanGaps: false, tension: .3
+      },
+      {
+        label: '2026', data: YOY_26,
+        borderColor: '#8c2b2b', backgroundColor: 'rgba(140,43,43,.08)',
+        borderWidth: 2.5, pointRadius: 4, fill: true, spanGaps: false, tension: .3
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: { mode: 'index', intersect: false }
+    },
+    scales: {
+      x: { grid: { color: '#f0ebe0' } },
+      y: { beginAtZero: true, grid: { color: '#f0ebe0' }, ticks: { stepSize: 1 } }
+    }
+  }
+});
+
+// ── Horizontal bar helpers ──────────────────────────────────────────────────
+function hbar(id, dataObj, color) {
+  const labels = Object.keys(dataObj);
+  const vals   = Object.values(dataObj);
+  new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ data: vals, backgroundColor: color + 'cc', borderColor: color, borderWidth: 1 }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, grid: { color: '#f0ebe0' }, ticks: { stepSize: 1 } },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+hbar('ctxChart', CTX_DATA, COLOR);
+hbar('indChart', IND_DATA, COLOR);
+</script>
+</body>
+</html>

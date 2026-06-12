@@ -1,0 +1,7 @@
+name: "Intelligence Dashboards"
+description: "TDA analytics suite — Leadership overview, volume trends, Nordics, PDLC, BFF, AIPG, QC reports and 7 AI deep-dive dashboards."
+icon: "📊"
+accent: "#6366f1"
+tag: "Analytics"
+author: "Giuseppe Colombo"
+status: "live"

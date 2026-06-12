@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TDA — PDLC Next Demand Intelligence</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #eef2f8; --card: #fff; --soft: #dde6f0;
+    --ink: #1a1a1a; --mute: #888; --rule: #c5d3e8;
+    --accent: #1F3864; --blue: #2E75B6;
+    --desk: #1F3864; --rms: #2E75B6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: system-ui, sans-serif; font-size: 14px; }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 32px 28px 80px; }
+  header { border-bottom: 3px solid var(--accent); padding-bottom: 18px; margin-bottom: 28px; }
+  .kicker { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--blue); margin-bottom: 6px; font-family: monospace; }
+  h1 { font-size: 42px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 8px; color: var(--accent); }
+  h1 em { font-style: italic; font-weight: 300; color: var(--blue); }
+  .sub { color: #555; font-size: 14px; }
+  .meta { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; font-size: 11px; color: var(--mute); font-family: monospace; letter-spacing: .1em; text-transform: uppercase; }
+  .meta b { color: var(--ink); }
+  .src-tag { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border: 1px solid var(--rule); border-radius: 2px; font-size: 11px; font-family: monospace; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .dot-d { background: var(--desk); } .dot-r { background: var(--rms); }
+
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--rule); background: var(--card); margin-bottom: 24px; }
+  .kpi { padding: 16px 18px; border-right: 1px solid var(--rule); }
+  .kpi:last-child { border-right: none; }
+  .kpi .lbl { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); margin-bottom: 6px; font-family: monospace; }
+  .kpi .val { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .kpi .foot { font-size: 11px; color: var(--mute); margin-top: 4px; font-family: monospace; }
+  .kpi.ac .val { color: var(--accent); } .kpi.bl .val { color: var(--blue); }
+
+  .grid { display: grid; gap: 20px; margin-bottom: 20px; }
+  .g1 { grid-template-columns: 1fr; }
+  .g2 { grid-template-columns: 1fr 1fr; }
+  .g3 { grid-template-columns: 1fr 1fr 1fr; }
+  .card { background: var(--card); border: 1px solid var(--rule); padding: 20px; }
+  .card-h { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--rule); padding-bottom: 10px; margin-bottom: 14px; }
+  .card-h h3 { font-size: 16px; font-weight: 600; color: var(--accent); }
+  .card-h .note { font-size: 10px; color: var(--mute); font-family: monospace; letter-spacing: .08em; text-transform: uppercase; }
+  .chart-xl { height: 300px; position: relative; }
+  .chart-lg { height: 260px; position: relative; }
+  .chart-md { height: 220px; position: relative; }
+
+  .chip { display: inline-block; font-size: 10px; padding: 2px 7px; border: 1px solid; border-radius: 2px; margin: 1px 2px; font-family: monospace; letter-spacing: .04em; white-space: nowrap; }
+
+  .fbtns { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .fbtn { font-size: 11px; padding: 4px 10px; border: 1px solid var(--rule); background: var(--card);
+    cursor: pointer; border-radius: 2px; font-family: monospace; letter-spacing: .04em; }
+  .fbtn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--rule); background: var(--soft);
+    font-family: monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); }
+
+  .gap-tbl td { padding: 10px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .asset-chip { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 2px; margin: 1px 2px; font-family: monospace; }
+  .pub  { background: #e6f4ec; color: #1b7f4f; border: 1px solid #b2dfcc; }
+  .wip  { background: #fff3e0; color: #b36200; border: 1px solid #ffcc80; }
+  .draft{ background: #ede7f6; color: #6a3aab; border: 1px solid #ce93d8; }
+  .case { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+
+  footer { margin-top: 48px; padding-top: 16px; border-top: 2px solid var(--accent);
+    font-size: 11px; color: var(--mute); font-family: monospace; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">TDA Gen AI Knowledge Team · PDLC Next</div>
+  <h1>PDLC Next <em>Demand</em> Intelligence</h1>
+  <p class="sub">Requests relevant to the PDLC Next offer — GenAI across Product &amp; Engineering. Covers developer productivity, AI adoption sprints, coding tooling &amp; ecosystem, and workforce transformation.</p>
+  <div class="meta">
+    <span><b>156</b> PDLC Next requests</span>
+    <span class="src-tag"><span class="dot dot-d"></span> Desk</span>
+    <span class="src-tag"><span class="dot dot-r"></span> RMS</span>
+    <span>Generated 11 Jun 2026, 16:28</span>
+  </div>
+</header>
+
+<div class="kpis">
+  <div class="kpi ac"><div class="lbl">PDLC Next Requests</div><div class="val">156</div><div class="foot">Jan 2025 – present</div></div>
+  <div class="kpi"><div class="lbl">YoY (ann.)</div><div class="val" style="font-size:18px;">+211% YoY (ann.)</div><div class="foot">66 in 2025 · 205 ann. 2026</div></div>
+  <div class="kpi"><div class="lbl">Top Sub-topic</div><div class="val" style="font-size:12px;padding-top:6px;line-height:1.3;">Tooling & Ecosystem</div><div class="foot">45 requests</div></div>
+</div>
+
+<div class="grid g1">
+  <div class="card">
+    <div class="card-h">
+      <h3>Monthly PDLC Next Volume — Year over Year</h3>
+      <div class="note">2025 vs 2026 · same month axis</div>
+    </div>
+    <div class="chart-xl"><canvas id="c-yoy"></canvas></div>
+  </div>
+</div>
+
+<div class="grid g2">
+  <div class="card">
+    <div class="card-h"><h3>Sub-topic Breakdown</h3><div class="note">Multi-label · sorted by volume</div></div>
+    <div class="chart-lg"><canvas id="c-subtopic"></canvas></div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:10px;">
+      <thead><tr>
+        <th style="text-align:left;padding:4px 10px;color:var(--mute);">Sub-topic</th>
+        <th style="text-align:right;padding:4px 10px;color:var(--mute);">Requests</th>
+        <th style="text-align:right;padding:4px 10px;color:var(--mute);">YoY (ann.)</th>
+      </tr></thead>
+      <tbody><tr><td style="padding:6px 10px;border-bottom:1px solid var(--rule);white-space:nowrap;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ED7D31;margin-right:7px;vertical-align:middle;"></span><span style="color:#ED7D31;font-weight:600;">Tooling & Ecosystem</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--rule);text-align:right;font-family:monospace;">45</td><td style="padding:6px 10px;border-bottom:1px solid var(--rule);text-align:right;"><span style="color:#1b7f4f;font-weight:600;">+210%</span></td></tr>
+<tr><td style="padding:6px 10px;border-bottom:1px solid var(--rule);white-space:nowrap;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2E75B6;margin-right:7px;vertical-align:middle;"></span><span style="color:#2E75B6;font-weight:600;">Adoption & Change Mgmt</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--rule);text-align:right;font-family:monospace;">12</td><td style="padding:6px 10px;border-bottom:1px solid var(--rule);text-align:right;"><span style="color:#1b7f4f;font-weight:600;">+57%</span></td></tr>
+<tr><td style="padding:6px 10px;border-bottom:1px solid var(--rule);white-space:nowrap;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#7030A0;margin-right:7px;vertical-align:middle;"></span><span style="color:#7030A0;font-weight:600;">Workforce & Talent</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--rule);text-align:right;font-family:monospace;">8</td><td style="padding:6px 10px;border-bottom:1px solid var(--rule);text-align:right;"><span style="color:#1b7f4f;font-weight:600;">+600%</span></td></tr>
+<tr><td style="padding:6px 10px;border-bottom:1px solid var(--rule);white-space:nowrap;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#1F3864;margin-right:7px;vertical-align:middle;"></span><span style="color:#1F3864;font-weight:600;">Strategy & Diagnostic</span></td><td style="padding:6px 10px;border-bottom:1px solid var(--rule);text-align:right;font-family:monospace;">1</td><td style="padding:6px 10px;border-bottom:1px solid var(--rule);text-align:right;"><span style="color:#aaa;">—</span></td></tr>
+</tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>Industry Breakdown</h3><div class="note">Top 8 industries</div></div>
+    <div class="chart-lg"><canvas id="c-industry"></canvas></div>
+  </div>
+</div>
+
+<div class="grid g2">
+  <div class="card">
+    <div class="card-h"><h3>Context Breakdown</h3><div class="note">What requestors are building toward</div></div>
+    <div class="chart-md"><canvas id="c-context"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>IP Coverage by Sub-topic</h3><div class="note">Published · WIP · Draft · Case</div></div>
+    <table class="gap-tbl" style="font-size:12px;">
+      <thead><tr>
+        <th>Sub-topic</th><th style="text-align:right;">Demand</th><th>IP Assets</th>
+      </tr></thead>
+      <tbody><tr><td style="padding:10px 12px;border-bottom:1px solid var(--rule);white-space:nowrap;min-width:200px;"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#1F3864;margin-right:7px;vertical-align:middle;"></span><b style="color:#1F3864;font-size:12px;">Strategy & Diagnostic</b></td><td style="padding:10px 12px;border-bottom:1px solid var(--rule);width:110px;"><div style="display:flex;align-items:center;gap:6px;"><div style="flex:0 0 60px;background:#e8f0ec;border-radius:3px;height:6px;"><div style="width:2%;background:#1F3864;height:6px;border-radius:3px;"></div></div><span style="font-family:monospace;font-size:12px;font-weight:600;">1</span></div></td><td style="padding:10px 12px;border-bottom:1px solid var(--rule);text-align:center;white-space:nowrap;"><span style="background:#1b7f4f22;color:#1b7f4f;border:1px solid #1b7f4f55;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;">Strong</span></td><td style="padding:10px 12px;border-bottom:1px solid var(--rule);font-size:11px;color:#555;"><span style="color:#1b7f4f;font-weight:600;margin-right:4px;">3✓ pub</span><span style="color:#ED7D31;font-weight:600;margin-right:8px;">0 wip</span><span style="display:inline-flex;align-items:center;gap:4px;background:#1b7f4f18;border:1px solid #1b7f4f44;border-radius:3px;padding:1px 6px;font-size:10px;color:#1b7f4f;margin:1px 2px 1px 0;white-space:nowrap;"><span style="font-weight:600;">Published</span> PDLC Next Intro Pack</span><span style="display:inline-flex;align-items:center;gap:4px;background:#1b7f4f18;border:1px solid #1b7f4f44;border-radius:3px;padding:1px 6px;font-size:10px;color:#1b7f4f;margin:1px 2px 1px 0;white-space:nowrap;"><span style="font-weight:600;">Published</span> SDLC Diagnostic — Benchmark Framework</span><span style="display:inline-flex;align-items:center;gap:4px;background:#1b7f4f18;border:1px solid #1b7f4f44;border-radius:3px;padding:1px 6px;font-size:10px;color:#1b7f4f;margin:1px 2px 1px 0;white-space:nowrap;"><span style="font-weight:600;">Published</span> Benchmark for Diagnostic / Business Case</span><span style="display:inline-flex;align-items:center;gap:4px;background:#2E75B618;border:1px solid #2E75B644;border-radius:3px;padding:1px 6px;font-size:10px;color:#2E75B6;margin:1px 2px 1px 0;white-space:nowrap;"><span style="font-weight:600;">Case</span> SDLC Opportunity Sizing Template</span></td></tr>
+<tr><td style="padding:10px 12px;border-bottom:1px solid var(--rule);white-space:nowrap;min-width:200px;"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#2E75B6;margin-right:7px;vertical-align:middle;"></span><b style="color:#2E75B6;font-size:12px;">Adoption & Change Mgmt</b></td><td style="padding:10px 12px;border-bottom:1px solid var(--rule);width:110px;"><div style="display:flex;align-items:center;gap:6px;"><div style="flex:0 0 60px;background:#e8f0ec;border-radius:3px;height:6px;"><div style="width:27%;background:#2E75B6;height:6px;border-radius:3px;"></div></div><span style="font-family:monospace;font-size:12px;font-weight:600;">12</span></div></td><td style="padding:10px 12px;border-bottom:1px solid var(--rule);text-align:center;white-space:nowrap;"><span style="background:#1b7f4f22;color:#1b7f4f;border:1px solid #1b7f4f55;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;">Strong</span></td><td style="padding:10px 12px;border-bottom:1px solid var(--rule);font-size:11px;color:#555;"><span style="color:#1b7f4f;font-weight:600;margin-right:4px;">4✓ pub</span><span style="color:#ED7D31;font-weight:600;margin-right:8px;">0 wip</span><span style="display:inline-flex;align-items:center;gap:4px;background:#1b7f4f18;border:1px solid #1b7f4f44;border-radius:3px;padding:1px 6px;font-size:10px;color:#1b7f4f;margin:1px 2px 1px 0;white-space:nowrap;"><span style="font-weight:600;">Published</span> Behavioral Learning Platform</span><span style="display:inline-flex;align-items:center;gap:4px;background:#1b7f4f18;border:1px solid #1b7f4f44;border-radius:3px;padding:1px 6px;font-size:10px;color:#1b7f4f;margin:1px 2px 1px 0;white-space:nowrap;"><span style="font-weight:600;">Published</span> Warp Drive Gamification Platform</span><span style="display:inline-flex;align-items:center;gap:4px;background:#1b7f4f18;border:1px solid #1b7f4f44;border-radius:3px;padding:1px 6px;font-size:10px;color:#1b7f4f;margin:1px 2px 1px 0;white-space:nowrap;"><span style="font-weight:600;">Published</span> Adoption Sprint Playbook</span><span style="display:inline-flex;align-items:center;gap:4px;background:#1b7f4f18;border:1px solid #1b7f4f44;border-radius:3px;padding:1px 6px;font-size:10px;color:#1b7f4f;margin:1px 2px 1px 0;white-space:nowrap;"><span style="font-weight:600;">Published</span> GenAI Adoption Maturity Framework</span></td></tr>
+<tr><td style="padding:10px 12px;border-bottom:1px solid var(--rule);white-space:nowrap;min-width:200px;"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#ED7D31;margin-right:7px;vertical-align:middle;"></span><b style="color:#ED7D31;font-size:12px;">Tooling & Ecosystem</b></td><td style="padding:10px 12px;border-bottom:1px solid var(--rule);width:110px;"><div style="display:flex;align-items:center;gap:6px;"><div style="flex:0 0 60px;background:#e8f0ec;border-radius:3px;height:6px;"><div style="width:100%;background:#ED7D31;height:6px;border-radius:3px;"></div></div><span style="font-family:monospace;font-size:12px;font-weight:600;">45</span></div></td><td style="padding:10px 12px;border-bottom:1px solid var(--rule);text-align:center;white-space:nowrap;"><span style="background:#1b7f4f22;color:#1b7f4f;border:1px solid #1b7f4f55;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;">Strong</span></td><td style="padding:10px 12px;border-bottom:1px solid var(--rule);font-size:11px;color:#555;"><span style="color:#1b7f4f;font-weight:600;margin-right:4px;">3✓ pub</span><span style="color:#ED7D31;font-weight:600;margin-right:8px;">1 wip</span><span style="display:inline-flex;align-items:center;gap:4px;background:#1b7f4f18;border:1px solid #1b7f4f44;border-radius:3px;padding:1px 6px;font-size:10px;color:#1b7f4f;margin:1px 2px 1px 0;white-space:nowrap;"><span style="font-weight:600;">Published</span> Harness Engineering</span><span style="display:inline-flex;align-items:center;gap:4px;background:#1b7f4f18;border:1px solid #1b7f4f44;border-radius:3px;padding:1px 6px;font-size:10px;color:#1b7f4f;margin:1px 2px 1px 0;white-space:nowrap;"><span style="font-weight:600;">Published</span> Dark Factory</span><span style="display:inline-flex;align-items:center;gap:4px;background:#1b7f4f18;border:1px solid #1b7f4f44;border-radius:3px;padding:1px 6px;font-size:10px;color:#1b7f4f;margin:1px 2px 1px 0;white-space:nowrap;"><span style="font-weight:600;">Published</span> Agent Starter Kit (TeamTide)</span><span style="display:inline-flex;align-items:center;gap:4px;background:#ED7D3118;border:1px solid #ED7D3144;border-radius:3px;padding:1px 6px;font-size:10px;color:#ED7D31;margin:1px 2px 1px 0;white-space:nowrap;"><span style="font-weight:600;">WIP</span> PDLC Tool Benchmarking Guide</span></td></tr>
+<tr><td style="padding:10px 12px;border-bottom:1px solid var(--rule);white-space:nowrap;min-width:200px;"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#7030A0;margin-right:7px;vertical-align:middle;"></span><b style="color:#7030A0;font-size:12px;">Workforce & Talent</b></td><td style="padding:10px 12px;border-bottom:1px solid var(--rule);width:110px;"><div style="display:flex;align-items:center;gap:6px;"><div style="flex:0 0 60px;background:#e8f0ec;border-radius:3px;height:6px;"><div style="width:18%;background:#7030A0;height:6px;border-radius:3px;"></div></div><span style="font-family:monospace;font-size:12px;font-weight:600;">8</span></div></td><td style="padding:10px 12px;border-bottom:1px solid var(--rule);text-align:center;white-space:nowrap;"><span style="background:#1b7f4f22;color:#1b7f4f;border:1px solid #1b7f4f55;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;">Strong</span></td><td style="padding:10px 12px;border-bottom:1px solid var(--rule);font-size:11px;color:#555;"><span style="color:#1b7f4f;font-weight:600;margin-right:4px;">2✓ pub</span><span style="color:#ED7D31;font-weight:600;margin-right:8px;">0 wip</span><span style="display:inline-flex;align-items:center;gap:4px;background:#1b7f4f18;border:1px solid #1b7f4f44;border-radius:3px;padding:1px 6px;font-size:10px;color:#1b7f4f;margin:1px 2px 1px 0;white-space:nowrap;"><span style="font-weight:600;">Published</span> Workforce Transformation Playbook</span><span style="display:inline-flex;align-items:center;gap:4px;background:#1b7f4f18;border:1px solid #1b7f4f44;border-radius:3px;padding:1px 6px;font-size:10px;color:#1b7f4f;margin:1px 2px 1px 0;white-space:nowrap;"><span style="font-weight:600;">Published</span> Future Work, Skills & Roles Mapping</span><span style="display:inline-flex;align-items:center;gap:4px;background:#2E75B618;border:1px solid #2E75B644;border-radius:3px;padding:1px 6px;font-size:10px;color:#2E75B6;margin:1px 2px 1px 0;white-space:nowrap;"><span style="font-weight:600;">Case</span> Team Structure Models (e.g. One/Four Pizza)</span></td></tr>
+</tbody>
+    </table>
+  </div>
+</div>
+
+<div class="grid g1">
+  <div class="card">
+    <div class="card-h">
+      <h3>Recent PDLC Next Requests</h3>
+      <div class="note">50 most recent · filter by sub-topic</div>
+    </div>
+    <div class="fbtns" id="fbtns"><button class="fbtn active" data-filter="">All</button>
+<button class="fbtn" data-filter="Tooling & Ecosystem" data-color="#ED7D31">Tooling & Ecosystem (45)</button>
+<button class="fbtn" data-filter="Adoption & Change Management" data-color="#2E75B6">Adoption & Change Mgmt (12)</button>
+<button class="fbtn" data-filter="Workforce & Talent Transformation" data-color="#7030A0">Workforce & Talent (8)</button>
+<button class="fbtn" data-filter="SDLC Strategy & Diagnostic" data-color="#1F3864">Strategy & Diagnostic (1)</button>
+</div>
+    <div style="overflow-y:auto;max-height:420px;">
+      <table>
+        <thead><tr><th>Title</th><th>Date</th><th>Source</th><th>Sub-topics</th></tr></thead>
+        <tbody id="req-tbody"><tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">input needed – AI operating model at scale in tech</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">09 Jun 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Value benchmarks for AI/agentic use cases</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">08 Jun 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st="Tooling & Ecosystem"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Re: PDLC Next materials for an opportunity with Chubb</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">08 Jun 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#ED7D3118;color:#ED7D31;border-color:#ED7D3155;">Tooling & Ecosystem</span></td></tr>
+<tr data-st="SDLC Strategy & Diagnostic | Tooling & Ecosystem | Workforce & Talent Transformation"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Data points needed: agentic engineering team size, squad composition & AI productivity benchmarks</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">08 Jun 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#1F386418;color:#1F3864;border-color:#1F386455;">Strategy & Diagnostic</span><span class="chip" style="background:#ED7D3118;color:#ED7D31;border-color:#ED7D3155;">Tooling & Ecosystem</span><span class="chip" style="background:#7030A018;color:#7030A0;border-color:#7030A055;">Workforce & Talent</span></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">[Request] AI SDLC Reference Materials for Agilent Technologies</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">03 Jun 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st="Tooling & Ecosystem"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Proposal Support for Biopharma Client</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">02 Jun 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#ED7D3118;color:#ED7D31;border-color:#ED7D3155;">Tooling & Ecosystem</span></td></tr>
+<tr data-st="Tooling & Ecosystem"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">RE: PDLC next | Where AI is (and isn’t) creating value in Product & Engineering</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">02 Jun 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#ED7D3118;color:#ED7D31;border-color:#ED7D3155;">Tooling & Ecosystem</span></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Re: Reference Request for Sourcewell RFP</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">02 Jun 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Seeking material on AI customer service & SDLC</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">01 Jun 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">PDLC@Suncorp</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">29 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">AI SDLC in licensing and registration management</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">28 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st="Workforce & Talent Transformation"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Re: Request for Materials | Software devt efficiency</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">28 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#7030A018;color:#7030A0;border-color:#7030A055;">Workforce & Talent</span></td></tr>
+<tr data-st="Tooling & Ecosystem"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">RE: Help plz - Sense checking SDLC/AI business case assumptions</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">26 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#ED7D3118;color:#ED7D31;border-color:#ED7D3155;">Tooling & Ecosystem</span></td></tr>
+<tr data-st="Tooling & Ecosystem"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Re: Need your help: Gen AI for Software Engineering RFQ</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">26 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#ED7D3118;color:#ED7D31;border-color:#ED7D3155;">Tooling & Ecosystem</span></td></tr>
+<tr data-st="Workforce & Talent Transformation"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Re: T5 PDLC Next Feedback & Follow up</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">22 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#7030A018;color:#7030A0;border-color:#7030A055;">Workforce & Talent</span></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">RE: PDLC</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">22 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">RE: T5 PDLC Next Feedback & Follow up</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">22 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st="Tooling & Ecosystem"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Request for Materials on Harness Engineering</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">21 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#ED7D3118;color:#ED7D31;border-color:#ED7D3155;">Tooling & Ecosystem</span></td></tr>
+<tr data-st="Tooling & Ecosystem"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Latest videos / demos on AI</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">20 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#ED7D3118;color:#ED7D31;border-color:#ED7D3155;">Tooling & Ecosystem</span></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">PDLC ownership & AI Agent governance in outsourcing contexts</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">20 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st="Tooling & Ecosystem"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">AI strategy > Deploy/Reshape/Invent > key use cases / offerings > typical approach</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">15 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#ED7D3118;color:#ED7D31;border-color:#ED7D3155;">Tooling & Ecosystem</span></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Re: Seeking TDA contact - client proof points for $$$ invested in AI@IT transformations</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">12 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st="Tooling & Ecosystem"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">AI first PDLC</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">11 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#ED7D3118;color:#ED7D31;border-color:#ED7D3155;">Tooling & Ecosystem</span></td></tr>
+<tr data-st="Adoption & Change Management | Tooling & Ecosystem"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">RE: Vignettes / Experience around Agentic Engineering Co-pilots</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">08 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#2E75B618;color:#2E75B6;border-color:#2E75B655;">Adoption & Change Mgmt</span><span class="chip" style="background:#ED7D3118;color:#ED7D31;border-color:#ED7D3155;">Tooling & Ecosystem</span></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Examples of AI at IG companies</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">06 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st="Tooling & Ecosystem"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">KN - AI use cases for tech function</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">05 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#ED7D3118;color:#ED7D31;border-color:#ED7D3155;">Tooling & Ecosystem</span></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Request on case study materials</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">05 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">RE: AI-Boosted Cyber Remediation/SDLC</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">04 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st="Tooling & Ecosystem"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">PDLC CoE - AI Tooling Capability Setup - Operating Model Design</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">01 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#ED7D3118;color:#ED7D31;border-color:#ED7D3155;">Tooling & Ecosystem</span></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Crendentials on Agentic Platiform Build</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">01 May 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st="Tooling & Ecosystem"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">RE: Sephora | Tech & Coding Agentic</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">30 Apr 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#ED7D3118;color:#ED7D31;border-color:#ED7D3155;">Tooling & Ecosystem</span></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">AI vendors</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">29 Apr 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st="Workforce & Talent Transformation"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">RE: Requesting Prior Art on IT Delivery Documentation</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">28 Apr 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#7030A018;color:#7030A0;border-color:#7030A055;">Workforce & Talent</span></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Benchmark validation across regions</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">28 Apr 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Critical input request I Large-scale IT transformation opportunity at Austrian Post</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">23 Apr 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">AWS GenAI Case Study</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">21 Apr 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">AI FinOps Configuration and Guardrails Support</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">21 Apr 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Re: Request - Agentic AI / AI BCG Credentials Deck for Telco Proposals</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">21 Apr 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Request for materials | AI Impact on SDLC Governance - By 11pm 21/4 - CC 10033821.1.1</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">21 Apr 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">AWS AI Case Vignette</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">20 Apr 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st="Tooling & Ecosystem"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">[Help needed] cost and token usage benchmarks for AI developer tools</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">14 Apr 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#ED7D3118;color:#ED7D31;border-color:#ED7D3155;">Tooling & Ecosystem</span></td></tr>
+<tr data-st="Tooling & Ecosystem"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">AI software development - case studies</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">13 Apr 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#ED7D3118;color:#ED7D31;border-color:#ED7D3155;">Tooling & Ecosystem</span></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Contact for the SDLC work at AWS</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">09 Apr 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">AI-SDLC for KKR portco</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">08 Apr 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Agentic in IT</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">02 Apr 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st="Tooling & Ecosystem"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">RE: Engineering Excellence Project Australia</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">01 Apr 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#ED7D3118;color:#ED7D31;border-color:#ED7D3155;">Tooling & Ecosystem</span></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Pressure test some thinking on Agentic SDLC Pipeline</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">01 Apr 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Primer case study request</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">01 Apr 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st=""><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Pressure test some thinking</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">31 Mar 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"></td></tr>
+<tr data-st="Adoption & Change Management"><td style="padding:7px 10px;border-bottom:1px solid var(--rule);max-width:440px;">Re: Request for AI / PDLC Materials</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;white-space:nowrap;">31 Mar 2026</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);font-family:monospace;font-size:11px;">Desk</td><td style="padding:7px 10px;border-bottom:1px solid var(--rule);"><span class="chip" style="background:#2E75B618;color:#2E75B6;border-color:#2E75B655;">Adoption & Change Mgmt</span></td></tr>
+</tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>TDA Gen AI Knowledge Team &middot; PDLC Next Demand Intelligence &middot; Generated 11 Jun 2026, 16:28</p>
+  <p style="margin-top:4px;">Source: Vantage/Desk + RMS mailbox &middot; Non-BFF engagement requests only &middot; Multi-label sub-topic classification</p>
+</footer>
+</div>
+
+<script>
+const YOY_LABELS  = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const YOY_25      = [4, 5, 6, 2, 5, 1, 2, 4, 11, 6, 13, 7];
+const YOY_26      = [15, 14, 13, 18, 21, 9, null, null, null, null, null, null];
+const ST_NAMES    = ["Tooling & Ecosystem", "Adoption & Change Mgmt", "Workforce & Talent", "Strategy & Diagnostic"];
+const ST_COUNTS   = [45, 12, 8, 1];
+const ST_COLORS   = ["#ED7D31", "#2E75B6", "#7030A0", "#1F3864"];
+const IND_LABELS  = ["Industry agnostic", "Financial Services", "Consumer & Retail", "Technology", "Public Sector", "Telco", "Industrial Goods", "Healthcare / Life Sciences"];
+const IND_COUNTS  = [80, 39, 7, 7, 6, 6, 4, 3];
+const CTX_LABELS  = ["Proposal / RFP", "Other", "Expert Guidance / POV", "Case Work", "Workshop / Training", "Internal"];
+const CTX_COUNTS  = [122, 16, 11, 4, 2, 1];
+
+const CTX_COLORS = ['#1F3864','#2E75B6','#ED7D31','#7030A0','#c8960c','#2d6a4f','#888'];
+
+// YoY chart
+new Chart(document.getElementById('c-yoy'), {
+  type: 'bar',
+  data: {
+    labels: YOY_LABELS,
+    datasets: [
+      { label: '2025', data: YOY_25, backgroundColor: '#1F386488', borderColor: '#1F3864', borderWidth: 1 },
+      { label: '2026', data: YOY_26, backgroundColor: '#2E75B688', borderColor: '#2E75B6', borderWidth: 1 },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top' }, tooltip: { mode: 'index' } },
+    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+  }
+});
+
+// Sub-topic horizontal bar
+new Chart(document.getElementById('c-subtopic'), {
+  type: 'bar',
+  data: {
+    labels: ST_NAMES,
+    datasets: [{ data: ST_COUNTS, backgroundColor: ST_COLORS, borderWidth: 0 }]
+  },
+  options: {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { x: { beginAtZero: true } }
+  }
+});
+
+// Industry doughnut
+new Chart(document.getElementById('c-industry'), {
+  type: 'doughnut',
+  data: {
+    labels: IND_LABELS,
+    datasets: [{ data: IND_COUNTS,
+      backgroundColor: ['#1F3864','#2E75B6','#ED7D31','#7030A0','#c8960c','#2d6a4f','#4472C4','#888'],
+      borderWidth: 1 }]
+  },
+  options: { responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'right', labels: { font: { size: 11 } } } } }
+});
+
+// Context bar
+new Chart(document.getElementById('c-context'), {
+  type: 'bar',
+  data: {
+    labels: CTX_LABELS,
+    datasets: [{ data: CTX_COUNTS, backgroundColor: CTX_COLORS.slice(0, CTX_LABELS.length), borderWidth: 0 }]
+  },
+  options: {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { x: { beginAtZero: true } }
+  }
+});
+
+// Filter logic
+document.getElementById('fbtns').addEventListener('click', e => {
+  const btn = e.target.closest('.fbtn');
+  if (!btn) return;
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const f = btn.dataset.filter;
+  document.querySelectorAll('#req-tbody tr').forEach(tr => {
+    tr.style.display = (!f || tr.dataset.st.includes(f)) ? '' : 'none';
+  });
+});
+</script>
+</body>
+</html>

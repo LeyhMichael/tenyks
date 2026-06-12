@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Use Cases & Value Creation — TDA Deep Dive</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:#faf6ef; --card:#fff; --soft:#f2ede3;
+    --ink:#1a1a1a; --mute:#888; --rule:#e6dfd1;
+    --accent:#70AD47;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:system-ui,sans-serif;font-size:14px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* layout */
+  .wrap{max-width:1280px;margin:0 auto;padding:28px 28px 80px}
+  .top-nav{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+  .back-link{font-size:12px;color:#888;border:1px solid #ddd;border-radius:4px;padding:4px 10px;white-space:nowrap}
+  .back-link:hover{background:#f0f0f0;text-decoration:none}
+  .nav-pill{font-size:11px;border:1px solid #ccc;border-radius:20px;padding:3px 10px;color:#555;white-space:nowrap}
+  .nav-pill:hover{background:#eee;text-decoration:none}
+
+  /* header */
+  .hero{border-bottom:3px solid var(--accent);padding-bottom:16px;margin-bottom:24px}
+  .hero-kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);font-family:monospace;margin-bottom:6px}
+  .hero-title{font-size:36px;font-weight:700;letter-spacing:-.02em;color:var(--accent);margin-bottom:6px}
+  .hero-desc{font-size:13px;color:#555;max-width:800px;line-height:1.6}
+
+  /* KPI row */
+  .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:28px}
+  .kpi{background:var(--card);border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .kpi-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--mute);margin-bottom:4px}
+  .kpi-value{font-size:26px;font-weight:700;line-height:1.1}
+  .kpi-badge{display:inline-block;font-size:11px;font-weight:600;border-radius:4px;padding:2px 7px;margin-top:4px}
+  .kpi-badge.up{background:#e8f5e0;color:#2e7d1f}
+  .kpi-badge.dn{background:#fdecea;color:#c00}
+  .kpi-badge.neutral{background:#eee;color:#555}
+
+  /* grid */
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+  .grid-1{margin-bottom:20px}
+  @media(max-width:900px){.grid-2{grid-template-columns:1fr}}
+
+  /* cards */
+  .card{background:var(--card);border-radius:8px;padding:20px 22px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .card-title{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--mute);margin-bottom:14px;font-weight:600}
+  .chart-wrap{position:relative;height:240px}
+  .chart-wrap-tall{position:relative;height:300px}
+
+  /* section headings */
+  .section-hd{font-size:16px;font-weight:700;color:var(--ink);border-left:4px solid var(--accent);padding-left:10px;margin:32px 0 14px}
+
+  /* NAVI cards */
+  .navi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+  .navi-card{background:var(--card);border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06);border-left:3px solid var(--accent)}
+  .navi-card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+  .navi-link{font-weight:600;font-size:13px;color:var(--accent)}
+  .navi-link-plain{font-weight:600;font-size:13px;color:var(--ink)}
+  .navi-tag{font-size:10px;background:#f0f0f0;color:#555;border-radius:3px;padding:2px 6px;white-space:nowrap;flex-shrink:0}
+  .navi-card-meta{font-size:11px;color:var(--mute);margin-bottom:4px}
+  .navi-card-desc{font-size:12px;color:#444;line-height:1.5}
+  .gap-banner{background:#fff8e5;border:1px solid #ffd;border-radius:6px;padding:12px 16px;font-size:13px;color:#7a5c00;margin-bottom:16px}
+  .gap-banner code{font-family:monospace;font-size:12px}
+
+  /* subtopic rows */
+  .st-row{padding:16px 0;border-bottom:1px solid var(--rule)}
+  .st-row:last-child{border-bottom:none}
+  .st-label-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:7px}
+  .st-name{font-size:13px;font-weight:700;color:var(--ink)}
+  .st-stats{font-size:11px;color:var(--mute);white-space:nowrap}
+  .st-bar-wrap{height:7px;background:#eee;border-radius:4px;margin-bottom:10px}
+  .st-bar{height:7px;border-radius:4px;min-width:3px;transition:width .3s}
+  .st-navi-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+  .navi-chip{font-size:11px;background:color-mix(in srgb,var(--accent) 12%,#fff);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 30%,#fff);border-radius:4px;padding:3px 9px;font-weight:500;white-space:nowrap}
+  .navi-chip:hover{background:color-mix(in srgb,var(--accent) 20%,#fff);text-decoration:none}
+  .navi-chip-plain{font-size:11px;background:#f4f4f4;color:#555;border:1px solid #ddd;border-radius:4px;padding:3px 9px;white-space:nowrap}
+  .st-navi-none{font-size:11px;color:var(--mute);font-style:italic;margin-top:4px}
+
+  /* bottom nav */
+  .bottom-nav{display:flex;justify-content:space-between;align-items:center;margin-top:48px;padding-top:20px;border-top:1px solid var(--rule)}
+  .nav-btn{font-size:13px;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:6px 14px}
+  .nav-btn:hover{background:var(--accent);color:#fff;text-decoration:none}
+
+  .footer{font-size:11px;color:var(--mute);margin-top:32px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Top navigation -->
+  <div class="top-nav">
+    <a href="../tda_topic_deepdive.html" class="back-link">← Topic Overview</a>
+    <a href="tda_deepdive_ai_strategy_vision.html" class="nav-pill">AI Strategy & Vision</a>
+<a href="tda_deepdive_ai_use_cases.html" class="nav-pill" style="background:#70AD47;color:#fff;border-color:#70AD47">AI Use Cases & Value Creation</a>
+<a href="tda_deepdive_agentic_genai.html" class="nav-pill">Agentic & Generative AI</a>
+<a href="tda_deepdive_ai_technology.html" class="nav-pill">AI Technology & Architecture</a>
+<a href="tda_deepdive_ai_governance.html" class="nav-pill">AI Governance & Responsible AI</a>
+<a href="tda_deepdive_ai_talent.html" class="nav-pill">AI Talent & Organization</a>
+<a href="tda_deepdive_digital_it.html" class="nav-pill">Digital & IT Modernization</a>
+
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-kicker">TDA Gen AI Knowledge Team · Topic Deep Dive</div>
+    <div class="hero-title">AI Use Cases & Value Creation</div>
+    <div class="hero-desc">Identification, scoping, and prioritisation of AI applications across business functions and industries. Covers sector-specific AI deployment (finance, operations, sales, HR), use case libraries, AI adoption planning, and value/ROI quantification from AI initiatives.</div>
+  </div>
+
+  <!-- KPI row -->
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-label">Total Requests</div>
+      <div class="kpi-value">2,202</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">2025 Requests</div>
+      <div class="kpi-value">1,521</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">2026 YTD</div>
+      <div class="kpi-value">681</div>
+      <div><span class="kpi-badge up">▲ +2.2% YoY</span></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">2026 Annualised</div>
+      <div class="kpi-value">1,554</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Top Industry</div>
+      <div class="kpi-value" style="font-size:14px;padding-top:4px">Industry agnostic</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Top Request Type</div>
+      <div class="kpi-value" style="font-size:14px;padding-top:4px">Proposal / RFP</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">NAVI Assets</div>
+      <div class="kpi-value">20</div>
+    </div>
+  </div>
+
+  <!-- Section 1: Demand Evolution -->
+  <div class="section-hd">Demand Evolution</div>
+  <div class="grid-1">
+    <div class="card">
+      <div class="card-title">Monthly Requests — 2025 vs 2026</div>
+      <div class="chart-wrap-tall"><canvas id="yoyChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Section 2: What's Being Requested -->
+  <div class="section-hd">What's Being Requested</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Request Type</div>
+      <div class="chart-wrap"><canvas id="ctxChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Industry</div>
+      <div class="chart-wrap"><canvas id="indChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Section 3: Topic Breakdown by Subtopic -->
+  <div class="section-hd">Topic Breakdown</div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title">MECE subtopics · % of topic total · NAVI assets per subtopic</div>
+    <div class="st-row">
+  <div class="st-label-row">
+    <span class="st-name">Use Case Identification</span>
+    <span class="st-stats">1,614 requests &nbsp;·&nbsp; 73% of topic</span>
+  </div>
+  <div class="st-bar-wrap"><div class="st-bar" style="width:73.3%;background:#70AD47"></div></div>
+  <div class="st-navi-chips"><a href="https://pages.navigator.bcg.com/kp/da51db55-d3bd-415f-91ef-e79db0a96b30" target="_blank" class="navi-chip">O&G AI and Digital Use Case Library</a><a href="https://pages.navigator.bcg.com/kp/d6a12390-26a4-420c-800b-be626ebe9bd1" target="_blank" class="navi-chip">GenAI Use Case Library: Practical Applications and Best Practices</a><a href="https://pages.navigator.bcg.com/kp/516e0c1e-d2dd-4bcc-b894-84bb92af4fbb" target="_blank" class="navi-chip">AI Strategy Development in Healthcare and Best-in-Class Use Case Library</a><a href="https://pages.navigator.bcg.com/kp/1da12d25-42f0-4063-86d9-aa73b2e60f26" target="_blank" class="navi-chip">Generative AI 201A (Use Cases) — Masterclass</a><a href="https://pages.navigator.bcg.com/kp/a0b548d3-4eab-4b5a-a009-82ebbd1a00b5" target="_blank" class="navi-chip">Gen AI-Driven Personalization Use Cases: Identification & Prioritization for a PharmaCo</a></div>
+</div><div class="st-row">
+  <div class="st-label-row">
+    <span class="st-name">ROI & Value Quantification</span>
+    <span class="st-stats">253 requests &nbsp;·&nbsp; 12% of topic</span>
+  </div>
+  <div class="st-bar-wrap"><div class="st-bar" style="width:11.5%;background:#70AD47"></div></div>
+  <div class="st-navi-chips"><a href="https://pages.navigator.bcg.com/kp/5a1bcb99-b1e5-4806-9a43-f0acbf80f106" target="_blank" class="navi-chip">Value Creation with AI (Including GenAI) — AI Unlocked</a><a href="https://pages.navigator.bcg.com/kp/739d9d9e-c93b-4a9f-8a5b-aa6fe38927eb" target="_blank" class="navi-chip">Unlocking the Value Potential of AI and GenAI Transformation: Finance</a><a href="https://pages.navigator.bcg.com/kp/2e0a9a82-a3f3-4e0f-9d05-1646948ccf2b" target="_blank" class="navi-chip">CEO Perspective on AI Agents: Accelerating the Next Wave of AI Value Creation</a><a href="https://pages.navigator.bcg.com/kp/0a18cad7-8364-4196-9377-4406808af805" target="_blank" class="navi-chip">AI Value Creation Framework</a><a href="https://pages.navigator.bcg.com/kp/2aa5e176-c1e4-48ae-b1ec-e239aface767" target="_blank" class="navi-chip">AI Value Creation Benchmarks</a></div>
+</div><div class="st-row">
+  <div class="st-label-row">
+    <span class="st-name">Other / General</span>
+    <span class="st-stats">136 requests &nbsp;·&nbsp; 6% of topic</span>
+  </div>
+  <div class="st-bar-wrap"><div class="st-bar" style="width:6.2%;background:#70AD47"></div></div>
+  <div class="st-navi-none">No NAVI assets matched yet</div>
+</div><div class="st-row">
+  <div class="st-label-row">
+    <span class="st-name">AI Adoption Planning</span>
+    <span class="st-stats">104 requests &nbsp;·&nbsp; 5% of topic</span>
+  </div>
+  <div class="st-bar-wrap"><div class="st-bar" style="width:4.7%;background:#70AD47"></div></div>
+  <div class="st-navi-chips"><a href="https://pages.navigator.bcg.com/kp/3d44ff5c-1d85-4608-aef1-c967276aedf8" target="_blank" class="navi-chip">Generative AI: Use Case Deployment</a><a href="https://pages.navigator.bcg.com/kp/2e0a9a82-a3f3-4e0f-9d05-1646948ccf2b" target="_blank" class="navi-chip">CEO Perspective on AI Agents: Accelerating the Next Wave of AI Value Creation</a><a href="https://pages.navigator.bcg.com/kp/475a9f4c-2916-4cf9-931c-f699e3cebc44" target="_blank" class="navi-chip">Retail AI Blueprint: Use Case Prioritisation</a><a href="https://pages.navigator.bcg.com/kp/24ba5c80-12ba-412c-9570-61533144f39b" target="_blank" class="navi-chip">Generative AI Use Cases in Banking Sector</a><a href="https://pages.navigator.bcg.com/kp/d6a12390-26a4-420c-800b-be626ebe9bd1" target="_blank" class="navi-chip">GenAI Use Case Library: Practical Applications and Best Practices</a></div>
+</div><div class="st-row">
+  <div class="st-label-row">
+    <span class="st-name">Benchmarking & Best Practice</span>
+    <span class="st-stats">61 requests &nbsp;·&nbsp; 3% of topic</span>
+  </div>
+  <div class="st-bar-wrap"><div class="st-bar" style="width:2.8%;background:#70AD47"></div></div>
+  <div class="st-navi-chips"><a href="https://pages.navigator.bcg.com/kp/23468dbd-c0a3-4eca-8eef-33f4001bc1d8" target="_blank" class="navi-chip">Mapping and Prioritization of AI Use Cases for Mine-to-Port Value Chain at a Mining Company</a><a href="https://pages.navigator.bcg.com/kp/3d44ff5c-1d85-4608-aef1-c967276aedf8" target="_blank" class="navi-chip">Generative AI: Use Case Deployment</a><a href="https://pages.navigator.bcg.com/kp/c678ac31-566f-435b-abf4-afcd396ab2be" target="_blank" class="navi-chip">AI Initiatives by Sector and Use Cases for an EMESA Government Body</a><a href="https://pages.navigator.bcg.com/kp/d6a12390-26a4-420c-800b-be626ebe9bd1" target="_blank" class="navi-chip">GenAI Use Case Library: Practical Applications and Best Practices</a><a href="https://pages.navigator.bcg.com/kp/2aa5e176-c1e4-48ae-b1ec-e239aface767" target="_blank" class="navi-chip">AI Value Creation Benchmarks</a></div>
+</div><div class="st-row">
+  <div class="st-label-row">
+    <span class="st-name">Industry-Specific Use Cases</span>
+    <span class="st-stats">34 requests &nbsp;·&nbsp; 2% of topic</span>
+  </div>
+  <div class="st-bar-wrap"><div class="st-bar" style="width:1.5%;background:#70AD47"></div></div>
+  <div class="st-navi-chips"><a href="https://pages.navigator.bcg.com/kp/24ba5c80-12ba-412c-9570-61533144f39b" target="_blank" class="navi-chip">Generative AI Use Cases in Banking Sector</a><a href="https://pages.navigator.bcg.com/kp/c678ac31-566f-435b-abf4-afcd396ab2be" target="_blank" class="navi-chip">AI Initiatives by Sector and Use Cases for an EMESA Government Body</a><a href="https://pages.navigator.bcg.com/kp/739d9d9e-c93b-4a9f-8a5b-aa6fe38927eb" target="_blank" class="navi-chip">Unlocking the Value Potential of AI and GenAI Transformation: Finance</a><a href="https://pages.navigator.bcg.com/kp/afa00790-1f76-4f73-9ca8-ecb74ea1f346" target="_blank" class="navi-chip">Generative AI Use Case Collection</a><a href="https://pages.navigator.bcg.com/kp/1da12d25-42f0-4063-86d9-aa73b2e60f26" target="_blank" class="navi-chip">Generative AI 201A (Use Cases) — Masterclass</a></div>
+</div>
+  </div>
+
+  <!-- Section 4: NAVI Content Coverage -->
+  <div class="section-hd">NAVI Content Coverage</div>
+  <div style="margin-bottom:20px">
+    <div class="navi-grid"><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/afa00790-1f76-4f73-9ca8-ecb74ea1f346" target="_blank" class="navi-link">Generative AI Use Case Collection</a><span class="navi-tag">Use Case Catalogue</span></div>
+  <div class="navi-card-meta">Cross-industry · 2023</div>
+  <div class="navi-card-desc">Comprehensive cross-industry catalogue of Gen AI use cases spanning product development, operations, sales, HR, and corporate functions. Includes two-sprint sourcing and prioritisation methodology (impact + feasibility).</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/5a1bcb99-b1e5-4806-9a43-f0acbf80f106" target="_blank" class="navi-link">Value Creation with AI (Including GenAI) — AI Unlocked</a><span class="navi-tag">Business Case / ROI</span></div>
+  <div class="navi-card-meta">Cross-industry · 2024</div>
+  <div class="navi-card-desc">BCG Executive Perspectives deck showcasing real-life examples of value and impact from AI and GenAI initiatives across industries.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/2e0a9a82-a3f3-4e0f-9d05-1646948ccf2b" target="_blank" class="navi-link">CEO Perspective on AI Agents: Accelerating the Next Wave of AI Value Creation</a><span class="navi-tag">Business Case / ROI</span></div>
+  <div class="navi-card-meta">Cross-industry · 2025</div>
+  <div class="navi-card-desc">Senior-level perspective on how agentic AI drives the next wave of value creation; covers Deploy/Reshape/Invent strategic framework, competitive advantage positioning, and AI investment priorities.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/d6a12390-26a4-420c-800b-be626ebe9bd1" target="_blank" class="navi-link">GenAI Use Case Library: Practical Applications and Best Practices</a><span class="navi-tag">Use Case Catalogue</span></div>
+  <div class="navi-card-meta">Cross-industry · 2024</div>
+  <div class="navi-card-desc">Structured GenAI use case library compiled under BCG's Amplify Impact programme. Covers practical applications and implementation best practices across business functions.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/0a18cad7-8364-4196-9377-4406808af805" target="_blank" class="navi-link">AI Value Creation Framework</a><span class="navi-tag">Business Case / ROI</span></div>
+  <div class="navi-card-meta">Cross-industry · 2021</div>
+  <div class="navi-card-desc">Case example presenting BCG's structured framework for identifying and quantifying AI value creation levers within a client organisation.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/2aa5e176-c1e4-48ae-b1ec-e239aface767" target="_blank" class="navi-link">AI Value Creation Benchmarks</a><span class="navi-tag">Benchmark / Prioritisation</span></div>
+  <div class="navi-card-meta">Cross-industry · 2021</div>
+  <div class="navi-card-desc">Benchmarking deck covering AI value creation metrics and comparators across companies and sectors; supports business case development and investment sizing.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/475a9f4c-2916-4cf9-931c-f699e3cebc44" target="_blank" class="navi-link">Retail AI Blueprint: Use Case Prioritisation</a><span class="navi-tag">Benchmark / Prioritisation</span></div>
+  <div class="navi-card-meta">Consumer & Retail · 2022</div>
+  <div class="navi-card-desc">Case vignette documenting BCG's approach to mapping and prioritising AI use cases for a retail client, including screening criteria and deployment roadmap.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/a0b548d3-4eab-4b5a-a009-82ebbd1a00b5" target="_blank" class="navi-link">Gen AI-Driven Personalization Use Cases: Identification & Prioritization for a PharmaCo</a><span class="navi-tag">Case Study</span></div>
+  <div class="navi-card-meta">Healthcare & Life Sciences · 2023</div>
+  <div class="navi-card-desc">3-week sprint to identify and prioritise 20 Gen AI personalisation use cases for a biopharma client; 5 selected for PoC. Content development time cut from 70 days to <1 day, process steps reduced ~50%.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/6b31241a-c1ac-47ff-bd68-d8979c93f1e7" target="_blank" class="navi-link">Vision & Prioritized Use Cases for Generative AI-Driven Personalization for a PharmaCo</a><span class="navi-tag">Case Study</span></div>
+  <div class="navi-card-meta">Healthcare & Life Sciences · 2023</div>
+  <div class="navi-card-desc">Companion deck presenting the long-term vision and prioritised use case roadmap for Gen AI-driven personalisation at a pharma company.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/ca7ab5ed-686f-4803-a3f7-f8c69a22dc94" target="_blank" class="navi-link">Healthcare Enterprise GenAI Use Cases — Finance Landscape</a><span class="navi-tag">Use Case Catalogue</span></div>
+  <div class="navi-card-meta">Healthcare & Life Sciences · 2025</div>
+  <div class="navi-card-desc">Gen AI use case prioritisation within the Finance function of a healthcare enterprise; includes AI finance case studies and a use case definition appendix.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/be6e1a3a-eb52-414e-a81b-5bfb142a158a" target="_blank" class="navi-link">Generative AI in the Finance Function of the Future</a><span class="navi-tag">Industry Deep Dive</span></div>
+  <div class="navi-card-meta">Financial Services · 2023</div>
+  <div class="navi-card-desc">Maps traditional AI and Gen AI applications across finance sub-functions (FP&A, accounting, treasury, risk, investor relations). Includes a credit-review case study.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/739d9d9e-c93b-4a9f-8a5b-aa6fe38927eb" target="_blank" class="navi-link">Unlocking the Value Potential of AI and GenAI Transformation: Finance</a><span class="navi-tag">Industry Deep Dive</span></div>
+  <div class="navi-card-meta">Financial Services · 2024</div>
+  <div class="navi-card-desc">Dedicated finance transformation deck; covers 6 critical success factors for CFOs driving AI, value guardian role, highest-impact use cases, and benefits realisation.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/d89bebdd-7a37-48a6-a14e-78ca5bb03ad7" target="_blank" class="navi-link">Gen AI Use Cases for Sales Ops</a><span class="navi-tag">Use Case Catalogue</span></div>
+  <div class="navi-card-meta">Cross-industry · 2023</div>
+  <div class="navi-card-desc">Primer on Gen AI applications for sales operations; covers use cases across the sales cycle from pipeline to customer engagement.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/23468dbd-c0a3-4eca-8eef-33f4001bc1d8" target="_blank" class="navi-link">Mapping and Prioritization of AI Use Cases for Mine-to-Port Value Chain at a Mining Company</a><span class="navi-tag">Case Study</span></div>
+  <div class="navi-card-meta">Industrial Goods · 2025</div>
+  <div class="navi-card-desc">Case example of end-to-end AI use case mapping across a mining value chain from extraction to port, with prioritisation methodology applied.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/da51db55-d3bd-415f-91ef-e79db0a96b30" target="_blank" class="navi-link">O&G AI and Digital Use Case Library</a><span class="navi-tag">Use Case Catalogue</span></div>
+  <div class="navi-card-meta">Energy & Resources · 2025</div>
+  <div class="navi-card-desc">BCG Vantage team's dedicated use case library for the oil and gas industry, covering AI and digital applications across the O&G value chain.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/24ba5c80-12ba-412c-9570-61533144f39b" target="_blank" class="navi-link">Generative AI Use Cases in Banking Sector</a><span class="navi-tag">Industry Deep Dive</span></div>
+  <div class="navi-card-meta">Financial Services · 2025</div>
+  <div class="navi-card-desc">Survey of latest Gen AI use cases in banking; includes results, industry trends, and benchmarks from representative companies currently deploying or developing Gen AI.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/516e0c1e-d2dd-4bcc-b894-84bb92af4fbb" target="_blank" class="navi-link">AI Strategy Development in Healthcare and Best-in-Class Use Case Library</a><span class="navi-tag">Use Case Catalogue</span></div>
+  <div class="navi-card-meta">Healthcare & Life Sciences · 2023</div>
+  <div class="navi-card-desc">Biopharma AI strategy deck with ~30 detailed use case examples across R&D, Operations, Commercials, and Support functions; includes baselining toolkit and roadmap definition.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/1da12d25-42f0-4063-86d9-aa73b2e60f26" target="_blank" class="navi-link">Generative AI 201A (Use Cases) — Masterclass</a><span class="navi-tag">Use Case Catalogue</span></div>
+  <div class="navi-card-meta">Cross-industry · 2023</div>
+  <div class="navi-card-desc">BCG internal Masterclass deck with deep dives into specific Gen AI use cases; foundational training material covering use case identification and application across functions.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/3d44ff5c-1d85-4608-aef1-c967276aedf8" target="_blank" class="navi-link">Generative AI: Use Case Deployment</a><span class="navi-tag">Benchmark / Prioritisation</span></div>
+  <div class="navi-card-meta">Cross-industry · 2023</div>
+  <div class="navi-card-desc">BCG guide to Gen AI use case deployment methodology; covers the full journey from prioritisation through to scaled implementation and value capture. Includes a Knowledge AI proprietary tool example.</div>
+</div><div class="navi-card">
+  <div class="navi-card-header"><a href="https://pages.navigator.bcg.com/kp/c678ac31-566f-435b-abf4-afcd396ab2be" target="_blank" class="navi-link">AI Initiatives by Sector and Use Cases for an EMESA Government Body</a><span class="navi-tag">Benchmark / Prioritisation</span></div>
+  <div class="navi-card-meta">Public Sector · 2023</div>
+  <div class="navi-card-desc">Case example applying a sector prioritisation framework across 16 sectors for a national AI strategy; uses a stage-gate screening model based on proven impact, national priorities, and readiness.</div>
+</div></div>
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <a href="tda_deepdive_ai_strategy_vision.html" class="nav-btn">← AI Strategy & Vision</a>
+    <a href="../tda_topic_deepdive.html" style="font-size:12px;color:#888">← Back to Overview</a>
+    <a href="tda_deepdive_agentic_genai.html" class="nav-btn">Agentic & Generative AI →</a>
+  </div>
+
+  <div class="footer">Generated 11 Jun 2026, 16:28 · TDA Gen AI Knowledge Team</div>
+</div>
+
+<script>
+const YOY_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const YOY_25    = [126, 123, 127, 101, 102, 149, 148, 122, 136, 166, 146, 75];
+const YOY_26    = [143, 133, 126, 125, 121, 33, null, null, null, null, null, null];
+const CTX_DATA  = {"Proposal / RFP": 1613, "Other": 285, "Expert Guidance / POV": 182, "Workshop / Training": 69, "Case Work": 31, "Internal": 22};
+const IND_DATA  = {"Industry agnostic": 1044, "Financial Services": 327, "Consumer & Retail": 173, "Healthcare / Life Sciences": 172, "Technology": 84, "Energy & Resources": 83, "Public Sector": 83, "Industrial Goods": 83};
+const COLOR     = "#70AD47";
+
+const FONT = { family: 'system-ui, sans-serif', size: 12 };
+Chart.defaults.font = FONT;
+Chart.defaults.plugins.legend.labels.font = FONT;
+
+// ── YoY line chart ──────────────────────────────────────────────────────────
+new Chart(document.getElementById('yoyChart'), {
+  type: 'line',
+  data: {
+    labels: YOY_LABELS,
+    datasets: [
+      {
+        label: '2025', data: YOY_25,
+        borderColor: '#2E75B6', backgroundColor: 'rgba(46,117,182,.08)',
+        borderWidth: 2, pointRadius: 4, fill: true, spanGaps: false, tension: .3
+      },
+      {
+        label: '2026', data: YOY_26,
+        borderColor: '#8c2b2b', backgroundColor: 'rgba(140,43,43,.08)',
+        borderWidth: 2.5, pointRadius: 4, fill: true, spanGaps: false, tension: .3
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: { mode: 'index', intersect: false }
+    },
+    scales: {
+      x: { grid: { color: '#f0ebe0' } },
+      y: { beginAtZero: true, grid: { color: '#f0ebe0' }, ticks: { stepSize: 1 } }
+    }
+  }
+});
+
+// ── Horizontal bar helpers ──────────────────────────────────────────────────
+function hbar(id, dataObj, color) {
+  const labels = Object.keys(dataObj);
+  const vals   = Object.values(dataObj);
+  new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ data: vals, backgroundColor: color + 'cc', borderColor: color, borderWidth: 1 }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, grid: { color: '#f0ebe0' }, ticks: { stepSize: 1 } },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+hbar('ctxChart', CTX_DATA, COLOR);
+hbar('indChart', IND_DATA, COLOR);
+</script>
+</body>
+</html>
