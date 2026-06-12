@@ -15,11 +15,16 @@ function tileVars(app: AppConfig): React.CSSProperties {
   } as React.CSSProperties;
 }
 
+function isLetterIcon(icon: string) {
+  return /^[A-Za-z0-9]+$/.test(icon);
+}
+
 function AppTile({ app }: { app: AppConfig }) {
+  const letterIcon = isLetterIcon(app.icon);
   return (
     <a className="app-tile" href={app.url} style={tileVars(app)}>
       <div className="tile-header">
-        <div className="tile-icon">{app.icon}</div>
+        <div className={letterIcon ? 'tile-icon tile-icon-text' : 'tile-icon'}>{app.icon}</div>
         {app.tag && <span className="tile-badge">{app.tag}</span>}
       </div>
       <div>
@@ -70,7 +75,7 @@ export default function App() {
               {comingApps.map((app) => (
                 <div key={app.folder} className="app-tile tile-coming-soon" style={tileVars(app)}>
                   <div className="tile-header">
-                    <div className="tile-icon">{app.icon}</div>
+                    <div className={isLetterIcon(app.icon) ? 'tile-icon tile-icon-text' : 'tile-icon'}>{app.icon}</div>
                     <span className="tile-badge">Soon</span>
                   </div>
                   <div>

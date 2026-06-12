@@ -1,6 +1,6 @@
 name: "API Test"
 description: "Demonstrates platform API routing — ping, echo, and a live Claude call."
-icon: "🧪"
+icon: "DEV"
 accent: "#8b5cf6"
 author: "Frank Anderson"
 tag: "Dev"

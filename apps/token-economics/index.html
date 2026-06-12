@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BCG | Token Economics — An Executive Primer</title>
+<style>
+  :root{
+    --g900:#00461F; --g700:#006B2F; --g500:#009A44; --g300:#4DC87A; --g100:#C8EDD8; --g50:#F0FAF4;
+    --n900:#1A1A1A; --n700:#404040; --n500:#6B6B6B; --n300:#BDBDBD; --n100:#F0F0F0; --n50:#FAFAFA;
+    --amber:#F59E0B; --red:#EF4444; --blue:#3B82F6; --purple:#8B5CF6;
+    --font:'Inter',system-ui,-apple-system,sans-serif;
+    --radius:8px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);background:#F2F4F3;color:var(--n900);font-size:13px;line-height:1.65;max-width:1080px;margin:0 auto;padding:32px 24px}
+
+  header{background:var(--g900);color:#fff;padding:24px 30px;border-radius:10px;margin-bottom:14px}
+  .header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+  .bcg-wordmark{font-size:24px;font-weight:800;letter-spacing:-.5px}
+  .header-title{font-size:19px;font-weight:700;color:var(--g100);margin-top:8px}
+  .header-sub{font-size:12px;color:var(--g300);margin-top:6px;max-width:680px;line-height:1.5}
+  .header-badge{background:var(--g700);color:var(--g100);padding:4px 12px;border-radius:16px;font-size:11px;font-weight:700;white-space:nowrap;align-self:flex-start}
+
+  .audience{background:#fff;border-left:4px solid var(--g500);border-radius:6px;padding:12px 16px;margin-bottom:14px;font-size:12px;color:var(--n700)}
+  .audience strong{color:var(--g900)}
+
+  .toc{background:#fff;border-radius:8px;padding:16px 20px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:22px}
+  .toc-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--n500);margin-bottom:10px}
+  .toc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:4px 24px}
+  .toc a{font-size:12px;color:var(--g700);text-decoration:none;padding:3px 0;display:block}
+  .toc a:hover{color:var(--g500);text-decoration:underline}
+
+  .section{background:#fff;border-radius:8px;padding:26px 28px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:20px;scroll-margin-top:16px}
+  .section-title{font-size:16px;font-weight:800;color:var(--g900);margin-bottom:4px;display:flex;align-items:center;gap:10px}
+  .section-num{background:var(--g500);color:#fff;width:28px;height:28px;border-radius:50%;font-size:13px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+  .section-sub{font-size:12px;color:var(--n500);margin-bottom:18px;padding-left:38px}
+
+  h3{font-size:13.5px;font-weight:700;color:var(--n700);margin:20px 0 8px;border-bottom:1px solid var(--n100);padding-bottom:6px}
+  h4{font-size:12.5px;font-weight:700;color:var(--g700);margin:14px 0 6px}
+  p{font-size:12.5px;color:var(--n700);margin-bottom:11px;line-height:1.7}
+  ul,ol{padding-left:22px;margin-bottom:11px}
+  li{font-size:12.5px;color:var(--n700);margin-bottom:6px;line-height:1.6}
+  b,strong{color:var(--n900)}
+  code{background:var(--n100);padding:1px 5px;border-radius:4px;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--g900)}
+
+  .callout{background:var(--g50);border:1px solid var(--g100);border-radius:6px;padding:13px 16px;margin:14px 0;font-size:12px;color:var(--n700)}
+  .callout strong{color:var(--g900)}
+  .callout.amber{background:#FFFBEB;border-color:#FDE68A}
+  .callout.amber strong{color:#92400E}
+  .callout.blue{background:#EFF6FF;border-color:#BFDBFE}
+
+  .analogy{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px dashed var(--g300);border-radius:6px;padding:12px 14px;margin:12px 0}
+  .analogy-icon{font-size:22px;line-height:1}
+  .analogy div{font-size:12px;color:var(--n700)}
+
+  table{width:100%;border-collapse:collapse;font-size:12px;margin:10px 0}
+  .table-wrap{overflow-x:auto}
+  th{background:var(--g900);color:#fff;text-align:left;padding:8px 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+  td{padding:8px 10px;border-bottom:1px solid var(--n100);vertical-align:top}
+  tr:nth-child(even) td{background:var(--n50)}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  /* Interactive widgets */
+  .widget{background:var(--n50);border:1px solid var(--n100);border-radius:8px;padding:18px;margin:16px 0}
+  .widget-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--g700);margin-bottom:10px}
+  textarea,input[type=text]{width:100%;font-family:var(--font);font-size:13px;border:1px solid var(--n300);border-radius:6px;padding:10px;resize:vertical}
+  textarea:focus,input:focus{outline:none;border-color:var(--g500)}
+
+  .token-chips{margin-top:12px;line-height:2.1}
+  .chip{display:inline-block;padding:1px 4px;margin:1px;border-radius:3px;font-family:ui-monospace,Menlo,monospace;font-size:11px}
+  .chip.w{background:var(--g100)} .chip.s{background:transparent;color:var(--n300)} .chip.p{background:#FDE68A}
+
+  .stat-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .stat{flex:1;min-width:120px;background:#fff;border:1px solid var(--n100);border-radius:6px;padding:10px 12px;text-align:center}
+  .stat .v{font-size:20px;font-weight:800;color:var(--g900);font-variant-numeric:tabular-nums}
+  .stat .l{font-size:10px;color:var(--n500);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
+
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:11.5px;font-weight:600;color:var(--n700);margin-bottom:5px}
+  .field .hint{font-weight:400;color:var(--n500);font-size:11px}
+  input[type=range]{width:100%;accent-color:var(--g500)}
+  .range-val{font-weight:800;color:var(--g700)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}.toc-grid{grid-template-columns:1fr}}
+
+  .pill-group{display:flex;flex-wrap:wrap;gap:6px}
+  .pill{border:1px solid var(--n300);border-radius:16px;padding:5px 12px;font-size:11.5px;cursor:pointer;background:#fff;user-select:none}
+  .pill:hover{border-color:var(--g500)}
+  .pill.active{background:var(--g500);border-color:var(--g500);color:#fff;font-weight:700}
+
+  .bar-track{height:26px;border-radius:5px;overflow:hidden;display:flex;background:var(--n100);margin:4px 0}
+  .bar-seg{height:100%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;font-size:11px;color:var(--n700)}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .dot{width:10px;height:10px;border-radius:2px;display:inline-block}
+
+  .bigcost{text-align:center;background:var(--g900);color:#fff;border-radius:8px;padding:18px;margin:14px 0}
+  .bigcost .v{font-size:32px;font-weight:800;font-variant-numeric:tabular-nums}
+  .bigcost .l{font-size:11px;color:var(--g300);text-transform:uppercase;letter-spacing:.4px}
+  .bigcost .sub{font-size:11px;color:var(--g100);margin-top:6px}
+
+  .why{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:11px 14px;margin-top:12px;font-size:12px;color:var(--n700)}
+  .why b{color:#1E40AF}
+
+  .checklist li{margin-bottom:9px}
+  .checklist b{color:var(--g900)}
+
+  footer{text-align:center;padding:22px 0;font-size:10.5px;color:var(--n500);line-height:1.7}
+  footer strong{color:var(--g700)}
+  .disclaimer{background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;padding:10px 14px;font-size:11px;color:#92400E;margin-bottom:20px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div>
+      <div class="bcg-wordmark">BCG</div>
+      <div class="header-title">Token Economics — An Executive Primer</div>
+      <div class="header-sub">How AI language models are priced, why architecture decisions move the bill far more than the price list, and how to act on it. Built for readers new to the topic — every concept is grounded in a concrete example.</div>
+    </div>
+    <div class="header-badge">v1.0 · Jun 2026</div>
+  </div>
+</header>
+
+<div class="audience">
+  <strong>Who this is for:</strong> a CFO, CIO, or business leader who keeps hearing "tokens" and "$ per million" and wants to understand — in plain language — what drives the cost of running AI, and which levers actually matter. No technical background assumed.
+</div>
+
+<div class="disclaimer">
+  <strong>Illustrative figures.</strong> All prices and token counts in this primer are representative 2026 ballpark numbers chosen to teach the concepts. They are not a quote. For a costed estimate of a specific deployment, use the companion <em>BCG Agentic AI Cost Estimator</em>.
+</div>
+
+<div class="toc">
+  <div class="toc-title">What's inside</div>
+  <div class="toc-grid">
+    <a href="#s1">1 · The 60-second version</a>
+    <a href="#s2">2 · What is a token? (try it)</a>
+    <a href="#s3">3 · How you actually pay</a>
+    <a href="#s4">4 · A use case, end to end</a>
+    <a href="#s5">5 · How architecture changes the bill</a>
+    <a href="#s6">6 · Cost playground (try it)</a>
+    <a href="#s7">7 · How to think about it</a>
+    <a href="#s8">8 · How to act on it</a>
+    <a href="#s9">9 · One-page cheat sheet</a>
+  </div>
+</div>
+
+<!-- ───────────── 1 ───────────── -->
+<div class="section" id="s1">
+  <div class="section-title"><span class="section-num">1</span> The 60-second version</div>
+  <div class="section-sub">If you read nothing else.</div>
+
+  <p>AI language models charge by the <b>token</b> — a token is a small chunk of text, roughly <b>¾ of a word</b>. You pay for the tokens that go <b>in</b> (your question plus everything the system feeds the model alongside it) and the tokens that come <b>out</b> (the model's answer). Prices are quoted per <b>million tokens</b>, and output is typically <b>3–6× more expensive</b> than input.</p>
+
+  <div class="callout">
+    <strong>The single most important idea:</strong> the published price per million tokens is rarely what decides your bill. What decides it is <b>how many tokens each interaction consumes</b> — and that is an <b>architecture and design choice</b>, not a price-list choice. The same business task can cost 1× or 50× depending on how it's built.
+  </div>
+
+  <p>So the executive question is never just <i>"which model is cheapest?"</i> It is <i>"how much text are we sending through the model, how often, and do we actually need all of it?"</i> This primer builds that intuition from the ground up.</p>
+
+  <div class="analogy">
+    <div class="analogy-icon">🚕</div>
+    <div><b>Mental model — a metered taxi.</b> The price per mile (the model's token price) matters, but your fare is driven by <b>how far you go and how often you ride</b> (tokens per interaction × number of interactions). A cheap per-mile rate on a route 10× longer than necessary is still an expensive trip.</div>
+  </div>
+</div>
+
+<!-- ───────────── 2 ───────────── -->
+<div class="section" id="s2">
+  <div class="section-title"><span class="section-num">2</span> What is a token? (try it)</div>
+  <div class="section-sub">The unit you are billed in — made tangible.</div>
+
+  <p>Models don't read whole words; they read <b>tokens</b>. A token is a fragment of text: common short words ("the", "is") are one token each, while longer or rarer words get split into pieces. A useful rule of thumb in English:</p>
+
+  <div class="callout blue">
+    <b>1 token ≈ 4 characters ≈ ¾ of a word.</b> &nbsp;→&nbsp; 1,000 tokens ≈ 750 words ≈ a page and a half of an email. &nbsp;→&nbsp; 1 million tokens ≈ a 1,500-page book.
+  </div>
+
+  <div class="widget">
+    <div class="widget-label">Live tokenizer — type or paste any text</div>
+    <textarea id="tok-input" rows="3">Summarise our Q3 results for the board and flag any risks to next year's margin.</textarea>
+    <div class="token-chips" id="tok-chips"></div>
+    <div class="stat-row">
+      <div class="stat"><div class="v" id="tok-words">0</div><div class="l">Words</div></div>
+      <div class="stat"><div class="v" id="tok-tokens">0</div><div class="l">≈ Tokens</div></div>
+      <div class="stat"><div class="v" id="tok-cost">$0.000</div><div class="l">Cost as input @ $3/1M</div></div>
+    </div>
+    <p style="font-size:11px;color:var(--n500);margin-top:10px;margin-bottom:0">Chips are a visual approximation of how text gets chopped into tokens — green = word pieces, yellow = punctuation. A real tokenizer is model-specific, but the count is close enough to build intuition.</p>
+  </div>
+
+  <p>Notice two things. First, even a short instruction is ~20 tokens — fractions of a cent on its own. Second, cost only becomes real when you <b>multiply by volume</b> (millions of interactions) <b>and</b> by <b>everything else the model has to read</b> to answer well. That "everything else" is the subject of the next sections.</p>
+</div>
+
+<!-- ───────────── 3 ───────────── -->
+<div class="section" id="s3">
+  <div class="section-title"><span class="section-num">3</span> How you actually pay</div>
+  <div class="section-sub">Input vs. output, the price list, and a worked example.</div>
+
+  <h3>3.1 Two meters running at once</h3>
+  <p>Every model call has <b>two</b> charges:</p>
+  <ul>
+    <li><b>Input (prompt) tokens</b> — everything you send <i>to</i> the model: the user's question, plus instructions, plus any documents or history you attach. Cheaper per token.</li>
+    <li><b>Output (completion) tokens</b> — everything the model writes <i>back</i>. More expensive, often 3–6×, because generating text is more compute-intensive than reading it.</li>
+  </ul>
+
+  <h3>3.2 The price list (illustrative 2026)</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Tier</th><th>Example class</th><th class="num">Input $/1M</th><th class="num">Output $/1M</th><th>When it fits</th></tr></thead>
+    <tbody>
+      <tr><td><b>Budget</b></td><td>Flash-Lite / Nano / Micro</td><td class="num">$0.10</td><td class="num">$0.40</td><td>Classification, extraction, routing, simple Q&amp;A</td></tr>
+      <tr><td><b>Mid</b></td><td>Mini / Small</td><td class="num">$0.75</td><td class="num">$4.50</td><td>Structured output, moderate reasoning</td></tr>
+      <tr><td><b>Premium</b></td><td>Sonnet / GPT-5 class</td><td class="num">$3.00</td><td class="num">$15.00</td><td>Complex reasoning, customer-facing quality</td></tr>
+      <tr><td><b>Frontier</b></td><td>Opus / GPT-5.5 class</td><td class="num">$5.00</td><td class="num">$25.00</td><td>Hardest tasks, multi-step planning</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>Note the spread: the budget tier is <b>~50× cheaper on input</b> than frontier. That gap is the basis of "smart routing" (Section 5).</p>
+
+  <h3>3.3 A worked example — one customer question</h3>
+  <div class="callout">
+    A support assistant answers one customer. It reads: a <b>500-token</b> instruction ("you are a helpful agent, follow these rules…"), <b>2,000 tokens</b> of retrieved help-centre articles, the customer's <b>80-token</b> question. It writes a <b>300-token</b> reply.
+    <div style="margin-top:10px">
+      <b>Input</b> = 500 + 2,000 + 80 = 2,580 tokens → 2,580 ÷ 1,000,000 × $3.00 = <b>$0.0077</b><br>
+      <b>Output</b> = 300 tokens → 300 ÷ 1,000,000 × $15.00 = <b>$0.0045</b><br>
+      <b>Total ≈ $0.012 per answer</b> — about one cent.
+    </div>
+  </div>
+  <p>One cent feels free. But run it <b>2 million times a month</b> (a mid-size contact centre) and it's <b>~$24,000/month, ~$290k/year</b> — for a single use case, on a premium model, before any people or infrastructure cost. Now the design choices that move that one-cent figure up or down by 5× really matter.</p>
+
+  <div class="callout amber">
+    <strong>Watch-out:</strong> notice the customer's actual question was only <b>80 of the 2,580 input tokens</b> — 3%. The other 97% is "scaffolding" the system adds (instructions + retrieved documents). <b>This is almost always where the cost — and the savings — live.</b>
+  </div>
+</div>
+
+<!-- ───────────── 4 ───────────── -->
+<div class="section" id="s4">
+  <div class="section-title"><span class="section-num">4</span> A use case, end to end</div>
+  <div class="section-sub">Pick a use case and see the anatomy of a single interaction — where every token goes.</div>
+
+  <p>Select a use case. The bar shows what the model reads and writes for <b>one</b> interaction. Watch how the shape — and the size — changes with the job.</p>
+
+  <div class="widget">
+    <div class="widget-label">Choose a use case</div>
+    <div class="pill-group" id="uc-pills">
+      <span class="pill active" data-uc="faq">Simple FAQ bot</span>
+      <span class="pill" data-uc="summ">Document summariser</span>
+      <span class="pill" data-uc="support">Support agent (RAG + tools)</span>
+      <span class="pill" data-uc="research">Multi-step research agent</span>
+      <span class="pill" data-uc="coding">Coding copilot</span>
+    </div>
+
+    <p id="uc-desc" style="margin-top:14px;margin-bottom:6px"></p>
+
+    <div style="margin-top:10px">
+      <div style="font-size:11px;font-weight:700;color:var(--n700);margin-bottom:3px">Tokens per interaction</div>
+      <div class="bar-track" id="uc-bar"></div>
+      <div class="legend" id="uc-legend"></div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat"><div class="v" id="uc-in">0</div><div class="l">Input tokens</div></div>
+      <div class="stat"><div class="v" id="uc-out">0</div><div class="l">Output tokens</div></div>
+      <div class="stat"><div class="v" id="uc-steps">1</div><div class="l">Model calls / interaction</div></div>
+      <div class="stat"><div class="v" id="uc-cpc">$0.00</div><div class="l">Cost / interaction (premium)</div></div>
+    </div>
+    <div class="why" id="uc-why"></div>
+  </div>
+
+  <div class="callout">
+    <strong>The big jump is "model calls per interaction."</strong> A simple bot answers in <b>one</b> call. An <b>agent</b> reasons in a loop — read, think, use a tool, read the result, think again — and each lap is another paid call that re-reads the growing context. This is why an agentic task can cost <b>10–50×</b> a simple lookup even on the same model. Section 5 unpacks it.
+  </div>
+</div>
+
+<!-- ───────────── 5 ───────────── -->
+<div class="section" id="s5">
+  <div class="section-title"><span class="section-num">5</span> How architecture changes the bill</div>
+  <div class="section-sub">Six design levers — each shown as a before/after on the same task.</div>
+
+  <p>These are the decisions that actually set your cost. Each one is an <b>engineering choice</b> with a direct price tag. Use them as the vocabulary for the conversation with your technical team.</p>
+
+  <h3>Lever 1 — How much context you stuff in (RAG)</h3>
+  <p>To answer about your business, a model needs your data fed in alongside the question — this is "retrieval-augmented generation" (RAG). Feed it the <b>5 most relevant paragraphs</b> or the <b>entire 40-page policy</b>? Both work; one costs 10× more on every single call.</p>
+  <div class="callout"><b>Before:</b> attach whole document, 8,000 input tokens → $0.024/call input. &nbsp; <b>After:</b> retrieve top 5 chunks, 1,000 tokens → $0.003/call. &nbsp;<b>→ 8× cheaper, often <i>better</i> answers</b> (less noise to distract the model).</div>
+
+  <h3>Lever 2 — How much conversation history you replay</h3>
+  <p>Models have no memory between calls. To "remember" a chat, the app <b>re-sends the whole conversation</b> every turn. By turn 20, you may be paying to re-read 19 previous turns on every message. Options: send a rolling window, or send a short summary instead of the full transcript.</p>
+  <div class="callout"><b>Before:</b> replay full 4,000-token history each turn. &nbsp; <b>After:</b> replay a 400-token running summary. &nbsp;<b>→ ~10× cheaper on the history portion</b>, with minor quality trade-off.</div>
+
+  <h3>Lever 3 — One call vs. an agentic loop</h3>
+  <p>An <b>agent</b> doesn't answer in one shot — it loops: reason → act → observe → repeat. Each lap is a paid call, and because it re-reads the accumulating context, later laps are the most expensive. A 5-step agent can cost <b>5–8×</b> a single call for the same question. Often worth it for complex work — but a choice to make deliberately, not by default.</p>
+  <div class="callout">A frequent waste: using an 8-step research agent for a question a single RAG lookup could answer. Match the machinery to the job.</div>
+
+  <h3>Lever 4 — Which model you point at the task</h3>
+  <p>From Section 3.2, frontier is ~50× budget on input. Using a frontier model to classify "is this email a complaint? yes/no" is like couriering a postcard. <b>Reserve premium/frontier for the genuinely hard 10–20% of calls.</b></p>
+
+  <h3>Lever 5 — Prompt caching</h3>
+  <p>The instruction block and reference documents are often <b>identical on every call</b>. <b>Caching</b> lets the provider store that repeated chunk and charge a steep discount (often <b>~75–90% off</b>) when it reappears. For a support bot with a fixed 500-token instruction hit 2M times a month, this is close to free money — but only if engineering turns it on.</p>
+  <div class="callout"><b>Before:</b> 2,580 input tokens at full price. &nbsp; <b>After:</b> 2,500 of them cached at ~90% off → you pay full price for ~80 tokens. &nbsp;<b>→ input cost cut by ~85%.</b></div>
+
+  <h3>Lever 6 — Smart routing</h3>
+  <p>Instead of sending every query to one model, a <b>router</b> first judges difficulty and sends easy queries to the budget tier, hard ones to premium. A typical 70 / 20 / 10 blend (budget / mid / premium) can cut token cost <b>50–70%</b> versus "premium for everything," with no quality loss on the easy majority.</p>
+
+  <div class="callout blue">
+    <strong>Stacking them.</strong> These levers <b>compound</b>. Tight RAG × summarised history × caching × routing on the support example can take that ~$0.012/answer down toward <b>~$0.002</b> — a <b>~6× reduction</b> on an otherwise identical user experience. That's the difference between a $290k and a $50k annual line item.
+  </div>
+</div>
+
+<!-- ───────────── 6 ───────────── -->
+<div class="section" id="s6">
+  <div class="section-title"><span class="section-num">6</span> Cost playground (try it)</div>
+  <div class="section-sub">Start from a use case, then pull the levers and watch the bill move.</div>
+
+  <div class="widget">
+    <div class="widget-label">Step 1 — pick a starting use case</div>
+    <div class="pill-group" id="pg-pills">
+      <span class="pill active" data-uc="faq">Simple FAQ bot</span>
+      <span class="pill" data-uc="summ">Document summariser</span>
+      <span class="pill" data-uc="support">Support agent</span>
+      <span class="pill" data-uc="research">Research agent</span>
+      <span class="pill" data-uc="coding">Coding copilot</span>
+    </div>
+
+    <div class="grid2" style="margin-top:18px">
+      <div>
+        <div class="field">
+          <label>Interactions per month: <span class="range-val" id="pg-vol-l">500,000</span></label>
+          <input type="range" id="pg-vol" min="10000" max="5000000" step="10000" value="500000">
+        </div>
+        <div class="field">
+          <label>Model tier</label>
+          <div class="pill-group" id="pg-model">
+            <span class="pill" data-m="budget">Budget</span>
+            <span class="pill" data-m="mid">Mid</span>
+            <span class="pill active" data-m="premium">Premium</span>
+            <span class="pill" data-m="frontier">Frontier</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Context fed in (RAG): <span class="range-val" id="pg-rag-l">100%</span> <span class="hint">of the use-case default</span></label>
+          <input type="range" id="pg-rag" min="10" max="200" step="10" value="100">
+        </div>
+        <div class="field">
+          <label>Agentic steps per interaction: <span class="range-val" id="pg-steps-l">1</span></label>
+          <input type="range" id="pg-steps" min="1" max="12" step="1" value="1">
+        </div>
+      </div>
+      <div>
+        <div class="field">
+          <label><input type="checkbox" id="pg-cache"> &nbsp;Prompt caching <span class="hint">(~85% off the repeated instruction + context)</span></label>
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="pg-route"> &nbsp;Smart routing <span class="hint">(70/20/10 blend instead of one model)</span></label>
+        </div>
+
+        <div class="bigcost">
+          <div class="l">Estimated token cost</div>
+          <div class="v" id="pg-monthly">$0</div>
+          <div class="sub" id="pg-annual">— / year</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><div class="v" id="pg-cpc">$0.00</div><div class="l">Per interaction</div></div>
+          <div class="stat"><div class="v" id="pg-tpi">0</div><div class="l">Tokens / interaction</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="why" id="pg-why"></div>
+    <p style="font-size:11px;color:var(--n500);margin-top:10px;margin-bottom:0">Token cost only. A real deployment also carries infrastructure, governance and people cost — see the BCG Agentic AI Cost Estimator for the full picture.</p>
+  </div>
+</div>
+
+<!-- ───────────── 7 ───────────── -->
+<div class="section" id="s7">
+  <div class="section-title"><span class="section-num">7</span> How to think about it</div>
+  <div class="section-sub">Five mental models to carry into any AI cost conversation.</div>
+
+  <ol>
+    <li><b>Cost = tokens-per-interaction × interactions × price.</b> Three dials, not one. Engineering controls the first, the business controls the second, the vendor sets the third. Most leverage is in the first.</li>
+    <li><b>The user's words are the small part.</b> The expensive tokens are the instructions, retrieved documents and replayed history the system adds. Ask: "what are we sending that the model doesn't strictly need?"</li>
+    <li><b>Output is the premium meter.</b> Output tokens cost 3–6× input. Concise, structured responses are cheaper <i>and</i> usually more useful. "Write me a 5-page essay" is a cost decision.</li>
+    <li><b>Match the engine to the job.</b> Most enterprise queries are easy. Defaulting everything to the most powerful model is the most common and most expensive mistake.</li>
+    <li><b>Unit economics scale, mistakes scale faster.</b> A one-cent inefficiency is invisible in a pilot and a six-figure problem at production volume. Get the per-interaction design right <i>before</i> you scale, not after.</li>
+  </ol>
+
+  <div class="callout">
+    <strong>The reframe for clients:</strong> token price is a procurement question; <b>tokens-per-interaction is an architecture question</b> — and that's where 5–50× cost differences are won or lost. The cheapest model badly architected loses to a premium model well architected.
+  </div>
+</div>
+
+<!-- ───────────── 8 ───────────── -->
+<div class="section" id="s8">
+  <div class="section-title"><span class="section-num">8</span> How to act on it</div>
+  <div class="section-sub">A practical checklist — questions to ask and levers to pull.</div>
+
+  <h3>Questions to ask your team (no jargon required)</h3>
+  <ul class="checklist">
+    <li><b>"How many tokens does one interaction use, and what's in them?"</b> If nobody can answer, that's the first finding.</li>
+    <li><b>"How much of what we send the model is the user, vs. instructions and documents?"</b> Anything &gt;90% scaffolding is a savings target.</li>
+    <li><b>"Are we using one model for everything?"</b> If yes, ask what a routed tier would save.</li>
+    <li><b>"Is prompt caching turned on for the repeated parts?"</b> Often a one-line change for a large saving.</li>
+    <li><b>"Does this task really need an agent loop, or would a single retrieval call do?"</b></li>
+    <li><b>"What's our cost <i>per</i> interaction, and how does it scale to full volume?"</b> Always reason in unit economics.</li>
+  </ul>
+
+  <h3>The levers, in rough order of effort vs. payback</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Lever</th><th>Typical saving</th><th>Effort</th><th>Trade-off to watch</th></tr></thead>
+    <tbody>
+      <tr><td>Turn on prompt caching</td><td>15–40% of input</td><td>Low</td><td>Almost none; needs stable repeated content</td></tr>
+      <tr><td>Right-size RAG context</td><td>30–70% of input</td><td>Low–Med</td><td>Retrieval quality must be good</td></tr>
+      <tr><td>Smart routing</td><td>40–70% of token cost</td><td>Medium</td><td>Router accuracy; test on hard cases</td></tr>
+      <tr><td>Summarise history</td><td>variable, often large</td><td>Medium</td><td>Minor recall loss in long chats</td></tr>
+      <tr><td>Right-size the model</td><td>up to ~50×on simple calls</td><td>Med</td><td>Quality on the genuinely hard calls</td></tr>
+      <tr><td>Avoid unnecessary agent loops</td><td>5–50× on over-engineered tasks</td><td>Med–High</td><td>Don't under-power genuinely complex work</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>On procurement (price, not architecture)</h3>
+  <ul>
+    <li><b>Volume discounts</b> typically open up at $1M+ annual spend — negotiate, don't accept list price at scale.</li>
+    <li><b>Prices fall fast</b> — roughly 40–50% per year for equivalent capability. Avoid long lock-ins that assume today's prices.</li>
+    <li><b>Batch / off-peak tiers</b> exist for non-urgent work (often ~50% off) — use them for back-office jobs that don't need a real-time answer.</li>
+  </ul>
+</div>
+
+<!-- ───────────── 9 ───────────── -->
+<div class="section" id="s9">
+  <div class="section-title"><span class="section-num">9</span> One-page cheat sheet</div>
+  <div class="section-sub">Print this. Carry it into the meeting.</div>
+
+  <div class="grid2">
+    <div>
+      <h4>The vocabulary</h4>
+      <ul>
+        <li><b>Token</b> — ~¾ of a word; the billing unit.</li>
+        <li><b>Input tokens</b> — what you send in (cheaper).</li>
+        <li><b>Output tokens</b> — what comes back (3–6× pricier).</li>
+        <li><b>Context window</b> — max tokens a model reads at once.</li>
+        <li><b>RAG</b> — feeding your documents in alongside the question.</li>
+        <li><b>Prompt caching</b> — discount on repeated input.</li>
+        <li><b>Smart routing</b> — easy → cheap model, hard → premium.</li>
+        <li><b>Agent loop</b> — multiple paid calls per interaction.</li>
+      </ul>
+    </div>
+    <div>
+      <h4>The numbers worth memorising</h4>
+      <ul>
+        <li>1,000 tokens ≈ 750 words ≈ 1½ pages.</li>
+        <li>Budget tier is ~50× cheaper than frontier.</li>
+        <li>Output costs ~3–6× input.</li>
+        <li>Caching: ~75–90% off repeated chunks.</li>
+        <li>Routing: ~50–70% off vs. premium-for-everything.</li>
+        <li>An agent can cost 5–50× a single call.</li>
+        <li>List prices drop ~40–50% per year.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>If you remember one sentence:</strong> "Our AI cost is set less by the price per token than by how many tokens each interaction uses — and that's a design choice we control."
+  </div>
+</div>
+
+<footer>
+  <strong>BCG | Token Economics — An Executive Primer</strong><br>
+  Confidential — BCG Internal Use Only · Jun 2026<br>
+  Part of the <em>CFO AI Value &amp; ROI Master Asset</em> · TDA / GenAI Knowledge Team<br>
+  Companion assets: <em>Agent Cost Estimator</em> (sizing) · <em>Cost Estimator Technical Documentation</em> (methodology)<br>
+  <span style="color:var(--amber)">Illustrative figures for education — not a pricing quote. Review and tailor before any client use.</span>
+</footer>
+
+<script>
+/* ============================================================
+   ILLUSTRATIVE PRICING ($ per 1M tokens) — teaching values only
+   ============================================================ */
+const PRICES = {
+  budget:   {in:0.10, out:0.40,  label:'Budget'},
+  mid:      {in:0.75, out:4.50,  label:'Mid'},
+  premium:  {in:3.00, out:15.00, label:'Premium'},
+  frontier: {in:5.00, out:25.00, label:'Frontier'}
+};
+// Smart-routing blend: 70% budget, 20% mid, 10% selected tier
+function routedPrice(tier){
+  const b=PRICES.budget, m=PRICES.mid, p=PRICES[tier];
+  return { in: 0.7*b.in + 0.2*m.in + 0.1*p.in,
+           out:0.7*b.out+ 0.2*m.out+ 0.1*p.out };
+}
+
+/* Use-case presets: token anatomy of ONE interaction
+   sys=instructions, rag=retrieved docs, hist=replayed history,
+   user=user message, out=response, steps=model calls/interaction */
+const USECASES = {
+  faq:     {name:'Simple FAQ bot',           sys:400,  rag:800,  hist:300,  user:40,  out:150, steps:1,
+            desc:'Answers common questions from a small knowledge base. One quick look-up, one short answer. The cheapest pattern there is.'},
+  summ:    {name:'Document summariser',       sys:300,  rag:8000, hist:0,    user:40,  out:700, steps:1,
+            desc:'Reads a long document and writes a summary. Input is dominated by the document itself — a big read, a moderate write, no history.'},
+  support: {name:'Support agent (RAG + tools)',sys:1200, rag:3000, hist:1500, user:80,  out:350, steps:3,
+            desc:'Handles a customer issue: looks up help articles, maybe checks an order via a tool, then replies. A few reasoning steps, real history.'},
+  research:{name:'Multi-step research agent',  sys:1500, rag:5000, hist:2000, user:100, out:600, steps:8,
+            desc:'Breaks a question into sub-tasks, searches, reads, cross-checks, and synthesises. Many paid laps, each re-reading a growing context. The priciest pattern.'},
+  coding:  {name:'Coding copilot',             sys:2000, rag:4000, hist:1000, user:150, out:700, steps:2,
+            desc:'Assists a developer: reads surrounding code (large context), proposes an edit, sometimes iterates once. Big input, generous output.'}
+};
+
+const COLORS = {sys:'#006B2F', rag:'#009A44', hist:'#4DC87A', user:'#3B82F6', out:'#F59E0B'};
+const SEGLABEL = {sys:'Instructions', rag:'Retrieved docs', hist:'History', user:'User msg', out:'Output'};
+
+/* ---------- helpers ---------- */
+function fmtMoney(n){
+  if(n>=1e6) return '$'+(n/1e6).toFixed(2)+'M';
+  if(n>=1e3) return '$'+(n/1e3).toFixed(n>=1e4?0:1)+'K';
+  if(n>=1)   return '$'+n.toFixed(2);
+  return '$'+n.toFixed(n<0.01?4:3);
+}
+function fmtNum(n){return Math.round(n).toLocaleString();}
+
+/* ============================================================
+   2 · LIVE TOKENIZER
+   ============================================================ */
+const tokInput=document.getElementById('tok-input');
+function approxTokens(str){
+  if(!str.trim()) return 0;
+  // ~4 chars/token heuristic, floored at word count fraction
+  return Math.max(1, Math.round(str.length/4));
+}
+function renderTokenizer(){
+  const txt=tokInput.value;
+  const words=(txt.trim().match(/\S+/g)||[]).length;
+  const tokens=approxTokens(txt);
+  document.getElementById('tok-words').textContent=fmtNum(words);
+  document.getElementById('tok-tokens').textContent=fmtNum(tokens);
+  document.getElementById('tok-cost').textContent='$'+(tokens/1e6*3).toFixed(4);
+  // chip visualisation: split into word fragments (≤4 chars), spaces, punctuation
+  const parts=txt.match(/[A-Za-z0-9]{1,4}|\s+|[^A-Za-z0-9\s]/g)||[];
+  const html=parts.map(p=>{
+    if(/^\s+$/.test(p)) return '<span class="chip s">·</span>';
+    if(/^[^A-Za-z0-9]$/.test(p)) return '<span class="chip p">'+p.replace(/</g,'&lt;')+'</span>';
+    return '<span class="chip w">'+p+'</span>';
+  }).join('');
+  document.getElementById('tok-chips').innerHTML=html;
+}
+tokInput.addEventListener('input',renderTokenizer);
+renderTokenizer();
+
+/* ============================================================
+   4 · USE-CASE ANATOMY
+   ============================================================ */
+function renderUseCase(uc){
+  const d=USECASES[uc];
+  const inTok=d.sys+d.rag+d.hist+d.user;
+  const segs=[['sys',d.sys],['rag',d.rag],['hist',d.hist],['user',d.user],['out',d.out]];
+  const total=inTok+d.out;
+  // bar
+  document.getElementById('uc-bar').innerHTML=segs.map(([k,v])=>{
+    const w=(v/total*100);
+    return w<0.5?'':`<div class="bar-seg" style="width:${w}%;background:${COLORS[k]}" title="${SEGLABEL[k]}: ${fmtNum(v)}">${w>9?fmtNum(v):''}</div>`;
+  }).join('');
+  document.getElementById('uc-legend').innerHTML=segs.map(([k,v])=>
+    `<span><span class="dot" style="background:${COLORS[k]}"></span>${SEGLABEL[k]} (${fmtNum(v)})</span>`).join('');
+  document.getElementById('uc-desc').textContent=d.desc;
+  // costs (premium, accounting for steps re-reading context)
+  const p=PRICES.premium;
+  const inAll=inTok*d.steps, outAll=d.out*d.steps;
+  const cpc=inAll/1e6*p.in + outAll/1e6*p.out;
+  document.getElementById('uc-in').textContent=fmtNum(inTok);
+  document.getElementById('uc-out').textContent=fmtNum(d.out);
+  document.getElementById('uc-steps').textContent=d.steps;
+  document.getElementById('uc-cpc').textContent='$'+cpc.toFixed(4);
+  const userPct=Math.round(d.user/inTok*100);
+  document.getElementById('uc-why').innerHTML=
+    `<b>Read this:</b> the user's own message is just <b>${userPct}%</b> of the input — the rest is scaffolding the system adds. `+
+    (d.steps>1?`Because this runs <b>${d.steps} model calls</b> per interaction (an agent loop), the context is paid for repeatedly, so the per-interaction cost is roughly <b>${d.steps}× </b>what a single call would be.`
+              :`This is a <b>single-call</b> pattern, so cost stays low per interaction.`);
+}
+document.querySelectorAll('#uc-pills .pill').forEach(pill=>{
+  pill.addEventListener('click',()=>{
+    document.querySelectorAll('#uc-pills .pill').forEach(p=>p.classList.remove('active'));
+    pill.classList.add('active');
+    renderUseCase(pill.dataset.uc);
+  });
+});
+renderUseCase('faq');
+
+/* ============================================================
+   6 · COST PLAYGROUND
+   ============================================================ */
+const pg={uc:'faq', model:'premium'};
+function pgEls(){return {
+  vol:+document.getElementById('pg-vol').value,
+  rag:+document.getElementById('pg-rag').value/100,
+  steps:+document.getElementById('pg-steps').value,
+  cache:document.getElementById('pg-cache').checked,
+  route:document.getElementById('pg-route').checked
+};}
+function renderPlayground(){
+  const e=pgEls();
+  const d=USECASES[pg.uc];
+  document.getElementById('pg-vol-l').textContent=fmtNum(e.vol);
+  document.getElementById('pg-rag-l').textContent=Math.round(e.rag*100)+'%';
+  document.getElementById('pg-steps-l').textContent=e.steps;
+
+  // token anatomy, with RAG scaled
+  const rag=d.rag*e.rag;
+  const repeated=d.sys+rag;            // cacheable portion (instructions + retrieved docs)
+  const fresh=d.hist+d.user;           // changes each call
+  const inPer=(repeated+fresh);
+  const outPer=d.out;
+  // steps re-read context
+  const inAll=inPer*e.steps, outAll=outPer*e.steps;
+  const repeatedAll=repeated*e.steps, freshAll=fresh*e.steps;
+
+  const price=e.route?routedPrice(pg.model):PRICES[pg.model];
+
+  // caching: ~85% off the repeated portion of INPUT
+  let inCost;
+  if(e.cache){ inCost=(repeatedAll*0.15 + freshAll)/1e6*price.in; }
+  else       { inCost=inAll/1e6*price.in; }
+  const outCost=outAll/1e6*price.out;
+  const cpc=inCost+outCost;
+  const monthly=cpc*e.vol;
+
+  document.getElementById('pg-monthly').textContent=fmtMoney(monthly)+' / mo';
+  document.getElementById('pg-annual').textContent=fmtMoney(monthly*12)+' / year';
+  document.getElementById('pg-cpc').textContent='$'+cpc.toFixed(4);
+  document.getElementById('pg-tpi').textContent=fmtNum(inAll+outAll);
+
+  // narrative
+  let bits=[];
+  bits.push(`At <b>${fmtNum(e.vol)}</b> interactions/mo on the <b>${PRICES[pg.model].label.toLowerCase()}</b> tier, each interaction uses <b>${fmtNum(inAll+outAll)}</b> tokens`);
+  if(e.steps>1) bits.push(`across <b>${e.steps} agent steps</b> (context paid repeatedly)`);
+  let savings=[];
+  if(e.cache) savings.push('caching trims ~85% off the repeated instructions+context');
+  if(e.route) savings.push('routing blends 70% budget / 20% mid / 10% '+PRICES[pg.model].label.toLowerCase());
+  if(e.rag>1) savings.push('you are sending <b>more</b> context than the default — pushing cost up');
+  if(e.rag<1) savings.push('trimmed RAG context lowers every call');
+  let why=bits.join(' ')+'. ';
+  if(savings.length) why+='<b>Levers applied:</b> '+savings.join('; ')+'.';
+  document.getElementById('pg-why').innerHTML='<b>What\'s happening:</b> '+why;
+}
+['pg-vol','pg-rag','pg-steps'].forEach(id=>document.getElementById(id).addEventListener('input',renderPlayground));
+['pg-cache','pg-route'].forEach(id=>document.getElementById(id).addEventListener('change',renderPlayground));
+document.querySelectorAll('#pg-pills .pill').forEach(pill=>{
+  pill.addEventListener('click',()=>{
+    document.querySelectorAll('#pg-pills .pill').forEach(p=>p.classList.remove('active'));
+    pill.classList.add('active');
+    pg.uc=pill.dataset.uc;
+    // sync the steps slider to the use case default for a sensible starting point
+    document.getElementById('pg-steps').value=USECASES[pg.uc].steps;
+    renderPlayground();
+  });
+});
+document.querySelectorAll('#pg-model .pill').forEach(pill=>{
+  pill.addEventListener('click',()=>{
+    document.querySelectorAll('#pg-model .pill').forEach(p=>p.classList.remove('active'));
+    pill.classList.add('active');
+    pg.model=pill.dataset.m;
+    renderPlayground();
+  });
+});
+renderPlayground();
+</script>
+</body>
+</html>
