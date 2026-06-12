@@ -84,7 +84,7 @@ function send(res, filePath) {
 
 // ── Request handler ───────────────────────────────────────────────────────────
 
-http.createServer(async (req, res) => {
+http.createServer({ maxHeaderSize: 32768 }, async (req, res) => {
   const rawPath = new URL(req.url, 'http://x').pathname;
   const urlPath = rawPath.replace(/\/$/, '') || '/';
 
