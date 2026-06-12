@@ -1,0 +1,15 @@
+# ── Template app — copy this folder, rename it (without the _ prefix), and edit below ──
+#
+# Folders starting with _ are invisible to the build pipeline:
+#   - generate-apps.js skips them (no homepage tile)
+#   - copy-apps.js skips them (not deployed to dist/)
+#
+# To use: cp -r apps/_template-agent apps/my-tool
+#         then edit this file and api.js / index.html
+
+name: "My Agent"
+description: "One-line description shown on the platform homepage tile."
+icon: "🤖"
+accent: "#6366f1"
+author: "Your Name"
+status: "live"

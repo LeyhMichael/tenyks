@@ -17,6 +17,8 @@ A static platform homepage (Vite + React + TypeScript at root) that auto-discove
 | `scripts/copy-apps.js` | Copies `apps/{folder}/*` (minus `config.yaml`) → `dist/{folder}/` |
 | `server.js` | Zero-dependency native Node `http` server for production. No Express by design. |
 | `vite.config.ts` | Contains `serveApps()` plugin — mirrors server.js routing logic in dev |
+| `lib/llm.js` | Shared Anthropic client — `const { claude } = require('../../lib/llm')` |
+| `lib/stream.js` | SSE streaming helper — `const { streamText } = require('../../lib/stream')` |
 
 ---
 
@@ -55,6 +57,26 @@ Each app folder needs:
 
 The folder name is the URL. `apps/my-tool/` → `/my-tool`.
 
+**Folders prefixed with `_`** (e.g. `apps/_template-agent/`) are ignored by both `generate-apps.js`
+and `copy-apps.js` — they do not get a homepage tile and are not deployed. Use `_` prefix for
+templates and experiments.
+
+---
+
+## Building an agent app
+
+The platform ships two shared utilities for Claude-powered apps:
+
+```js
+const { claude }     = require('../../lib/llm');    // shared Anthropic client
+const { streamText } = require('../../lib/stream'); // SSE streaming helper
+```
+
+A working starter lives in `apps/_template-agent/` — copy it, rename the folder (remove the `_`),
+and customise the system prompt, model, and UI. Full guide: `docs/AGENT-GUIDE.md`.
+
+**Prerequisite:** set `ANTHROPIC_API_KEY` in Azure App Service → Configuration → Application Settings.
+
 ---
 
 ## Deployment
@@ -71,5 +93,5 @@ The folder name is the URL. `apps/my-tool/` → `/my-tool`.
 - **No Express, no external server packages.** `server.js` uses only built-in Node `http`/`fs`/`path`. Keep it that way.
 - **No runtime API.** The app list is baked in at build time via `apps.generated.ts`. There is no `/api/apps` endpoint.
 - **`platform/` folder** exists on disk (untracked). Ignore it — it's an old experiment. Work belongs at root.
-- **Quarterback** (`apps/quarterback/`) is a Flask app that will crash when visited. That's expected until it's migrated to a React SPA.
+- **Quarterback** (`apps/quarterback/`) is a live React SPA backed by PostgreSQL. See its `api.js` for a full example of DB + Claude usage in a real app.
 - **TypeScript is relaxed** (`strict: false`). Don't tighten it without asking.

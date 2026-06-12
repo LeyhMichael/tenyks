@@ -9,6 +9,7 @@ const apps = fs
   .readdirSync(appsDir, { withFileTypes: true })
   .filter((d) => d.isDirectory())
   .map((d) => d.name)
+  .filter((folder) => !folder.startsWith('_'))          // _ prefix = template/hidden, skip
   .filter((folder) => fs.existsSync(path.join(appsDir, folder, 'config.yaml')))
   .map((folder) => {
     const raw = fs.readFileSync(path.join(appsDir, folder, 'config.yaml'), 'utf8');

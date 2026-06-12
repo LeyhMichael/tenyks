@@ -18,6 +18,7 @@ function copyDir(src, dest) {
 
 for (const folder of fs.readdirSync(appsDir, { withFileTypes: true })
   .filter((d) => d.isDirectory())
+  .filter((d) => !d.name.startsWith('_'))      // _ prefix = template/hidden, skip
   .map((d) => d.name)) {
 
   copyDir(path.join(appsDir, folder), path.join(distDir, folder));
