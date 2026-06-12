@@ -9,8 +9,8 @@ function tileVars(app: AppConfig): React.CSSProperties {
     '--accent': app.accent,
     '--accent-border': `${app.accent}55`,
     '--accent-color': app.accent,
-    '--icon-bg': `${app.accent}22`,
-    '--badge-bg': `${app.accent}22`,
+    '--icon-bg': `${app.accent}18`,
+    '--badge-bg': `${app.accent}18`,
     '--badge-color': app.accent,
   } as React.CSSProperties;
 }
@@ -33,12 +33,6 @@ function AppTile({ app }: { app: AppConfig }) {
     </a>
   );
 }
-
-const tagOrder = Array.from(new Set(liveApps.map((a) => a.tag ?? 'Other')));
-const byTag = tagOrder.reduce<Record<string, typeof liveApps>>((acc, tag) => {
-  acc[tag] = liveApps.filter((a) => (a.tag ?? 'Other') === tag);
-  return acc;
-}, {});
 
 export default function App() {
   return (
@@ -63,27 +57,18 @@ export default function App() {
         </div>
       </header>
 
-      {/* <div className="hero">
-        <h2>Your workspace</h2>
-        <p>A platform for TDA tools built with AI. Each tile is a standalone app contributed by a team member. Click to launch.</p>
-      </div> */}
-
       <div className="grid-container">
-        {tagOrder.map((tag) => (
-          <div key={tag}>
-            <div className="section-title">{tag}</div>
-            <div className="grid">
-              {byTag[tag].map((app) => <AppTile key={app.folder} app={app} />)}
-            </div>
-          </div>
-        ))}
+        <div className="section-title">All apps</div>
+        <div className="grid">
+          {liveApps.map((app) => <AppTile key={app.folder} app={app} />)}
+        </div>
 
         {comingApps.length > 0 && (
           <>
             <div className="section-title">Coming soon</div>
             <div className="grid">
               {comingApps.map((app) => (
-                <div key={app.folder} className="app-tile tile-coming-soon">
+                <div key={app.folder} className="app-tile tile-coming-soon" style={tileVars(app)}>
                   <div className="tile-header">
                     <div className="tile-icon">{app.icon}</div>
                     <span className="tile-badge">Soon</span>
@@ -105,9 +90,7 @@ export default function App() {
 
       <footer>
         <span className="left">TDA Vantage Platform · BCG Boston</span>
-        <span className="right">
-          Built with Claude · {liveApps.length} app{liveApps.length !== 1 ? 's' : ''}
-        </span>
+        <span className="right">Built with Claude · {liveApps.length} app{liveApps.length !== 1 ? 's' : ''}</span>
       </footer>
     </>
   );

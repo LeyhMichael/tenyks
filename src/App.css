@@ -1,17 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: 'Inter', Arial, sans-serif;
-  background: #0f1117;
-  color: #e0e0e0;
+  background: #f8f9fb;
+  color: #111827;
   min-height: 100vh;
 }
 
 /* ── Header ── */
 header {
-  background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%);
-  border-bottom: 1px solid #2a2f3e;
-  padding: 24px 48px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 20px 48px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -29,75 +31,43 @@ header {
   text-transform: uppercase;
 }
 .header-title {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
-  color: #ffffff;
+  color: #111827;
   letter-spacing: -0.5px;
 }
 .header-subtitle {
   font-size: 13px;
-  color: #6b7280;
+  color: #9ca3af;
   margin-top: 2px;
 }
 .header-right { display: flex; align-items: center; gap: 12px; }
-.header-stat { text-align: right; }
-.header-stat .num { font-size: 24px; font-weight: 700; color: #60a5fa; }
-.header-stat .lbl { font-size: 11px; color: #6b7280; }
-.logout-btn {
-  color: #6b7280;
-  font-size: 12px;
-  text-decoration: none;
-  padding: 6px 14px;
-  border: 1px solid #2a2f3e;
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-.logout-btn:hover { color: #fff; border-color: #4b5563; }
 .add-app-btn {
-  color: #9ca3af;
+  color: #6b7280;
   font-size: 12px;
   font-weight: 600;
   text-decoration: none;
-  padding: 6px 14px;
-  border: 1px solid #4b5563;
+  padding: 7px 14px;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
   transition: all 0.2s;
   white-space: nowrap;
+  background: #fff;
 }
-.add-app-btn:hover { color: #60a5fa; border-color: #3b82f6; background: rgba(59,130,246,0.06); }
-
-/* ── Hero strip ── */
-.hero {
-  background: linear-gradient(90deg, rgba(59,130,246,0.08) 0%, rgba(16,185,129,0.06) 50%, rgba(139,92,246,0.08) 100%);
-  border-bottom: 1px solid #2a2f3e;
-  padding: 32px 48px;
-}
-.hero h2 {
-  font-size: 15px;
-  font-weight: 600;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom: 8px;
-}
-.hero p {
-  font-size: 14px;
-  color: #4b5563;
-  max-width: 600px;
-  line-height: 1.6;
-}
+.add-app-btn:hover { color: #111827; border-color: #9ca3af; background: #f3f4f6; }
 
 /* ── Grid ── */
 .grid-container {
   padding: 40px 48px;
-  max-width: 1400px;
+  max-width: 1600px;
 }
+
 .section-title {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: #4b5563;
+  color: #9ca3af;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
@@ -107,28 +77,29 @@ header {
   content: '';
   flex: 1;
   height: 1px;
-  background: #2a2f3e;
+  background: #e5e7eb;
 }
+
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
   margin-bottom: 48px;
 }
 
 /* ── App tile ── */
 .app-tile {
-  background: #1a1f2e;
-  border: 1px solid #2a2f3e;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 14px;
-  padding: 28px;
+  padding: 24px;
   cursor: pointer;
   text-decoration: none;
   color: inherit;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  transition: all 0.25s ease;
+  gap: 14px;
+  transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
 }
@@ -139,24 +110,24 @@ header {
   height: 3px;
   background: var(--accent);
   opacity: 0;
-  transition: opacity 0.25s;
+  transition: opacity 0.2s;
 }
 .app-tile:hover {
-  border-color: var(--accent-border);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  border-color: #d1d5db;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
 .app-tile:hover::before { opacity: 1; }
 
 .tile-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   background: var(--icon-bg);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 20px;
 }
 .tile-header {
   display: flex;
@@ -174,13 +145,13 @@ header {
   text-transform: uppercase;
 }
 .tile-name {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
-  color: #f0f0f0;
+  color: #111827;
   margin-bottom: 4px;
 }
 .tile-desc {
-  font-size: 13px;
+  font-size: 12px;
   color: #6b7280;
   line-height: 1.5;
   flex: 1;
@@ -190,12 +161,12 @@ header {
   justify-content: space-between;
   align-items: center;
   padding-top: 12px;
-  border-top: 1px solid #2a2f3e;
+  border-top: 1px solid #f3f4f6;
 }
-.tile-author { font-size: 11px; color: #4b5563; }
+.tile-author { font-size: 11px; color: #9ca3af; }
 .tile-arrow {
-  font-size: 16px;
-  color: #4b5563;
+  font-size: 14px;
+  color: #d1d5db;
   transition: transform 0.2s, color 0.2s;
 }
 .app-tile:hover .tile-arrow {
@@ -203,50 +174,21 @@ header {
   color: var(--accent-color);
 }
 
-/* ── Coming soon tile ── */
+/* ── Coming soon ── */
 .tile-coming-soon {
-  opacity: 0.4;
+  opacity: 0.5;
   cursor: default;
   pointer-events: none;
 }
-.tile-coming-soon .tile-badge {
-  background: rgba(75,85,99,0.3);
-  color: #4b5563;
-}
-
-/* ── Add tile CTA ── */
-.add-tile {
-  background: transparent;
-  border: 2px dashed #2a2f3e;
-  border-radius: 14px;
-  padding: 28px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  cursor: pointer;
-  text-decoration: none;
-  color: #4b5563;
-  transition: all 0.2s;
-  min-height: 180px;
-}
-.add-tile:hover {
-  border-color: #3b82f6;
-  color: #60a5fa;
-  background: rgba(59,130,246,0.04);
-}
-.add-tile .plus { font-size: 28px; }
-.add-tile .label { font-size: 13px; font-weight: 600; }
-.add-tile .hint { font-size: 11px; text-align: center; }
 
 /* ── Footer ── */
 footer {
-  border-top: 1px solid #2a2f3e;
-  padding: 20px 48px;
+  border-top: 1px solid #e5e7eb;
+  padding: 16px 48px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: #fff;
 }
-footer .left { font-size: 12px; color: #374151; }
-footer .right { font-size: 11px; color: #374151; }
+footer .left { font-size: 12px; color: #9ca3af; }
+footer .right { font-size: 11px; color: #9ca3af; }
