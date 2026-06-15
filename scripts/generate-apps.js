@@ -18,6 +18,7 @@ const apps = fs
       folder,
       ...config,
       status: config.status ?? 'live',
+      visibility: config.visibility ?? 'public',
       url: config.url ?? `/${folder}`,
     };
   });

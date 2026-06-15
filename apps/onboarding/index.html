@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Onboarding Launchpad · POP + TDA (Gen)AI Vantage</title>
+  <script>
+    // Team-membership guard — server.js enforces this server-side too.
+    // Client-side check fast-redirects unauthenticated users to Azure AD login.
+    (function() {
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return;
+      fetch('/api/me', { credentials: 'include' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.isTeamMember && !data.email) {
+            window.location.href = '/.auth/login/aad?post_login_redirect_uri=' + encodeURIComponent(window.location.pathname);
+          }
+          // If signed in but not on team, server.js returns the 403 page
+        })
+        .catch(function() { /* allow on error */ });
+    })();
+  </script>
+<style>
+  :root{
+    --green-900:#0a3d2e;--green-800:#0c4a37;--green-700:#0e6e4f;--green-600:#12815d;
+    --green-500:#18a06b;--green-300:#7ec9aa;--green-100:#e3f1ea;--green-50:#f3f9f6;
+    --ink:#1c2622;--muted:#5d6f67;--line:#d8e6df;
+    --amber-bg:#fbf4e0;--amber-line:#e4c97a;--amber-ink:#7a5b16;
+    --shadow:0 1px 3px rgba(10,61,46,.08),0 6px 18px rgba(10,61,46,.06);--radius:12px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--green-50);line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:var(--green-700);text-decoration:none}
+  a[data-jump]{cursor:pointer}
+  a:hover{text-decoration:underline}
+  header.site{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.96);backdrop-filter:saturate(160%) blur(8px);border-bottom:1px solid var(--line)}
+  .nav-wrap{max-width:1120px;margin:0 auto;padding:10px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--green-800);white-space:nowrap}
+  .brand .dot{width:12px;height:12px;border-radius:3px;background:var(--green-500);display:inline-block}
+  nav.top{display:flex;flex-wrap:wrap;gap:4px;font-size:13px}
+  nav.top a{color:var(--muted);padding:5px 9px;border-radius:7px;white-space:nowrap}
+  nav.top a:hover{background:var(--green-100);color:var(--green-800);text-decoration:none}
+  main{max-width:1120px;margin:0 auto;padding:0 22px 80px}
+  section{padding:44px 0 8px;scroll-margin-top:84px}
+  section + section{border-top:1px solid var(--line)}
+  h1,h2,h3,h4{line-height:1.2;color:var(--green-900)}
+  h2{font-size:26px;margin:0 0 6px;display:flex;align-items:center;gap:12px}
+  h2 .num{font-size:13px;font-weight:700;color:#fff;background:var(--green-600);width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+  h3{font-size:18px;margin:26px 0 10px}
+  h3.kn{scroll-margin-top:84px;border-left:4px solid var(--green-500);padding-left:12px}
+  h4{font-size:15px;margin:0 0 6px}
+  .lead{color:var(--muted);font-size:15.5px;margin:2px 0 18px;max-width:860px}
+  p{margin:0 0 12px}
+  ul,ol{margin:0 0 14px;padding-left:20px}
+  li{margin:5px 0}
+  .muted{color:var(--muted)}
+  .small{font-size:13px}
+  .hero{background:linear-gradient(135deg,var(--green-800),var(--green-600) 70%,var(--green-500));color:#fff;border-radius:18px;padding:46px 40px;margin:26px 0 6px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .hero:after{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.07)}
+  .hero h1{color:#fff;font-size:34px;margin:0 0 12px;max-width:780px}
+  .hero p{color:rgba(255,255,255,.92);font-size:17px;max-width:700px;margin:0 0 18px}
+  .pill-row{display:flex;flex-wrap:wrap;gap:8px}
+  .pill{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .g5{grid-template-columns:repeat(5,1fr)}
+  @media(max-width:900px){.g2,.g3,.g4,.g5{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+  .card h4{color:var(--green-800)}
+  .card.flat{box-shadow:none}
+  .card .tag{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--green-600)}
+  .accent-top{border-top:3px solid var(--green-500)}
+  .phase{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+  .phase .when{font-size:12px;font-weight:700;color:var(--green-600);text-transform:uppercase;letter-spacing:.03em}
+  .phase .title{font-weight:700;color:var(--green-900);margin:3px 0 8px;font-size:15px}
+  .phase ul{padding-left:18px;margin:0;font-size:13.5px}
+  .phase ul li{margin:4px 0}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line);margin:6px 0 16px}
+  th,td{padding:10px 13px;text-align:left;border-bottom:1px solid var(--line);font-size:14px;vertical-align:top}
+  thead th{background:var(--green-700);color:#fff;font-weight:600;font-size:13px}
+  tbody tr:nth-child(even){background:var(--green-50)}
+  tbody tr:hover{background:var(--green-100)}
+  .note{background:var(--amber-bg);border:1px solid var(--amber-line);color:var(--amber-ink);border-radius:10px;padding:13px 15px;font-size:14px;margin:10px 0 16px}
+  .warn-orange{background:#fff3e6;border:1px solid #f0a44d;border-left:4px solid #e07b1a;color:#8a4b09;border-radius:10px;padding:13px 15px;font-size:14px;margin:10px 0 18px}
+  .warn-orange strong{color:#b85c0c}
+  .note strong{color:var(--amber-ink)}
+  .info{background:var(--green-100);border:1px solid var(--green-300);border-radius:10px;padding:13px 15px;font-size:14px;margin:10px 0 16px}
+  .btn-link{display:inline-flex;align-items:center;gap:7px;background:var(--green-600);color:#fff !important;font-weight:600;font-size:14px;text-decoration:none;padding:9px 16px;border-radius:8px;margin-top:4px}
+  .btn-link:hover{background:var(--green-700);text-decoration:none}
+  .pillar{border-left:4px solid var(--green-500);padding:4px 0 4px 14px;margin:0 0 14px}
+  .pillar h4{margin:0 0 2px;color:var(--green-800)}
+  .pillar p{margin:0;font-size:14px;color:var(--muted)}
+  .steps{counter-reset:step;display:grid;gap:12px}
+  .step{display:flex;gap:14px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:var(--shadow)}
+  .step .n{counter-increment:step;flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:var(--green-600);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+  .step .n:before{content:counter(step)}
+  .step .body h4{margin:2px 0 3px}
+  .step .body p{margin:0;font-size:14px;color:var(--muted)}
+  .kpi{display:flex;flex-direction:column;gap:2px}
+  .kpi .big{font-size:30px;font-weight:800;color:var(--green-700);line-height:1}
+  .kpi .lbl{font-size:13px;color:var(--muted)}
+  footer{max-width:1120px;margin:0 auto;padding:26px 22px 60px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+  .totop{position:fixed;right:20px;bottom:20px;background:var(--green-700);color:#fff;border:none;width:44px;height:44px;border-radius:50%;font-size:18px;cursor:pointer;box-shadow:var(--shadow);opacity:.92}
+  .totop:hover{opacity:1}
+  .who{display:inline-block;background:var(--green-100);color:var(--green-800);border:1px solid var(--green-300);padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;margin:0 4px 4px 0}
+  a.who:hover{background:var(--green-300);text-decoration:none}
+  .chip-row{margin:2px 0 10px}
+  .chip-row .lbl{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-right:6px}
+  ul.mat{padding-left:18px;margin:0}
+  ul.mat li{margin:5px 0;font-size:13.5px}
+  .kn-jump{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 8px}
+  .kn-jump a{background:#fff;border:1px solid var(--line);color:var(--green-800);padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;box-shadow:var(--shadow)}
+  .kn-jump a:hover{background:var(--green-100);text-decoration:none}
+  .src{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 6px}
+  .src a{background:var(--green-700);color:#fff;padding:7px 14px;border-radius:8px;font-size:13.5px;font-weight:600}
+  .src a:hover{background:var(--green-800);text-decoration:none}
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="nav-wrap">
+    <div class="brand"><span class="dot"></span> POP + TDA (Gen)AI Vantage</div>
+    <nav class="top">
+      <a href="/" style="color:var(--muted);padding:5px 9px;border-radius:7px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:4px">← Platform</a>
+      <a data-jump="welcome">Welcome</a>
+      <a data-jump="start">Start here</a>
+      <a data-jump="first-month">First month</a>
+      <a data-jump="team">Your team</a>
+      <a data-jump="toolkit">Knowledge toolkit</a>
+      <a data-jump="vantage">How Vantage works</a>
+      <a data-jump="performance">Performance</a>
+      <a data-jump="billability">Billability</a>
+      <a data-jump="timesheet">Timesheet</a>
+      <a data-jump="resources">Resources</a>
+      <a data-jump="quiz" style="color:var(--green-700);font-weight:700">Quiz</a>
+    </nav>
+  </div>
+</header>
+<main>
+
+  <section id="welcome" style="border-top:none">
+    <div class="hero">
+      <h1>Welcome to the POP and TDA (Gen)AI Vantage team</h1>
+      <p>This is your launchpad. It links out to the authoritative materials on Knowledge Navigator and SharePoint, and summarizes the few things that stay constant. Built for new joiners across NAMR, EMESA, and APAC.</p>
+      <div class="pill-row">
+        <span class="pill">People and Organization</span>
+        <span class="pill">Tech and Digital Advantage</span>
+        <span class="pill">(Gen)AI</span>
+        <span class="pill">BCG Vantage</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="start">
+    <h2><span class="num">0</span> Start here</h2>
+    <p class="lead">A launchpad, not a copy. Read the short summaries for context, then click through to the live source on Knowledge Navigator and SharePoint. Those pages are kept current by their owners; this page is the map.</p>
+    <div class="grid g3">
+      <div class="card accent-top"><div class="tag">Week 1</div><h4>Ramp up</h4><p class="small muted">Walk your <a data-jump="first-month">first month</a>, then meet <a data-jump="team">your team</a>.</p></div>
+      <div class="card accent-top"><div class="tag">Every request</div><h4>Find the material</h4><p class="small muted">The <a data-jump="toolkit">Knowledge toolkit</a> maps every topic to its key Knowledge Navigator documents.</p></div>
+      <div class="card accent-top"><div class="tag">Operating basics</div><h4>Get paid right</h4><p class="small muted">Understand <a data-jump="billability">billability</a> and how to file your <a data-jump="timesheet">timesheet</a>.</p></div>
+    </div>
+    <div class="info"><strong>How requests work.</strong> When a POP or TDA request comes in, find the topic in the <a data-jump="toolkit">Knowledge toolkit</a> and reuse the linked materials. Ask your manager who owns the topic if you need depth. Incoming POP and TDA requests are always high priority.</div>
+    <div class="note"><strong>Test yourself.</strong> Once you have explored the toolkit, take the <a data-jump="quiz">onboarding quiz</a>. Ten questions per attempt, graded instantly, retake as often as you like.</div>
+  </section>
+
+  <section id="first-month">
+    <h2><span class="num">1</span> Your first month</h2>
+    <p class="lead">Ramp up fast on POP and TDA topics. Self-guided BCG, Vantage, and HR or tech logistics run in the background throughout.</p>
+    <div class="grid g2">
+      <div class="phase"><div class="when">Days 1 to 2</div><div class="title">Intro to BCG</div><ul><li>Official BCG orientation (HR, Finance, local office)</li><li>Write your bio</li><li>Lunch with other new joiners</li></ul></div>
+      <div class="phase"><div class="when">Weeks 1 to 2</div><div class="title">POP and TDA, and our team systems</div><ul><li>Onboarding deck overview, portfolio of offerings, and team org</li><li>Intro to Vantage: ecosystem, roles, working with case teams, billing, key resources</li><li>Join team stand-ups; schedule a 1:1 with every team member</li><li>Tour Knowledge Navigator (set up your profile) and SharePoint</li><li>Start on incoming POP and TDA requests</li><li>Self-guided trainings; (Gen)AI and Deckster; Claude and GPT best practices</li></ul></div>
+    </div>
+  </section>
+
+  <section id="team">
+    <h2><span class="num">2</span> Your team</h2>
+    <p class="lead">The (Gen)AI POP and TDA Vantage team, grouped by region. The team is led by <strong>Michael Leyh</strong> (Senior Director, TDA, Düsseldorf) and <strong>Connor Currier</strong> (Senior Director, POP, Boston). Practice shows whether someone is TDA, POP, or split POP/TDA. Where a name links out, it opens that person's Knowledge Navigator profile.</p>
+    <h3>APAC</h3>
+    <table>
+      <thead><tr><th>Name</th><th>Role</th><th>Office</th><th>Practice</th></tr></thead>
+      <tbody>
+        <tr><td>Prashant Sharma</td><td>Manager</td><td>Gurugram</td><td>TDA</td></tr>
+        <tr><td>Shubham Yaduvanshi</td><td>Senior Analyst</td><td>Gurugram</td><td>POP/TDA</td></tr>
+        <tr><td>Rishabh Sharma</td><td>Research Analyst</td><td>Gurugram</td><td>TDA</td></tr>
+        <tr><td>Pranav Bhanot</td><td>Research Analyst</td><td>Gurugram</td><td>GRO</td></tr>
+      </tbody>
+    </table>
+    <h3>EMESA</h3>
+    <table>
+      <thead><tr><th>Name</th><th>Role</th><th>Office</th><th>Practice</th></tr></thead>
+      <tbody>
+        <tr><td><a href="https://profiles.navigator.bcg.com/overview?hrid=416327" target="_blank" rel="noopener">Carmen Casas</a></td><td>Manager</td><td>Madrid</td><td>POP/TDA</td></tr>
+        <tr><td><a href="https://profiles.navigator.bcg.com/overview?hrid=379220" target="_blank" rel="noopener">Chao-Wei Lai</a></td><td>Manager</td><td>Düsseldorf</td><td>TDA</td></tr>
+        <tr><td><a href="https://profiles.navigator.bcg.com/overview?hrid=365519" target="_blank" rel="noopener">Giuseppe Colombo</a></td><td>Manager</td><td>Düsseldorf</td><td>TDA</td></tr>
+        <tr><td>Csilla Szalay</td><td>Senior Analyst</td><td>Düsseldorf</td><td>TDA</td></tr>
+        <tr><td><a href="https://profiles.navigator.bcg.com/overview?hrid=414653" target="_blank" rel="noopener">Jun Wei Ee</a></td><td>Senior Analyst</td><td>London</td><td>POP/TDA</td></tr>
+        <tr><td><a href="https://profiles.navigator.bcg.com/overview?hrid=406429" target="_blank" rel="noopener">Marcus Pinnau</a></td><td>Senior Analyst</td><td>Madrid</td><td>TDA</td></tr>
+        <tr><td>Mary Hebbo</td><td>Senior Analyst</td><td>Paris</td><td>POP/TDA</td></tr>
+        <tr><td>Raphaella Shailos</td><td>Analyst</td><td>London</td><td>POP/TDA</td></tr>
+        <tr><td>Adrián Benahmed</td><td>Research Analyst</td><td>Madrid</td><td>GRO</td></tr>
+        <tr><td>Aayush Bodke</td><td>Working student</td><td>Düsseldorf</td><td>-</td></tr>
+      </tbody>
+    </table>
+    <h3>NAMR</h3>
+    <table>
+      <thead><tr><th>Name</th><th>Role</th><th>Office</th><th>Practice</th></tr></thead>
+      <tbody>
+        <tr><td><a href="https://profiles.navigator.bcg.com/overview?hrid=407795" target="_blank" rel="noopener">Eugene Hayden</a></td><td>Manager</td><td>Silicon Valley</td><td>TDA</td></tr>
+        <tr><td><a href="https://profiles.navigator.bcg.com/overview?hrid=438191" target="_blank" rel="noopener">Vikas Singh</a></td><td>Manager</td><td>Boston</td><td>TDA</td></tr>
+        <tr><td>Carson Wilmouth</td><td>Senior Analyst</td><td>New York</td><td>TDA</td></tr>
+        <tr><td><a href="https://profiles.navigator.bcg.com/overview?hrid=445708" target="_blank" rel="noopener">Evan Song</a></td><td>Senior Analyst</td><td>Boston</td><td>TDA</td></tr>
+        <tr><td><a href="https://profiles.navigator.bcg.com/overview?hrid=445264" target="_blank" rel="noopener">Margot Li</a></td><td>Senior Analyst</td><td>Chicago</td><td>TDA</td></tr>
+        <tr><td><a href="https://profiles.navigator.bcg.com/overview?hrid=401291" target="_blank" rel="noopener">Savannah Ricard</a></td><td>Senior Analyst</td><td>Chicago</td><td>POP &amp; TDA</td></tr>
+        <tr><td><a href="https://profiles.navigator.bcg.com/overview?hrid=429056" target="_blank" rel="noopener">Frank Anderson</a></td><td>Analyst</td><td>Boston</td><td>POP/TDA</td></tr>
+        <tr><td>Jack Filmer</td><td>Analyst</td><td>Boston</td><td>POP/TDA</td></tr>
+        <tr><td><a href="https://profiles.navigator.bcg.com/overview?hrid=416580" target="_blank" rel="noopener">Roselyn Rodriguez</a></td><td>Analyst</td><td>Boston</td><td>TDA</td></tr>
+        <tr><td><a href="https://profiles.navigator.bcg.com/overview?hrid=453317" target="_blank" rel="noopener">Mariana Chaverri</a></td><td>Research Analyst</td><td>Costa Rica</td><td>GRO</td></tr>
+      </tbody>
+    </table>
+    <p class="muted small">Open roles being hired: Manager (POP/TDA, Boston); Senior Analyst (POP/TDA, Madrid); Analyst (TDA, Düsseldorf).</p>
+    <div class="note"><strong>Profile links.</strong> Roles, offices, and regions are transcribed from the team's Knowledge Navigator org view. A name links to its profile where the Knowledge Navigator id is on file; the rest are pending. Share the missing ids and they will be added. Kay Bore is removed.</div>
+    <div class="info"><strong>Who to meet first.</strong> In your first weeks, schedule 1:1s with your manager and the team. Ask your manager for the priority stakeholder list for your topics.</div>
+  </section>
+  <section id="toolkit">
+    <h2><span class="num">3</span> Knowledge toolkit</h2>
+    <p class="lead">Your map to the materials. Start with the (Gen)AI offers in brief, then the key hubs, then the full topic index. Each topic links to its key Knowledge Navigator documents. Links open the live source.</p>
+
+    <h3>(Gen)AI offers in brief</h3>
+    <p class="muted small">The frameworks that come up on almost every request. Summaries here, full decks linked below.</p>
+    <div class="grid g3">
+      <div class="card accent-top"><div class="tag">Deploy</div><h4>AI in everyday tasks</h4><p class="small muted">Inject tools (Copilot, ChatGPT) into existing workflows without changing the operating model. Broad productivity of 10 to 20%.</p></div>
+      <div class="card accent-top"><div class="tag">Reshape</div><h4>Rethink functions and workflows</h4><p class="small muted">Rewire core functions and how people work. Radical productivity and speed gains of 30 to 50%.</p></div>
+      <div class="card accent-top"><div class="tag">Invent</div><h4>New business models</h4><p class="small muted">Create new revenue through AI-powered services, monetizing assets and data.</p></div>
+    </div>
+    <div class="info">Leading companies focus <strong>about 80% of AI investment on Reshape and Invent</strong>. The E2E transformation runs in three waves: Accelerate, Scale, Embed.</div>
+    <div class="grid g3">
+      <div class="card"><div class="kpi"><span class="big">10%</span><span class="lbl">AI Application</span></div><p class="small muted" style="margin-top:8px">Copilots and agents in high-value workflows.</p></div>
+      <div class="card"><div class="kpi"><span class="big">20%</span><span class="lbl">Data and Technology</span></div><p class="small muted" style="margin-top:8px">Modern data foundation and scalable AI platforms.</p></div>
+      <div class="card"><div class="kpi"><span class="big">70%</span><span class="lbl">People, Org, Process</span></div><p class="small muted" style="margin-top:8px">Redesign processes, roles, skills, and governance. The POP focus.</p></div>
+    </div>
+    <h4>Key offer decks</h4>
+    <ul class="mat" style="padding-left:18px">
+      <li><a href="https://knowledgecontribution.navigator.bcg.com/kp/37945527-1d8a-4556-9d71-bde9ec34e212" target="_blank" rel="noopener">(Gen)AI Deploy Playbook</a></li>
+      <li><a href="https://pages.navigator.bcg.com/kp/7e3e8a2e-e0ac-477e-a7eb-9d774c40bc34" target="_blank" rel="noopener">(Gen)AI Reshape Playbook</a></li>
+      <li>Invent: <a href="https://pages.navigator.bcg.com/kp/8d7008a5-03d2-442b-910d-8b23e6401e74" target="_blank" rel="noopener">(Gen)AI Invent Playbook</a></li>
+      <li>E2E transformation: <a href="https://pages.navigator.bcg.com/kp/4733ae37-7dcb-4c9b-80ad-3c07a445b9b3" target="_blank" rel="noopener">E2E (Gen)AI Transformation</a>, <a href="https://pages.navigator.bcg.com/kp/d4af87c7-6e23-4114-9623-12695e531f80" target="_blank" rel="noopener">Playbook: How to Start</a>, <a href="https://pages.navigator.bcg.com/kp/2d52770e-7699-4cdd-8486-9e94bbab890c" target="_blank" rel="noopener">Playbook: How and Where to Scale</a></li>
+      <li>The 70: <a href="https://practiceareas.bcg.com/FPA/People-and-Organization/Gen-AI-and-the-70" target="_blank" rel="noopener">Gen AI and the 70 (KN page)</a></li>
+    </ul>
+
+    <h3>Key SharePoints and GenAI microsite</h3>
+    <p class="muted small">The shared homes for (Gen)AI materials. Start here to browse the full libraries.</p>
+    <div class="src">
+      <a href="https://bcgcloud.sharepoint.com/sites/AIatScaleandGenAI" target="_blank" rel="noopener">AI at Scale and GenAI (broader TDA GenAI community)</a>
+      <a href="https://bcgcloudeur.sharepoint.com/sites/GenAIandDigital/Shared%20Knowledge%20Materials/Forms/AllItems.aspx?id=%2Fsites%2FGenAIandDigital%2FShared%20Knowledge%20Materials%2F2%2E%20BFF%20Sector%20decks%20and%20key%20insights%2F2025%20sector%20Decks%5Flong%20version&amp;viewid=c50ffac8%2D34e9%2D4238%2Db5de%2D4d72d9ce2b9f&amp;newTargetListUrl=%2Fsites%2FGenAIandDigital%2FShared%20Knowledge%20Materials&amp;viewpath=%2Fsites%2FGenAIandDigital%2FShared%20Knowledge%20Materials%2FForms%2FAllItems%2Easpx" target="_blank" rel="noopener">GenAI and Digital (internal TDA GenAI team)</a>
+      <a href="https://bcgcloudanz.sharepoint.com/sites/POPPractice/POP%20GenAI/Forms/AllItems.aspx?e=2%3ARcN58B&amp;at=9" target="_blank" rel="noopener">POP GenAI SharePoint</a>
+      <a href="https://connect.bcg.com/genai-int/" target="_blank" rel="noopener">(Gen)AI Microsite</a>
+    </div>
+
+    <h3>Topic index</h3>
+    <p class="muted small">Find the topic and reuse the linked materials. Ask your manager who owns the topic for depth.</p>
+    <div class="kn-jump">
+      <a data-jump="kn-foundations">Key GenAI Materials</a>
+      <a data-jump="kn-pop">POP x TDA: People, Organisation &amp; Productivity</a>
+      <a data-jump="kn-value">AI Value &amp; Cost Transformation</a>
+      <a data-jump="kn-sector">Sector-specific GenAI materials</a>
+      <a data-jump="kn-opmodel">GenAI Operating Model &amp; Scaling</a>
+      <a data-jump="kn-sales">Sales AI &amp; AI Business Performance</a>
+      <a data-jump="kn-rai">Responsible AI</a>
+    </div>
+    <h3 class="kn" id="kn-foundations">Key GenAI Materials</h3>
+    <div class="warn-orange"><strong>Heads up:</strong> some of these materials may not be the latest and greatest. Always double-check and look for additional materials. Use this as a strong first pass, not the final word.</div>
+    <p class="muted small">Firmwide foundations: killer slides, value proofs and demos, the AI-First and Reshape playbooks, BFF, tech stack and governance, and credentials. Start here for most requests.</p>
+    <div class="grid g2">
+      <div class="card accent-top">
+        <h4>Killer slides &amp; proposal starters</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/52299d35-79d7-4eb8-b3a7-09689cca00df" target="_blank" rel="noopener">Killer Slides for AI + GenAI</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/fc815229-dd76-44d2-bcea-46e700b2db8b" target="_blank" rel="noopener">Proposal Starter Slides: GenAI Capabilities</a></li>
+          <li><a href="https://media-publications.bcg.com/flash/dotbcg_other/bcg_ai_final_online_newvo_nocta_web.mp4" target="_blank" rel="noopener">Harnessing the Power of AI and GenAI (video)</a></li>
+          <li><a href="https://media-publications.bcg.com/flash/dotbcg_other/BCG_NYLAI_Final.mp4" target="_blank" rel="noopener">Client Testimonial (video)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/2fb2bcf1-d83b-4d71-a4e8-d732b2f0c2e4" target="_blank" rel="noopener">GenAI Demos Library</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>GenAI Impact Stories &amp; Demos</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/2a8d6770-c2c5-4b0a-80d2-99807042f9d8" target="_blank" rel="noopener">GenAI Impact Stories</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/36d9f26e-3805-4943-8a71-83ee1da51cc2" target="_blank" rel="noopener">GenAI Vignette Collection</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/53ec3fe2-495e-40c7-a3ca-8f3ef53b9835" target="_blank" rel="noopener">Consolidated Agentic AI Credentials</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/2fb2bcf1-d83b-4d71-a4e8-d732b2f0c2e4" target="_blank" rel="noopener">Generative AI Demos</a></li>
+          <li><a href="https://x.bcg.com/portal/agent-library?ipa[]=Health-Care" target="_blank" rel="noopener">BCG X Portal: Agentic Library</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>BCG EP series &amp; Agentic Credentials</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kb/e85195c5-f883-47b0-acb3-48bc810ad150" target="_blank" rel="noopener">BCG Functional Executive Perspectives</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/ed35101d-1a00-46f0-b5d1-dc4d28b6d622?opendocviz=true&amp;slideno=98" target="_blank" rel="noopener">Generative AI Implications for Corporate Functions</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/b66e1b81-b784-4b6f-9033-162c28b920ea" target="_blank" rel="noopener">BCG EP: Agentic Credentials</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kb/f91e61fc-f937-4ff0-ae98-c2c69aa9198f" target="_blank" rel="noopener">BCG Sector-Based Executive Perspectives</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/2e0a9a82-a3f3-4e0f-9d05-1646948ccf2b" target="_blank" rel="noopener">CEO Perspective on AI Agents</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/ff538dec-9562-41c1-9cd1-f72e0a79e33a" target="_blank" rel="noopener">Agentic AI CEO Narrative</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>AI-First &amp; Reshape</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/ac5b8d3b-ec6b-4b1e-abd8-7dacc5fba174" target="_blank" rel="noopener">AI-First Organization Executive Deck</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/b16eb557-69cc-4316-8111-a3c9dabe3cba" target="_blank" rel="noopener">AI-First Detailed Materials</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/3fd91c26-586f-4c79-afb1-c4c18e913afe" target="_blank" rel="noopener">AI-First Companies Win the Future</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/7e3e8a2e-e0ac-477e-a7eb-9d774c40bc34" target="_blank" rel="noopener">(Gen)AI Reshape Playbook</a></li>
+          <li><a href="https://knowledgecontribution.navigator.bcg.com/kp/37945527-1d8a-4556-9d71-bde9ec34e212" target="_blank" rel="noopener">(Gen)AI Deploy Playbook</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/cfcc170c-1a2a-4af1-914a-bde9005c4a56" target="_blank" rel="noopener">Agentic Workflow Redesign: Client Pitch Deck</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kb/6cda0f5a-4b26-41a9-a639-bb4a2f8f0144" target="_blank" rel="noopener">(Gen)AI Reshape: Marketing Transformation</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/91b93c03-9e3a-42bb-a1b5-508e88732a0f" target="_blank" rel="noopener">Blueprint to Become an AI-First Company by 2030</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/a5a16224-495e-448f-8ef9-61bd48a2d18f" target="_blank" rel="noopener">Agile x AI Playbook</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/d4af87c7-6e23-4114-9623-12695e531f80" target="_blank" rel="noopener">GenAI Playbook: How to Start?</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/2d52770e-7699-4cdd-8486-9e94bbab890c" target="_blank" rel="noopener">GenAI Playbook: How and Where to Scale?</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>BFF Assessment suite</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/4916e975-5ee8-4d1a-9363-0b3d20dce7ce" target="_blank" rel="noopener">BFF Assessment: Long Sales Deck</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/a8ee24b3-bdd5-4698-90b7-b7a1df445a13" target="_blank" rel="noopener">BFF Assessment: Short Internal Deck</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/0775b511-e23a-4144-bbe7-25ef0f8cc604" target="_blank" rel="noopener">BFF Assessment: Proposal Support 2-Pager</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/bc3f7dbc-d073-425e-8fa7-7a02e72a210a" target="_blank" rel="noopener">TDA Benchmarking &amp; Assessment Offer Map</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kb/e5e64a66-feb5-401f-bfff-84c83c33c7c0" target="_blank" rel="noopener">Build for the Future x AI Sector Materials</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/b86fd5d8-8b69-4459-bc3f-60a1e5a07bab" target="_blank" rel="noopener">BFF25 Aerospace &amp; Defense</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/25d20d75-bbae-4e98-a365-707afcb057b9" target="_blank" rel="noopener">BFF25 Airlines</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/3c50e1ff-cd0c-4c2a-8b69-2be490444a47" target="_blank" rel="noopener">BFF25 Automotive</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/7542d18b-9080-44cb-a6ce-7fd8390ff8c4" target="_blank" rel="noopener">BFF25 Banking</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/eee663c8-496b-4f36-8c9d-1f501db3c078" target="_blank" rel="noopener">BFF25 Biopharma</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/e7a0cd87-a43c-4106-98da-8fdcb7672712" target="_blank" rel="noopener">BFF25 Chemicals</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/493c99e1-ab25-400e-8f17-e5d8780cc455" target="_blank" rel="noopener">BFF25 Construction, Cities &amp; Infra</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/a0037c22-5831-4c6a-b3bb-ac051901e938" target="_blank" rel="noopener">BFF25 Consumer Products</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/4eebf24c-9f9d-496b-86a5-cace05f6365a" target="_blank" rel="noopener">BFF25 Devices, Components &amp; Semi</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/012aa31e-97e8-417a-adff-69805ee849f9" target="_blank" rel="noopener">BFF25 Fashion &amp; Luxury</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/4bfa0771-4e0d-4221-a7db-b4137571fdf4" target="_blank" rel="noopener">BFF25 Global Asset Managers</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/bf6261cb-4ef4-4fcc-af8e-ef6931614600" target="_blank" rel="noopener">BFF25 Insurance</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/39dd5179-be2f-4eed-b2c3-0c897a0b3200" target="_blank" rel="noopener">BFF25 Logistics &amp; Postal Services</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/f1de9fac-6280-426f-8f85-710f0fa5693a" target="_blank" rel="noopener">BFF25 Machinery &amp; Automation</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/02c7159e-c53b-4435-aa43-0f55b17d17b0" target="_blank" rel="noopener">BFF25 Media</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/d1504143-b253-4fe6-932b-6bcf5e859dd5" target="_blank" rel="noopener">BFF25 MedTech</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/181b4e39-be6a-4abf-a7ea-f69ee2835910" target="_blank" rel="noopener">BFF25 Metals &amp; Mining</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/bff279da-65e9-4c1c-9a4b-2b3b2d8dfa43" target="_blank" rel="noopener">BFF25 Oil &amp; Gas</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/1950019e-2e9a-4e21-9cab-f98274ebd1f2" target="_blank" rel="noopener">BFF25 Payments &amp; Fintech</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/0af3a57a-ffb5-47b8-8616-f3b873b55a9b" target="_blank" rel="noopener">BFF25 Power, Utilities &amp; Renewables</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/1d916a24-885d-4d71-9c87-17c3d2250d85" target="_blank" rel="noopener">BFF25 Providers, Systems &amp; Services</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/83c39967-1956-4748-8c68-5d62c200cdc8" target="_blank" rel="noopener">BFF25 Public Sector</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/8236fb94-c9f3-4372-ae5d-1159690d92a0" target="_blank" rel="noopener">BFF25 Rail &amp; Hospitality</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/0d47f201-7d8d-49be-a270-272e4a24a6e4" target="_blank" rel="noopener">BFF25 Retail</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/63b52c20-7d54-4c07-80db-38a7024ca063" target="_blank" rel="noopener">BFF25 Software</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/18cf7584-a5dc-4457-bdb3-e733bd859784" target="_blank" rel="noopener">BFF25 Telco</a></li>
+          <li><a href="https://bcgcloud-my.sharepoint.com/:f:/g/personal/hayden_eugene_bcg_com/IgDQiJed238KQIfnnRc4I094AeSsEO3S1AvJ9oR1PdCzfuU?e=VRffVc" target="_blank" rel="noopener">BFF25 All Sector Materials</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>AI Tech Stack &amp; Governance</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/5e8938f0-8217-498d-9510-41d0f4e084e0" target="_blank" rel="noopener">Data &amp; Tech Architecture for Enterprise Agentic AI at Scale</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/1c426918-8e8c-4081-b164-0545ca089922" target="_blank" rel="noopener">Orchestrating AI Delivery at Scale</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/55edda82-5c32-4e16-bcd3-734994ec7c0f" target="_blank" rel="noopener">The AI Delivery Office</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/8835d577-a725-46f1-8bd1-da9e12a1a391" target="_blank" rel="noopener">(Gen)AI Reshape Transformation Governance Overview</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/b2de36f2-e2db-439a-935a-c3699270218c" target="_blank" rel="noopener">AI Governance Framework for a Bank</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/41b60efe-ca77-40c1-872e-b0c91683b4e8" target="_blank" rel="noopener">CIO/CTO Guide to GenAI: Operating Model</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/78aacc73-288b-45ce-90ee-d08275838690" target="_blank" rel="noopener">WCTF: GenAI in the Tech Function</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/fbabcac5-05cd-431a-aff7-b12b09aef105" target="_blank" rel="noopener">(Gen)AI Operating Model Playbook</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/673044b2-9f2a-4eb4-921f-5dac07179572" target="_blank" rel="noopener">Client Memo: BCG Data Privacy Practices Overview</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/eb570293-7cf1-4a09-a3bb-a7a00f18b2db" target="_blank" rel="noopener">Data Privacy Materials for Proposals</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/166a5c92-f5c4-4025-a652-7bbb70df3da5" target="_blank" rel="noopener">BCG Privacy Assessment Tool</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/4d6e7c63-14b0-4bc3-abd1-8b51e6e1dcda" target="_blank" rel="noopener">FAST: Framework for Agentic AI Secure Tech Build</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/9738a280-b5d7-44e7-be19-f533292fe9c8" target="_blank" rel="noopener">Security and Privacy for GenAI Technology Implementations</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/e39bcdb2-099d-4c8a-a42b-51d65a7685cb" target="_blank" rel="noopener">Protecting Data for Generative AI Scale</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/f9912b20-b5bd-4e8b-a6c2-7994f13f4382" target="_blank" rel="noopener">GenAI for IT: Impact on Ways of Working</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/814a99f4-72bb-4665-afda-25115696e0ae" target="_blank" rel="noopener">GenAI for IT Potential Assessment</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/bb670e3e-7b3e-4042-b4e3-607ac1d5b108" target="_blank" rel="noopener">CIO/CTO Guide for GenAI for IT</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>GenAI Build vs Buy vs Partner</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/c962a063-a8ab-41a4-86ee-fbe1a983eeb1" target="_blank" rel="noopener">GenAI Build vs Buy Framework</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/a8acd2b4-2261-4cd0-8df3-6f77eb959bf9?opendocviz=true&amp;slideno=34" target="_blank" rel="noopener">Building Effective Enterprise AI Agents</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/763bc4ec-32ef-4771-b7cb-b38ff4a2bb85?opendocviz=true&amp;slideno=17" target="_blank" rel="noopener">Composable Business in an Agentic Era</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>AI Cost &amp; Pricing</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/9dac9ade-2279-424d-9ae5-ad84d4a8981c" target="_blank" rel="noopener">CIO/CTO Guide: Economics of Tech in GenAI</a></li>
+          <li><a href="https://knowledgecontribution.navigator.bcg.com/kp/dbfa1a8b-b55f-4937-a2f4-38815e1d0003" target="_blank" rel="noopener">GenAI Cost Model</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/034df545-c462-4ea4-a502-892503e8a390" target="_blank" rel="noopener">GenAI Metrics</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/55edda82-5c32-4e16-bcd3-734994ec7c0f" target="_blank" rel="noopener">The AI Delivery Office</a></li>
+          <li><a href="https://artificialanalysis.ai/" target="_blank" rel="noopener">AI Models Performance &amp; Analysis</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/7ed56709-712a-42d1-8da2-f8439c092813" target="_blank" rel="noopener">GenAI Platform and Model Provider Selection Guide</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/d975bd70-d5f3-4d62-92e7-0bed6b83e173" target="_blank" rel="noopener">Model Performance for GenAI</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>BCG Credentials &amp; Partnerships</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/4ed36ea1-08b1-4229-882b-68eebf8d6494" target="_blank" rel="noopener">BCG Partnerships &amp; Alliances Overview</a></li>
+          <li><a href="https://www.bcg.com/press/23february2026-bcg-and-openai-partnership-frontier-alliance" target="_blank" rel="noopener">BCG x OpenAI Frontier Alliance announcement</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/81e6e7ae-a23c-4dd4-9691-7f6b6beb84da" target="_blank" rel="noopener">TDA Offer Maps</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/cc656b84-fa8e-4d53-9dec-049e36f3a89a" target="_blank" rel="noopener">Overview of BCG X-Powered Offers (Blockbusters)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/9ce59cca-f64d-47fe-9de6-d6a5fcbe1742" target="_blank" rel="noopener">BCG AI Credentials: Commercial Excellence Support</a></li>
+        </ul>
+      </div>
+    </div>
+    <h3 class="kn" id="kn-pop">POP x TDA: People, Organisation &amp; Productivity</h3>
+    <p class="muted small">The POP angle on AI: the 70 of 10-20-70, workforce productivity and ROI, the SDLC, AI operating models, and adoption.</p>
+    <div class="grid g2">
+      <div class="card accent-top">
+        <h4>70-20-10 &amp; People Transformation</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/52299d35-79d7-4eb8-b3a7-09689cca00df" target="_blank" rel="noopener">Killer Slides: 10-20-70 Iceberg</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/3f566344-6982-4e2a-aab9-bb5fb1e14e15" target="_blank" rel="noopener">AI &amp; People: Narratives in Industry</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/2d89cf3e-46eb-4416-a455-002eae49e2b8" target="_blank" rel="noopener">POP GenAI One-Pager Deep Dives: Enhancing AI Transformation with "The 70"</a></li>
+          <li><a href="https://www.bcg.com/publications/2026/ai-transformation-is-a-workforce-transformation" target="_blank" rel="noopener">AI Transformation Is a Workforce Transformation</a></li>
+          <li><a href="https://www.bcg.com/publications/2025/closing-the-ai-impact-gap" target="_blank" rel="noopener">Closing the AI Impact Gap</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/c34326d8-be17-41f9-82d7-0332db6a6fe2" target="_blank" rel="noopener">People Agenda Imperatives for CEOs to Future-Proof Their Organizations</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/2b333159-5fc4-4e05-aa41-339d980bb8ed" target="_blank" rel="noopener">NextGen HR: A Roadmap for CHROs</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/ff538dec-9562-41c1-9cd1-f72e0a79e33a" target="_blank" rel="noopener">NextGen HR: Unlocking Impact from GenAI and Agentic AI</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/ae6b705e-4122-4a35-9395-512c99ed26dd" target="_blank" rel="noopener">Work Reinvention: Reinventing Work in the Age of AI</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/034df545-c462-4ea4-a502-892503e8a390" target="_blank" rel="noopener">Rethinking Productivity in the Age of AI</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/11a9ada2-8519-48c8-af37-312270c72117" target="_blank" rel="noopener">The Impact of AI on Leading Tech Roles</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>GenAI Workforce Productivity &amp; ROI</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/affbe997-9a1f-49c0-9e3b-ee58c14fbdce" target="_blank" rel="noopener">Agent Deep Dive: High Value Functions and ROI</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/ee0a029f-b21f-4ed5-985e-d8e0840243f2" target="_blank" rel="noopener">The "70" GenAI Primer: Value Identification &amp; Roadmap Development</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/6d386e2d-b6f6-42cd-bc06-d44888068c47" target="_blank" rel="noopener">GenAI Workforce Productivity Diagnostic</a></li>
+          <li><a href="https://knowledgecontribution.navigator.bcg.com/kp/affbe997-9a1f-49c0-9e3b-ee58c14fbdce" target="_blank" rel="noopener">AI Agents: High-Value Functions and ROI</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/656b396e-b15c-4f78-9852-2c332a3deb03" target="_blank" rel="noopener">GenAI Value Realization for SaaS Enterprises</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/3d3b9dee-b0a6-4baf-99af-a0500142911e" target="_blank" rel="noopener">Identifying &amp; Capturing Value in a GenAI Transformation at Global Market Research Firm</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>PDLC Next (SDLC)</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/358bb7ef-93e8-4bbc-9f82-79f2d4f22304" target="_blank" rel="noopener">Future of Build &amp; Operate: GenAI in SDLC</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/eb76141f-ee2f-4f08-9f68-42b669f9d714" target="_blank" rel="noopener">Boosting Developer Productivity Through Structured Learning Programs</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/6c92842c-fc74-45db-b9ca-4ac188441541" target="_blank" rel="noopener">Effective AI Integration in Software Development Life Cycle</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/997675cd-db07-49fc-a6da-d2337cb9142f" target="_blank" rel="noopener">BCG EP: AI-Enabled Engineering Excellence</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/3a009ddb-f730-4c58-b4d3-fbb72e535da8?opendocviz=true&amp;slideno=36" target="_blank" rel="noopener">GenAI PoC for Legacy Code Modernization</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/babd3f9d-3ae5-4c31-803c-f82a7d1bf976?opendocviz=true&amp;slideno=5" target="_blank" rel="noopener">AI-Powered Code Modernization and Data Lineage Extraction</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/f3829f88-6a54-4b72-9a56-85074c5d9647?opendocviz=true&amp;slideno=5" target="_blank" rel="noopener">AI Agent Build for COBOL Legacy Modernization</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/74dabb0f-36bb-4a01-b3a9-c5203689f974" target="_blank" rel="noopener">NextGen Legacy Modernization (Selling Materials)</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>Chief AI Officer &amp; AI CoE Team Structure</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/1c426918-8e8c-4081-b164-0545ca089922" target="_blank" rel="noopener">Orchestrating AI Delivery in the Organization, at Scale</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/58e6039e-a5f1-424f-8df5-7b770880c083" target="_blank" rel="noopener">AI Operating Model for a MedTech Company</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/6cb1d37e-2bb4-4ddc-baa3-298b9e1bbf7c" target="_blank" rel="noopener">Operating Model for GenAI</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/2b224dcd-468c-41ee-866f-7590a3ebd35b" target="_blank" rel="noopener">Design an AI/ML Operating Model at Scale at a Large Universal Bank</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/06ecefa2-4213-41b4-af6f-a92797e6a4c7" target="_blank" rel="noopener">AI@Scale Diagnostic for North American Telco</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>POP AI: Adoption, Workforce &amp; Telco BFF</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/42a3eb24-a05b-4514-b9b7-6348cd432b21" target="_blank" rel="noopener">POP AI Proposal</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/c1662b62-5ef4-45b4-b1fc-784c97891861" target="_blank" rel="noopener">Driving Adoption Overview (GenAI adoption mechanisms and change levers)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/4916e975-5ee8-4d1a-9363-0b3d20dce7ce" target="_blank" rel="noopener">Build for the Future Global Study</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/18cf7584-a5dc-4457-bdb3-e733bd859784" target="_blank" rel="noopener">BFF Sector Deck: Telco</a></li>
+        </ul>
+      </div>
+    </div>
+    <h3 class="kn" id="kn-value">AI Value &amp; Cost Transformation</h3>
+    <p class="muted small">Sizing and proving value: impact measurement, the AI ROI database, cost transformation, and supply chain.</p>
+    <div class="grid g2">
+      <div class="card accent-top">
+        <h4>AI Impact Measurement &amp; ROI Database</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/d5ca2260-7610-403d-a9bf-73fc7a0e6ae2" target="_blank" rel="noopener">Measuring (Gen)AI Impact</a></li>
+          <li><a href="https://bcgcloud-my.sharepoint.com/:x:/g/personal/hayden_eugene_bcg_com/IQCKQeiHvgKuS4mD1pgoSVE3AawbertCauy-h7LwJW8hDlo?e=Be3ZHr" target="_blank" rel="noopener">AI ROI Database</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/cdabcba0-c352-4878-ba5a-d9be19df102d" target="_blank" rel="noopener">AI CEO Handbook 2023</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/2e0a9a82-a3f3-4e0f-9d05-1646948ccf2b" target="_blank" rel="noopener">CEO Perspective on AI Agents 2025</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kb/a07f381f-5aee-4c85-a284-e3dd7bc343d5" target="_blank" rel="noopener">BCG AI Radar 2026</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>Org-Wide AI/Digital Transformation Cases</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/2ec3dd39-1c60-435c-a62e-25ee71bd0d9e" target="_blank" rel="noopener">GenAI at Scale Strategy for an Automotive Company</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/b68592cd-3db9-4f49-b361-a3226ebe23e6" target="_blank" rel="noopener">Enterprise-Wide Digital Transformation: CPG</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>AI-enabled cost transformation</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/145ceb22-0c91-4df6-847a-b8f9824461f6" target="_blank" rel="noopener">GenAI Based Cost Transformation Playbook</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/13eb9287-2533-4091-b01b-328254250034" target="_blank" rel="noopener">Unlocking Impact from Agentic AI in Customer Service</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/bf046128-ecdc-4c1a-9e9c-d6f9091f12c0" target="_blank" rel="noopener">Cost-down Potential in Indirect Spend from Generative AI</a></li>
+          <li><a href="https://www.bcg.com/publications/2025/ai-fitness-for-ceos" target="_blank" rel="noopener">AI Fitness for CEOs: Building Digital Strength (BCG.com)</a></li>
+          <li><a href="https://www.bcg.com/publications/2025/are-you-generating-value-from-ai-the-widening-gap" target="_blank" rel="noopener">Are You Generating Value from AI? The Widening Gap (BCG.com)</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>Supply Chain &amp; Agentic AI</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/8f264651-0dcb-47af-aa80-c05b8ac979e1" target="_blank" rel="noopener">Agentic AI in Supply Chain (E2E operational efficiency)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/c7e72e2b-5578-4915-8212-28f48241bb60" target="_blank" rel="noopener">BCG X Powered Offers (Supply Chain AI: E2E Plan, Digital Twin, Network Optimization)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/1f3c6441-86cb-4f08-83c4-34176c2eaa4a" target="_blank" rel="noopener">Unlocking the Value Potential of AI and GenAI Transformation: Supply Chains</a></li>
+        </ul>
+      </div>
+    </div>
+    <h3 class="kn" id="kn-sector">Sector-specific GenAI materials</h3>
+    <p class="muted small">Sector entry points for proposals and cases. Pair these with the BFF25 sector decks in Key GenAI Materials.</p>
+    <div class="grid g2">
+      <div class="card accent-top">
+        <h4>Power &amp; Utilities</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/ebe578ed-168d-4876-b65d-c0f2b82d4c78" target="_blank" rel="noopener">BCG EP: AI-First Companies Win the Future - Power &amp; Utilities</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/8f008b90-b947-4f93-8238-38a066930d4f" target="_blank" rel="noopener">GenAI in Power &amp; Utilities: B2B Customer Survey</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/0af3a57a-ffb5-47b8-8616-f3b873b55a9b" target="_blank" rel="noopener">BFF25 Sector Deck: Power &amp; Utilities (Short)</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>Consumer Products / CPG</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/a0037c22-5831-4c6a-b3bb-ac051901e938" target="_blank" rel="noopener">BFF in Consumer Products: AI-First Operating Model</a></li>
+          <li><a href="https://www.bcg.com/assets/2025/executive-perspectives-ai-first-companies-consumer-products-10july.pdf" target="_blank" rel="noopener">BCG EP: AI-First Companies Win the Future - Consumer Products</a></li>
+          <li><a href="https://www.bcg.com/publications/2026/the-ai-forward-cpg-marketing-organization" target="_blank" rel="noopener">The AI-Forward CPG Marketing Organization</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/dfea377d-7e9b-4617-8dfa-16d4c6c6b9fc?opendocviz=true&amp;slideno=6" target="_blank" rel="noopener">GenAI Productivity Diagnostic Primer: CPG</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>Logistics, Postal &amp; Shipping</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/6e103dd8-1e0c-4b0a-a9c0-3a9c07e579cf" target="_blank" rel="noopener">GenAI in Logistics (core sector deck)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/a77d3559-77de-45aa-8be7-0d6a7a78ea47" target="_blank" rel="noopener">GenAI GTM Materials: Logistics, Postal &amp; Shipping</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/07c55735-fb02-4326-ada8-069f6edaf96f" target="_blank" rel="noopener">Diagnosed (Gen)AI Value Potential for a Leading Logistics Player</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/6ac80699-2adb-4f19-96a6-687f46ce61af" target="_blank" rel="noopener">Digital Operations Strategy: Global Parcel Delivery &amp; Logistics Company</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/39dd5179-be2f-4eed-b2c3-0c897a0b3200" target="_blank" rel="noopener">BFF25 Sector Deck: Logistics &amp; Postal Services</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>Government / Public Sector</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/90a93af6-0158-4b5d-aaa1-3cabf1c49ae7" target="_blank" rel="noopener">Developing GenAI for Government Services</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/20198d21-1601-4bd4-a4c2-1ecd0d15e5bd" target="_blank" rel="noopener">GenAI in Government: B2B Customer Survey</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/6092a77d-826e-46b7-bcba-d6e76a0e8a9b" target="_blank" rel="noopener">De-risking Core Transformation with GenAI</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kb/29391043-8bdb-4395-9077-17d758711dc6" target="_blank" rel="noopener">Core Legacy Technology Modernization Program</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/1adbc60c-7a16-402d-8999-59502274ca19" target="_blank" rel="noopener">BFF25 Sector Deck: Public Sector</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>Professional Services</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/daf52960-8f3a-448a-87c3-4d2d4bf2c15d" target="_blank" rel="noopener">BCG's GenAI Contract Workbench Tool</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/7a4b30cd-fabe-402e-beb2-dccc320c2e4e" target="_blank" rel="noopener">GenAI in the Finance Function of the Future</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/3f1e200d-6278-4fae-bc9a-7a10afddcda0" target="_blank" rel="noopener">Unlocking Impact from GenAI in HR</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/13eb9287-2533-4091-b01b-328254250034" target="_blank" rel="noopener">Unlocking Impact from AI in Customer Service</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>Industrial Goods &amp; Chemicals</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/bff279da-65e9-4c1c-9a4b-2b3b2d8dfa43" target="_blank" rel="noopener">BFF25 Sector Deck: Oil &amp; Gas</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/e7a0cd87-a43c-4106-98da-8fdcb7672712" target="_blank" rel="noopener">BFF25 Full Sector Deck: Chemicals</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/f1de9fac-6280-426f-8f85-710f0fa5693a" target="_blank" rel="noopener">BFF25 Sector Deck: Machinery &amp; Automation</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/181b4e39-be6a-4abf-a7ea-f69ee2835910" target="_blank" rel="noopener">BFF25 Sector Deck: Metals &amp; Mining</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>Software / TMT</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/63b52c20-7d54-4c07-80db-38a7024ca063" target="_blank" rel="noopener">BFF25 Full Sector Deck: Software</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/d6d3cc5e-2e98-493f-9d88-0d98528af9be" target="_blank" rel="noopener">BFF25 Sector Deck: Telco</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>Retail &amp; Financial Services</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/0d47f201-7d8d-49be-a270-272e4a24a6e4" target="_blank" rel="noopener">BFF25 Full Sector Deck: Retail</a></li>
+          <li><a href="https://knowledgecontribution.navigator.bcg.com/kp/ebe578ed-168d-4876-b65d-c0f2b82d4c78" target="_blank" rel="noopener">BCG EP: Future of Marketing with GenAI</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/1dd10265-e049-496c-9c9f-e34a1c3651a6" target="_blank" rel="noopener">2025 Retail Banking Report: From Branches to Bots (BFF x AI)</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>Healthcare</h4>
+        <ul class="mat">
+          <li><a href="https://x.bcg.com/portal/agent-library?ipa[]=Health-Care" target="_blank" rel="noopener">BCG X Agentic Library: Healthcare</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/da985dca-4387-496f-9d6c-854a526636b3" target="_blank" rel="noopener">GenAI Strategy Sprint for a MedTech Company ($30M-$40M potential savings)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/85766da5-c8cc-4418-abdf-f266cdec1ecd#Slide5" target="_blank" rel="noopener">GenAI Value Potential for a MedTech Company (guideline on assessing potential)</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>Manufacturing AI - Case Examples &amp; Capability Overview</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/216082ad-411d-4776-b7f5-cc58084c7c90" target="_blank" rel="noopener">Manufacturing AI: What It Is and Why to Bring It to Your Client</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/8ca7d7c8-e0d0-4868-8e8d-a1894f941905" target="_blank" rel="noopener">Manufacturing AI by BCG X: Capability Overview</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/8efe3130-7072-4f55-8d0d-a1f1c922b385" target="_blank" rel="noopener">Autonomous AI Revolutionizing Manufacturing Operations</a></li>
+          <li><a href="https://knowledgecontribution.navigator.bcg.com/kp/89793b27-5807-4c63-8029-5241cc0ce82b" target="_blank" rel="noopener">Digital Transformation for a Pulp and Paper Manufacturing Company</a></li>
+          <li><a href="https://knowledgecontribution.navigator.bcg.com/kp/2dafe61d-acaf-4484-a0bb-adf7008b3854" target="_blank" rel="noopener">GenAI-Enabled Manufacturing Transformation for a Leading EMS Producer</a></li>
+          <li><a href="https://knowledgecontribution.navigator.bcg.com/kp/08a00b4b-cfe8-4c1c-a4af-5688a92e64d6" target="_blank" rel="noopener">GenAI-Enabled Supply Chain and Production Planning with AgentKit</a></li>
+          <li><a href="https://knowledgecontribution.navigator.bcg.com/kp/330a8c4d-76cf-4f83-89da-f51aff8ff74c" target="_blank" rel="noopener">AluX: Setpoint Optimization in Aluminium Smelting</a></li>
+        </ul>
+      </div>
+    </div>
+    <h3 class="kn" id="kn-opmodel">GenAI Operating Model &amp; Scaling</h3>
+    <p class="muted small">How to start and scale: playbooks, the platform operating model, workshops, marketing offers, the agentic landscape, and financial institutions programs.</p>
+    <div class="grid g2">
+      <div class="card accent-top">
+        <h4>GenAI Playbooks: How to Start &amp; Scale</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/c51d69af-4a57-467c-ae41-8f8731f0803c" target="_blank" rel="noopener">GenAI Playbook: How to Start?</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/2d52770e-7699-4cdd-8486-9e94bbab890c" target="_blank" rel="noopener">GenAI Playbook: How and Where to Scale?</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/9ff757b0-35b2-4a2f-9408-66a4a01fab15?opendocviz=true&amp;slideno=42" target="_blank" rel="noopener">CIO's Guide to Implement &amp; Scale Enterprise-wide GenAI Solutions (slide 41: roles)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/d8985421-b0b6-4ffd-99b3-75ca30aa6a11" target="_blank" rel="noopener">Industry-Sorted Case Vignette Deck for TDA Proposals</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>Platform Operating Model (POM)</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/1d6105e3-0c7b-4fa4-9458-f73a9c4b7c1b" target="_blank" rel="noopener">Platform Operating Model: Introduction</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/4a7584f8-3e12-445b-9e69-554e43272742" target="_blank" rel="noopener">Platform Operating Model (POM): Case Studies &amp; Vignettes</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/e3712c30-804d-459a-a581-2575d9054325" target="_blank" rel="noopener">North Star Data Organizations Benchmark (Amazon, Tesla, LinkedIn)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/2ec3dd39-1c60-435c-a62e-25ee71bd0d9e?opendocviz=true&amp;slideno=6" target="_blank" rel="noopener">GenAI at Scale for Automotive: Sizing AI Investment (slide 6: T-shirt sizing, team composition)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/d87d9c92-018b-4b75-b3a6-26bd51facebc" target="_blank" rel="noopener">AI at Scale: Data Science Opportunities at a UK Retailer (squad evolution by maturity)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/42219613-faab-4088-b648-b85ea7c8b1f5" target="_blank" rel="noopener">Corporate Banking: Scaled Agile Structure Examples</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/cbe7cf15-73cc-4a58-a4d0-25ae5dd5cf70" target="_blank" rel="noopener">Agile at Scale at a Leading Insurance Company</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>GenAI Workshop Templates</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/9922afdf-8fdf-4507-b0b2-ac7a5db13f4e" target="_blank" rel="noopener">GenAI Ignite Workshop Agenda Template</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/d6a12390-26a4-420c-800b-be626ebe9bd1" target="_blank" rel="noopener">GenAI Use Case Library (cross-functional, for live workshop ideation)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/2c198aee-b44f-45e1-944d-38ff269a997b" target="_blank" rel="noopener">GenAI Ideation Workshop (growth, efficiency, business model framing)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/9eaaa39d-11ae-4dd9-97f9-3cca83f5f143" target="_blank" rel="noopener">GenAI for Customer Growth: Workshop</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/805cfa8e-142f-498a-bb14-69fe38899574" target="_blank" rel="noopener">GenAI Scenarios Workshop</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>GenAI for Marketing: Sector Offering Decks</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/98052548-51f3-448b-b938-b09be9b4276a?opendocviz=true&amp;slideno=1" target="_blank" rel="noopener">Generative AI and Marketing</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/a2b69a23-d7b7-4a6d-a145-b8d1b9f96e23?opendocviz=true&amp;slideno=10" target="_blank" rel="noopener">Generative AI for Digital Marketing</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/a4e4d2f0-b34d-4e79-a8ec-0832fade5317?opendocviz=true&amp;slideno=1" target="_blank" rel="noopener">GenAI and Marketing Survey: Conversation Primer (adoption benchmarks, 4-pillar strategy)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/e787e8d2-5699-4000-bb7c-13154a86d72d?opendocviz=true&amp;slideno=1" target="_blank" rel="noopener">GenAI in Marketing Offering: Financial Services Banking</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/2e877219-50ae-4afd-90db-a5c8436f39e6?opendocviz=true&amp;slideno=38" target="_blank" rel="noopener">GenAI in Marketing Offering: Insurance (sector-specific use cases and impact)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/5949a98d-b4a1-4aea-a497-88995c4b2701?opendocviz=true&amp;slideno=1" target="_blank" rel="noopener">GenAI in Marketing Offering: Consumer Retail (29% traffic uplift, content hours saved)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/7aab6062-02e5-47d2-97a3-73036315e597?opendocviz=true&amp;slideno=2" target="_blank" rel="noopener">GenAI in Marketing Offering: Payers, Providers, Systems &amp; Services (CTR, cycle time benchmarks)</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>Agentic AI: Market Landscape &amp; Buying Journey</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/5d884e70-81dc-46d5-b696-f0b66210384b" target="_blank" rel="noopener">AI Agents: Market Landscape and Strategic Opportunities for Software Players</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/3c2e1f7c-5ab4-4a60-a104-b1a02bae5b9f" target="_blank" rel="noopener">Agentic AI Business Case &amp; Buying Journey (investment rationale, governance, expected returns)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/a4cc4d00-da0f-4191-a6f5-a428fef30208" target="_blank" rel="noopener">Agentic AI Architectural Decisions and Platform Dynamics (selection criteria, migration, adoption)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/13a4f54b-26d0-4ccc-a5f0-6587d219e744" target="_blank" rel="noopener">Agentic AI Ecosystems in Tech</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>Supply Chain AI: Full Offering Suite</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/8bf67fd8-b468-4e0a-8be1-7fd197ae366e" target="_blank" rel="noopener">Supply Chain AI: A CCO's Guide</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/00db89a5-0297-4c8e-a0c8-c949b68e8675" target="_blank" rel="noopener">Supply Chain AI Main GTM Deck (offering overview + credentials)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/0e356c8e-8971-4dab-8276-cfb311fc4ca8" target="_blank" rel="noopener">Supply Chain AI: GTM for Control Tower (real-time decision making, analytics overlay)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/d4402fa6-a631-4ea5-b378-d35a54961a50" target="_blank" rel="noopener">Supply Chain AI: Industrial Goods Vignettes</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/c57332b1-3596-4e08-a548-4a1cce5d1c19" target="_blank" rel="noopener">Scaled GenAI-Driven Call Center for Aeromexico with BCG x AWS (contact center AI case)</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>Financial Institutions: Scaled GenAI Programs</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/bb2a9c65-2aae-4ab4-bd45-15d1fe76ed94" target="_blank" rel="noopener">(Gen)AI Transformation for a North-American G-SIB ($0.7-1.0B uplift, 10 use cases, 2-3 years)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/71698117-fcc4-4fa0-b425-b93f329aba06" target="_blank" rel="noopener">GenAI Strategy Execution in Financial Institutions (~30 use cases, 10% efficiency uplift, 7,000+ engineers)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/7c861839-42a5-4b2f-871c-166195d82412" target="_blank" rel="noopener">AI Acceleration Program for Iberian Global Bank (+5% revenue, ~10% cost reduction by 2028)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/a68840f3-7ccd-4854-a339-763f8f03ee15?opendocviz=true&amp;slideno=80" target="_blank" rel="noopener">GenAI in Financial Institutions Master Deck</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/601d99b0-1bff-437c-9055-4d64839c2bf8?opendocviz=true&amp;slideno=1" target="_blank" rel="noopener">Industry Implications of Generative AI: Financial Services</a></li>
+          <li><a href="https://www.bcg.com/publications/2025/southeast-asia-unlocking-ai-potential" target="_blank" rel="noopener">Unlocking Southeast Asia's AI Potential (2x bond conversions, 3x RM reviews, 50% pitchbook time cut)</a></li>
+        </ul>
+      </div>
+    </div>
+    <h3 class="kn" id="kn-sales">Sales AI &amp; AI Business Performance</h3>
+    <p class="muted small">Sales AI offers and revenue intelligence, plus GenAI retail workshop and sector materials.</p>
+    <div class="grid g2">
+      <div class="card accent-top">
+        <h4>Sales AI &amp; Revenue Intelligence</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/fc815229-dd76-44d2-bcea-46e700b2db8b" target="_blank" rel="noopener">Sales AI Perspectives Teaser</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/3e2ac977-ec7b-445f-89f6-bb659c15d6ce?opendocviz=true&amp;slideno=70" target="_blank" rel="noopener">AI in GTM Benchmarking &amp; Agent Design</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>Sales AI: Teaser, Demos &amp; Buddy/Genie Platforms</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/b66e1b81-b784-4b6f-9033-162c28b920ea" target="_blank" rel="noopener">Sales AI Teaser</a></li>
+        </ul>
+      </div>
+      <div class="card accent-top">
+        <h4>GenAI for Retail: Workshop &amp; Sector Materials</h4>
+        <ul class="mat">
+          <li><a href="https://pages.navigator.bcg.com/kp/18df24e0-5e2d-42f9-92d4-5f0c22583c04" target="_blank" rel="noopener">Primer on GenAI (foundation models, current capabilities)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/8addec00-1653-4428-a195-ea5d1a1c4f8f" target="_blank" rel="noopener">GenAI Trends and Impact on Retail (adoption trends, barriers)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/90ce27eb-a5a4-4270-acfc-fd00dba12eb4" target="_blank" rel="noopener">GenAI Opportunities in Retail (sector-specific applications)</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/6a744501-afba-4ce8-aabf-88ccba6e7b8e" target="_blank" rel="noopener">GenAI Value Proof: Large Discount Retailer</a></li>
+        </ul>
+      </div>
+    </div>
+    <h3 class="kn" id="kn-rai">Responsible AI</h3>
+    <p class="muted small">Responsible AI and human-in-the-loop, for safe and credible delivery.</p>
+    <div class="grid g2">
+      <div class="card accent-top">
+        <h4>Responsible AI (RAI) &amp; Human-in-the-Loop (HITL)</h4>
+        <ul class="mat">
+          <li><a href="https://connect.bcg.com/responsibleai/" target="_blank" rel="noopener">BCG Responsible AI Microsite</a></li>
+          <li><a href="https://www.bcg.com/publications/2025/wont-get-gen-ai-right-if-human-oversight-wrong" target="_blank" rel="noopener">You Won't Get GenAI Right if Human Oversight is Wrong</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/7e3e8a2e-e0ac-477e-a7eb-9d774c40bc34" target="_blank" rel="noopener">(Gen)AI Reshape Playbook</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/784d4774-d60d-4fa7-8c61-59280f6cf584" target="_blank" rel="noopener">Executive Advisory: Leadership Team Decision Making</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/ed35101d-1a00-46f0-b5d1-dc4d28b6d622" target="_blank" rel="noopener">Generative AI Implications for Corporate Functions</a></li>
+          <li><a href="https://pages.navigator.bcg.com/kp/2a268a1f-ad21-46db-bac8-b4e3a69d4a39" target="_blank" rel="noopener">BCG Responsible AI: Frequently Asked Questions</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="note"><strong>Acronyms.</strong> DRI is Deploy, Reshape, Invent. 10-20-70 splits AI value into 10% application, 20% data and technology, 70% people, organization and process. BFF is Build for the Future.</div>
+  </section>
+  <section id="vantage">
+    <h2><span class="num">4</span> How BCG Vantage works</h2>
+    <p class="lead">Vantage is your powerhouse of expertise, embedded within Practice Areas and markets to drive impact for your case teams and clients. Staffing models are part of how Vantage engages.</p>
+    <div class="grid g4">
+      <div class="card"><div class="kpi"><span class="big">1,300+</span><span class="lbl">experts and researchers</span></div></div>
+      <div class="card"><div class="kpi"><span class="big">20</span><span class="lbl">Practices</span></div></div>
+      <div class="card"><div class="kpi"><span class="big">100+</span><span class="lbl">topics, sectors, offers</span></div></div>
+      <div class="card"><div class="kpi"><span class="big">4</span><span class="lbl">geographic markets</span></div></div>
+    </div>
+
+    <h3>Three complementary career paths</h3>
+    <div class="grid g3">
+      <div class="card accent-top"><div class="tag">Client Focus (CF)</div><h4>Case-intensive delivery</h4><p class="small muted">The most case-intensive path. You embed in case teams and deliver expertise, analysis, and assets directly through staffing and workshops.</p></div>
+      <div class="card accent-top"><div class="tag">Topic Activation (TA)</div><h4>Player-coach model</h4><p class="small muted">A player-coach path. You combine expert advisory, offer and asset development, and selective staffing to activate a topic for your practice and its case teams.</p></div>
+      <div class="card accent-top"><div class="tag">Research</div><h4>Data into insight</h4><p class="small muted">You source, validate, and synthesize external data and information, turning it into insight for case and proposal teams.</p></div>
+    </div>
+
+    <h3>Ways to engage Vantage</h3>
+    <table>
+      <thead><tr><th>Expert Advisory</th><th>In between</th><th>Staffing</th></tr></thead>
+      <tbody><tr><td>On-demand input. Share the latest and greatest thinking, point to the right tools and data, give advice, and upskill the team.</td><td>Help me think this through, or lead this client workshop.</td><td>Drive this case module and engage frequently throughout.</td></tr></tbody>
+    </table>
+
+    <h3>Key case terminology</h3>
+    <div class="grid g3">
+      <div class="card"><h4>OPPL</h4><p class="small muted">The management team: Officers (MDPs), Partners, Principals, Project Leaders.</p></div>
+      <div class="card"><h4>XO, Executing Officer</h4><p class="small muted">The MDP who is the day-to-day point of contact for the case.</p></div>
+      <div class="card"><h4>PL, Project Leader</h4><p class="small muted">Leads the day-to-day case team and the delivery of its modules.</p></div>
+      <div class="card"><h4>MDP</h4><p class="small muted">Managing Director and Partner. BCG's partner level; the Officers on a case.</p></div>
+      <div class="card"><h4>Module</h4><p class="small muted">A concrete unit of work that helps solve the case.</p></div>
+      <div class="card"><h4>Working Team</h4><p class="small muted">Associates, consultants, and others doing the day-to-day work.</p></div>
+      <div class="card"><h4>PA, Practice Area</h4><p class="small muted">The topic or sector group that owns offers and experts. Vantage sits within PAs.</p></div>
+      <div class="card"><h4>SBU</h4><p class="small muted">Specialty Business Unit. Vantage is one of several SBUs supporting cases.</p></div>
+      <div class="card"><h4>GRO</h4><p class="small muted">Global Research Organization. BCG's dedicated research arm; some teammates sit here.</p></div>
+    </div>
+    <p class="src"><a href="https://global.inside.bcg.com/Glossary" target="_blank" rel="noopener">Full BCG glossary</a></p>
+  </section>
+  <section id="performance">
+    <h2><span class="num">5</span> Performance</h2>
+    <p class="lead">How your contribution is recognized across the four Vantage pillars.</p>
+    <h3>The Vantage Impact Snapshot</h3>
+    <p class="small muted">A tool to promote visibility across four pillars. It structures the Workday summaries you already write. Applies to TA and CF, not Research. No need to maximize all four; the balance is what counts.</p>
+    <div class="grid g4">
+      <div class="card accent-top"><div class="tag">Pillar</div><h4>Deep Staffing</h4><p class="small muted">CF indexes more here. Staffing traction, depth, feedback, and billability from staffing.</p></div>
+      <div class="card accent-top"><div class="tag">Pillar</div><h4>Expert Advisory</h4><p class="small muted">TA focuses more here. Quality, responsiveness, and repeat customers beyond the shared mailbox.</p></div>
+      <div class="card accent-top"><div class="tag">Pillar</div><h4>Topic Development</h4><p class="small muted">TA focuses more here. Co-creating offers, authoring publications, topic leadership.</p></div>
+      <div class="card accent-top"><div class="tag">Pillar</div><h4>Citizen and Leadership</h4><p class="small muted">Managers spend more time here. Investing in community, colleagues, and yourself.</p></div>
+    </div>
+    <div class="info" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px">
+      <div><strong>Vantage competency overview.</strong> Check the competencies expected for your specific role.</div>
+      <a class="btn-link" href="https://pages.navigator.bcg.com/kp/24d88fa0-7c1e-4a80-8739-15a6b5c8efd1" target="_blank" rel="noopener">View competency overview →</a>
+    </div>
+    <h3>Expert Advisory checklist</h3>
+    <div class="steps">
+      <div class="step"><div class="n"></div><div class="body"><h4>Understanding</h4><p>Understand the context and challenge the team where useful. Know not just what they ask, but why.</p></div></div>
+      <div class="step"><div class="n"></div><div class="body"><h4>Expectations and prioritization</h4><p>Set expectations on what you can deliver. Communicate timeline and pricing if more than roughly 8 hours of work.</p></div></div>
+      <div class="step"><div class="n"></div><div class="body"><h4>Connections, transparency, and answering</h4><p>Make sure you actually answer the question, frame the larger context, and annotate your sources. Be clear on limitations, but never write "this may help" and leave them to figure it out. "I don't have the answer" full stop is never an acceptable response. If you can't answer directly, always redirect to the right team, share key contacts, offer to help build the PoV or perspective, or offer to do the research.</p></div></div>
+      <div class="step"><div class="n"></div><div class="body"><h4>Pushing deeper</h4><p>Shift requests from advisory to deep staffing where it fits. Offer next steps and follow up.</p></div></div>
+    </div>
+  </section>
+  <section id="billability">
+    <h2><span class="num">6</span> Billability</h2>
+    <p class="lead">Vantage is a billable business. C-billability is the key metric for profitable impact.</p>
+    <h3>C-billability targets</h3>
+    <div class="grid g5">
+      <div class="card"><div class="kpi"><span class="big">45%</span><span class="lbl">PA / Geo portfolio</span></div></div>
+      <div class="card"><div class="kpi"><span class="big">&gt;40%</span><span class="lbl">TA</span></div></div>
+      <div class="card"><div class="kpi"><span class="big">55%</span><span class="lbl">CF</span></div></div>
+      <div class="card"><div class="kpi"><span class="big">50%</span><span class="lbl">Research (PA / Geo)</span></div></div>
+      <div class="card"><div class="kpi"><span class="big">50-55%</span><span class="lbl">GRO</span></div></div>
+    </div>
+    <div class="note"><strong>Topic activation.</strong> Our PA target for Topic Activation is 45%.</div>
+    <h3>C-billability and CD-billability</h3>
+    <div class="card" style="font-size:18px;text-align:center;background:var(--green-100);border-color:var(--green-300)"><strong>CD-billability = C-billability + Client Investment + Innovation Fund</strong></div>
+    <ul class="small" style="margin-top:12px">
+      <li>Charge Innovation Fund project codes for Expert Advisory work or when staffed on those projects.</li>
+      <li>For client work linked to an Innovation Fund, charge the linked C-code, not the Innovation Fund code. The internal "600" code does not provide client billability.</li>
+      <li>Avoid "Other Time Tracking" codes. They do not count toward billability.</li>
+      <li>Verify the code type at <a href="https://projectlookup.bcg.com/" target="_blank" rel="noopener">projectlookup.bcg.com</a>.</li>
+    </ul>
+  </section>
+  <section id="timesheet">
+    <h2><span class="num">7</span> Timesheet</h2>
+    <p class="lead">Find and verify your codes, then track and submit your time each week in the Vantage Console.</p>
+    <div class="grid g3">
+      <div class="card accent-top"><h4>1. Find and verify codes</h4><p class="small muted">Use <a href="https://projectlookup.bcg.com/" target="_blank" rel="noopener">projectlookup.bcg.com</a> to verify a code's accuracy and type. Use Knowledge Navigator profiles, under Cases, to find codes by requestor.</p></div>
+      <div class="card accent-top"><h4>2. Track and submit in the Console</h4><p class="small muted">The timesheet is done in the Vantage Console (ServiceNow). Add a timesheet entry per engagement, enter time per code, and set the status to <strong>delivered</strong>.</p><p class="small"><a href="https://bcg.service-now.com/x/tbng3/vantage/home/team_manager" target="_blank" rel="noopener">Vantage Console</a></p></div>
+      <div class="card accent-top"><h4>3. Check the dashboard</h4><p class="small muted">After submitting, confirm your timesheet went through correctly and that your billability looks healthy on the Vantage Billability dashboard.</p><p class="small"><a href="https://tableauha.bcg.com/t/GSBFinance/views/BCGVantageBillabilityReport_2026/TimesheetView?%3Aiid=1&amp;%3Aembed=yes&amp;AshowVizHome=no#1" target="_blank" rel="noopener">Billability dashboard</a></p></div>
+    </div>
+  </section>
+  <section id="resources">
+    <h2><span class="num">8</span> Useful systems</h2>
+    <p class="lead">Bookmark these.</p>
+    <table>
+      <thead><tr><th>Resource</th><th>What it is for</th><th>Where</th></tr></thead>
+      <tbody>
+        <tr><td>Vantage Console</td><td>Track and submit your timesheet</td><td><a href="https://bcg.service-now.com/x/tbng3/vantage/home/team_manager" target="_blank" rel="noopener">Vantage Console</a></td></tr>
+        <tr><td>Project Lookup</td><td>Verify code accuracy and type before charging time</td><td><a href="https://projectlookup.bcg.com/" target="_blank" rel="noopener">projectlookup.bcg.com</a></td></tr>
+        <tr><td>BCG IT service center</td><td>IT support, access requests, and equipment</td><td><a href="https://bostonconsultinggroup.service-now.com/esc" target="_blank" rel="noopener">Enterprise Service Center</a></td></tr>
+        <tr><td>Knowledge Navigator</td><td>Profiles, cases, and the knowledge repository</td><td><a href="https://pages.navigator.bcg.com/" target="_blank" rel="noopener">navigator.bcg.com</a></td></tr>
+        <tr><td>BCG X agent library</td><td>Reusable agentic tools and patterns</td><td><a href="https://x.bcg.com/portal/agent-library" target="_blank" rel="noopener">x.bcg.com agent library</a></td></tr>
+        <tr><td>Responsible AI microsite</td><td>RAI guidance and FAQs</td><td><a href="https://connect.bcg.com/responsibleai/" target="_blank" rel="noopener">connect.bcg.com</a></td></tr>
+        <tr><td>BCG Marketplace</td><td>Discover and access BCG tools, assets, and offerings</td><td><a href="https://marketplace.bcg.com/" target="_blank" rel="noopener">marketplace.bcg.com</a></td></tr>
+      </tbody>
+    </table>
+    <div class="info">Tip: complete the Quality Topic Advisory Training in Vantage onboarding to sharpen your advisory skills.</div>
+  </section>
+  <section id="quiz">
+    <h2><span class="num">9</span> Knowledge check</h2>
+    <p class="lead">Ten questions per attempt, drawn at random from a bank of fifty and graded instantly, with a short explanation for each. It runs inside this page, so it works wherever you open or share the file. Retake as often as you like.</p>
+    <iframe id="quizFrame" title="Onboarding knowledge check" style="width: 100%; height: 3750px; border: 1px solid var(--line); border-radius: 14px; display: block; background: rgb(243, 249, 246);" srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;POP + TDA (Gen)AI Vantage - Onboarding Quiz&lt;/title&gt;
+&lt;style&gt;
+  :root{
+    --green-900:#0a3d2e;--green-800:#0c4a37;--green-700:#0e6e4f;--green-600:#12815d;
+    --green-500:#18a06b;--green-300:#7ec9aa;--green-100:#e3f1ea;--green-50:#f3f9f6;
+    --ink:#1c2622;--muted:#5d6f67;--line:#d8e6df;
+    --red-bg:#fbe9e7;--red-line:#e0a89f;--red-ink:#9a3b2b;
+    --amber-bg:#fbf4e0;--amber-line:#e4c97a;--amber-ink:#7a5b16;
+    --shadow:0 1px 3px rgba(10,61,46,.08),0 6px 18px rgba(10,61,46,.06);--radius:12px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,&quot;Segoe UI&quot;,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--green-50);line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:var(--green-700);text-decoration:none}
+  a:hover{text-decoration:underline}
+  header.site{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.96);backdrop-filter:saturate(160%) blur(8px);border-bottom:1px solid var(--line)}
+  .nav-wrap{max-width:880px;margin:0 auto;padding:10px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:space-between}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--green-800);white-space:nowrap}
+  .brand .dot{width:12px;height:12px;border-radius:3px;background:var(--green-500);display:inline-block}
+  nav.top a{color:var(--muted);padding:5px 9px;border-radius:7px;font-size:13px}
+  nav.top a:hover{background:var(--green-100);color:var(--green-800);text-decoration:none}
+  main{max-width:880px;margin:0 auto;padding:0 22px 80px}
+  h1{font-size:30px;color:var(--green-900);margin:26px 0 8px}
+  .lead{color:var(--muted);font-size:15.5px;margin:0 0 18px;max-width:720px}
+  .hero{background:linear-gradient(135deg,var(--green-800),var(--green-600) 70%,var(--green-500));color:#fff;border-radius:18px;padding:32px 32px;margin:22px 0 18px;box-shadow:var(--shadow)}
+  .hero h1{color:#fff;margin:0 0 10px}
+  .hero p{color:rgba(255,255,255,.92);margin:0;max-width:640px}
+  .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 18px}
+  button{font-family:inherit;cursor:pointer;border-radius:9px;border:none;font-weight:700;font-size:14.5px}
+  .btn{background:var(--green-700);color:#fff;padding:11px 20px;box-shadow:var(--shadow)}
+  .btn:hover{background:var(--green-800)}
+  .btn.ghost{background:#fff;color:var(--green-800);border:1px solid var(--green-300)}
+  .btn.ghost:hover{background:var(--green-100)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .q{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);margin:0 0 14px}
+  .q .num{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--green-600)}
+  .q .stem{font-weight:700;color:var(--green-900);margin:4px 0 12px;font-size:16px}
+  .opt{display:flex;gap:11px;align-items:flex-start;border:1px solid var(--line);border-radius:9px;padding:10px 13px;margin:7px 0;cursor:pointer;transition:background .12s,border-color .12s}
+  .opt:hover{background:var(--green-50);border-color:var(--green-300)}
+  .opt input{margin-top:3px;accent-color:var(--green-600);flex:0 0 auto}
+  .opt .txt{font-size:14.5px}
+  .opt.correct{background:var(--green-100);border-color:var(--green-500)}
+  .opt.wrong{background:var(--red-bg);border-color:var(--red-line)}
+  .opt.locked{cursor:default}
+  .verdict{font-size:13px;font-weight:700;margin:8px 0 0}
+  .verdict.ok{color:var(--green-700)}
+  .verdict.no{color:var(--red-ink)}
+  .explain{font-size:13.5px;color:var(--muted);margin:6px 0 0;border-left:3px solid var(--green-300);padding-left:10px}
+  .result{position:sticky;bottom:0;background:#fff;border:1px solid var(--line);border-top:3px solid var(--green-500);border-radius:14px 14px 0 0;box-shadow:0 -6px 24px rgba(10,61,46,.10);padding:18px 22px;margin-top:18px}
+  .result .score{font-size:34px;font-weight:800;color:var(--green-700);line-height:1}
+  .result .band{font-size:15px;font-weight:700;color:var(--green-900)}
+  .result .pct{color:var(--muted);font-size:14px}
+  .result-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:space-between}
+  .note{background:var(--amber-bg);border:1px solid var(--amber-line);color:var(--amber-ink);border-radius:10px;padding:12px 15px;font-size:13.5px;margin:0 0 16px}
+  footer{max-width:880px;margin:0 auto;padding:24px 22px 60px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;main&gt;
+  &lt;div class=&quot;bar&quot;&gt;
+    &lt;button class=&quot;btn&quot; id=&quot;submitBtn&quot;&gt;Submit answers&lt;/button&gt;
+    &lt;button class=&quot;btn ghost&quot; id=&quot;newBtn&quot;&gt;New quiz&lt;/button&gt;
+    &lt;span class=&quot;pct&quot; id=&quot;progress&quot;&gt;&lt;/span&gt;
+  &lt;/div&gt;
+
+  &lt;form id=&quot;quizForm&quot;&gt;&lt;/form&gt;
+
+  &lt;div class=&quot;result&quot; id=&quot;result&quot; style=&quot;display:none&quot;&gt;
+    &lt;div class=&quot;result-row&quot;&gt;
+      &lt;div&gt;
+        &lt;div class=&quot;score&quot; id=&quot;scoreNum&quot;&gt;0 / 10&lt;/div&gt;
+        &lt;div class=&quot;pct&quot; id=&quot;scorePct&quot;&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;band&quot; id=&quot;band&quot;&gt;&lt;/div&gt;
+      &lt;button class=&quot;btn&quot; id=&quot;againBtn&quot;&gt;Take a new quiz&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;p class=&quot;note&quot; id=&quot;hint&quot;&gt;Tip: answer all ten, then click Submit answers. Unanswered questions are counted as incorrect.&lt;/p&gt;
+&lt;/main&gt;
+&lt;footer&gt;
+  &lt;p&gt;POP and TDA (Gen)AI Vantage onboarding quiz. Questions are based on the onboarding launchpad. This is a self-check, not a formal assessment.&lt;/p&gt;
+&lt;/footer&gt;
+
+&lt;script id=&quot;qdata&quot; type=&quot;application/json&quot;&gt;
+[
+{&quot;q&quot;:&quot;In the Deploy, Reshape, Invent framework, what does Deploy focus on?&quot;,&quot;o&quot;:[&quot;Inventing new business models and revenue streams&quot;,&quot;Injecting AI tools into existing workflows without changing the operating model&quot;,&quot;Rewiring core functions and how people work&quot;,&quot;Building a new enterprise data platform&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;Deploy puts tools such as Copilot and ChatGPT into existing workflows for broad productivity of about 10 to 20%.&quot;},
+{&quot;q&quot;:&quot;Roughly how much productivity gain does Deploy typically target?&quot;,&quot;o&quot;:[&quot;10 to 20%&quot;,&quot;30 to 50%&quot;,&quot;70 to 90%&quot;,&quot;No measurable gain&quot;],&quot;a&quot;:0,&quot;e&quot;:&quot;Deploy aims for broad productivity of about 10 to 20%.&quot;},
+{&quot;q&quot;:&quot;Which play is about rethinking functions and workflows for radical gains of 30 to 50%?&quot;,&quot;o&quot;:[&quot;Deploy&quot;,&quot;Reshape&quot;,&quot;Invent&quot;,&quot;Embed&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;Reshape rewires core functions and how people work, targeting 30 to 50% gains.&quot;},
+{&quot;q&quot;:&quot;Which play creates new revenue through AI-powered services and new business models?&quot;,&quot;o&quot;:[&quot;Deploy&quot;,&quot;Reshape&quot;,&quot;Invent&quot;,&quot;Scale&quot;],&quot;a&quot;:2,&quot;e&quot;:&quot;Invent creates net-new value through new products, services, and value-based pricing.&quot;},
+{&quot;q&quot;:&quot;Leading companies focus roughly 80% of AI investment on which plays?&quot;,&quot;o&quot;:[&quot;Deploy only&quot;,&quot;Reshape and Invent&quot;,&quot;Research and Deploy&quot;,&quot;Foundations only&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;About 80% of AI investment goes to Reshape and Invent.&quot;},
+{&quot;q&quot;:&quot;In the 10-20-70 split, what does the 70 represent?&quot;,&quot;o&quot;:[&quot;AI application&quot;,&quot;Data and technology&quot;,&quot;People, organization, and process&quot;,&quot;Responsible AI&quot;],&quot;a&quot;:2,&quot;e&quot;:&quot;The 70 is people, organization, and process. It is the POP focus.&quot;},
+{&quot;q&quot;:&quot;In 10-20-70, the 10 refers to:&quot;,&quot;o&quot;:[&quot;AI application, such as copilots and agents&quot;,&quot;People and change management&quot;,&quot;Governance and risk&quot;,&quot;Cost transformation&quot;],&quot;a&quot;:0,&quot;e&quot;:&quot;The 10 is AI application, such as copilots and agents in high-value workflows.&quot;},
+{&quot;q&quot;:&quot;In 10-20-70, the 20 refers to:&quot;,&quot;o&quot;:[&quot;People and process&quot;,&quot;Data and technology&quot;,&quot;Sales AI&quot;,&quot;Vendor selection&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;The 20 is the data foundation and scalable AI platforms.&quot;},
+{&quot;q&quot;:&quot;What does BFF stand for at BCG?&quot;,&quot;o&quot;:[&quot;Build for the Future&quot;,&quot;Best Fit Framework&quot;,&quot;Business Forward Function&quot;,&quot;Build Fast First&quot;],&quot;a&quot;:0,&quot;e&quot;:&quot;BFF is Build for the Future.&quot;},
+{&quot;q&quot;:&quot;The end to end AI transformation runs in three waves. Which is the correct order?&quot;,&quot;o&quot;:[&quot;Embed, Scale, Accelerate&quot;,&quot;Accelerate, Scale, Embed&quot;,&quot;Deploy, Reshape, Invent&quot;,&quot;Start, Scale, Sustain&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;The E2E transformation runs in three waves: Accelerate, Scale, Embed.&quot;},
+{&quot;q&quot;:&quot;BCG Vantage is best described as:&quot;,&quot;o&quot;:[&quot;A back office support function&quot;,&quot;A powerhouse of expertise embedded in Practice Areas and markets&quot;,&quot;An external vendor&quot;,&quot;A training academy only&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;Vantage is a powerhouse of expertise embedded within Practice Areas and markets.&quot;},
+{&quot;q&quot;:&quot;Which of these is NOT one of the three Vantage career paths?&quot;,&quot;o&quot;:[&quot;Client Focus&quot;,&quot;Topic Activation&quot;,&quot;Research&quot;,&quot;Sales Operations&quot;],&quot;a&quot;:3,&quot;e&quot;:&quot;The three paths are Client Focus, Topic Activation, and Research.&quot;},
+{&quot;q&quot;:&quot;Which career path is the intensive case-staffing model, embedding in case teams?&quot;,&quot;o&quot;:[&quot;Client Focus&quot;,&quot;Topic Activation&quot;,&quot;Research&quot;,&quot;Citizenship&quot;],&quot;a&quot;:0,&quot;e&quot;:&quot;Client Focus delivers expertise directly through staffings and workshops.&quot;},
+{&quot;q&quot;:&quot;The Research path primarily:&quot;,&quot;o&quot;:[&quot;Leads client workshops&quot;,&quot;Sources and validates external data and synthesizes insight&quot;,&quot;Manages billing codes&quot;,&quot;Owns the timesheet system&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;Research turns external data into insight for case and proposal teams.&quot;},
+{&quot;q&quot;:&quot;Which path is described as a player-coach, mixed delivery model?&quot;,&quot;o&quot;:[&quot;Client Focus&quot;,&quot;Topic Activation&quot;,&quot;Research&quot;,&quot;Operations&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;Topic Activation is the player-coach path: expert advisory, offer and asset development, and selective staffing.&quot;},
+{&quot;q&quot;:&quot;Which of these is one of the three ways to engage Vantage?&quot;,&quot;o&quot;:[&quot;Expert Advisory&quot;,&quot;Audit&quot;,&quot;Procurement&quot;,&quot;Payroll&quot;],&quot;a&quot;:0,&quot;e&quot;:&quot;The three ways to engage are Expert Advisory, In between, and Staffing.&quot;},
+{&quot;q&quot;:&quot;Drive this case module and engage frequently throughout best describes which engagement type?&quot;,&quot;o&quot;:[&quot;Expert Advisory&quot;,&quot;In between&quot;,&quot;Staffing&quot;,&quot;Research&quot;],&quot;a&quot;:2,&quot;e&quot;:&quot;That is the Staffing mode of engagement.&quot;},
+{&quot;q&quot;:&quot;Expert Advisory work is typically:&quot;,&quot;o&quot;:[&quot;Planned months in advance&quot;,&quot;Unplanned, on-demand work&quot;,&quot;Always co-located&quot;,&quot;Billed to internal codes only&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;Expert Advisory is typically unplanned and on-demand; staffed work needs advance planning.&quot;},
+{&quot;q&quot;:&quot;Flying in for a day as the topic expert is an example of:&quot;,&quot;o&quot;:[&quot;Fully staffed, co-located&quot;,&quot;Expert Advisory, co-located&quot;,&quot;Fully staffed, remote&quot;,&quot;Partially staffed, remote&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;That is co-located Expert Advisory.&quot;},
+{&quot;q&quot;:&quot;In a case team, OPPL broadly refers to:&quot;,&quot;o&quot;:[&quot;The client procurement team&quot;,&quot;The management team: Officers, Partners, Principals, Project Leaders&quot;,&quot;A type of billing code&quot;,&quot;The Vantage Console&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;OPPL is the management team: Officers (MDPs), Partners, Principals, Project Leaders.&quot;},
+{&quot;q&quot;:&quot;The XO, or Executing Officer, is:&quot;,&quot;o&quot;:[&quot;An external auditor&quot;,&quot;The MDP who is the day-to-day point of contact for the case&quot;,&quot;A junior analyst&quot;,&quot;The client CEO&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;The XO is the MDP serving as the day-to-day point of contact.&quot;},
+{&quot;q&quot;:&quot;A Module in a case is:&quot;,&quot;o&quot;:[&quot;A software tool&quot;,&quot;A concrete unit of work that helps solve the case&quot;,&quot;A billing code&quot;,&quot;A client department&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;A module is a concrete unit of work that helps solve the case.&quot;},
+{&quot;q&quot;:&quot;SBU stands for:&quot;,&quot;o&quot;:[&quot;Strategic Business Unit&quot;,&quot;Specialty Business Unit&quot;,&quot;Standard Billing Unit&quot;,&quot;Sector Business Unit&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;Vantage is one of several Specialty Business Units that support cases.&quot;},
+{&quot;q&quot;:&quot;The Working Team generally consists of:&quot;,&quot;o&quot;:[&quot;Officers and Partners&quot;,&quot;Associates, consultants, and others doing the day-to-day work&quot;,&quot;Clients only&quot;,&quot;Research librarians only&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;The Working Team does the day-to-day work.&quot;},
+{&quot;q&quot;:&quot;How many pillars does the Vantage Impact Snapshot have?&quot;,&quot;o&quot;:[&quot;Three&quot;,&quot;Four&quot;,&quot;Five&quot;,&quot;Two&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;Four pillars: Deep Staffing, Expert Advisory, Topic Development, and Citizen and Leadership.&quot;},
+{&quot;q&quot;:&quot;Which is one of the four Impact Snapshot pillars?&quot;,&quot;o&quot;:[&quot;Topic Development&quot;,&quot;Procurement&quot;,&quot;Payroll&quot;,&quot;Recruiting&quot;],&quot;a&quot;:0,&quot;e&quot;:&quot;The four pillars include Topic Development.&quot;},
+{&quot;q&quot;:&quot;The Impact Snapshot applies to which paths?&quot;,&quot;o&quot;:[&quot;Research only&quot;,&quot;Topic Activation and Client Focus, not Research&quot;,&quot;All three with no differences&quot;,&quot;Client Focus only&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;It applies to TA and CF, not Research.&quot;},
+{&quot;q&quot;:&quot;For the Impact Snapshot, you should:&quot;,&quot;o&quot;:[&quot;Maximize all four pillars equally&quot;,&quot;Balance across pillars; you need not maximize all four&quot;,&quot;Focus only on billability&quot;,&quot;Ignore Workday&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;There is no need to maximize all four; the balance is what counts.&quot;},
+{&quot;q&quot;:&quot;In the Expert Advisory checklist, communicate timeline and pricing if the work is more than roughly:&quot;,&quot;o&quot;:[&quot;2 hours&quot;,&quot;8 hours&quot;,&quot;40 hours&quot;,&quot;Never&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;Set expectations and communicate timeline and pricing if the work is more than about 8 hours.&quot;},
+{&quot;q&quot;:&quot;Which Workday section captures your Impact Snapshot evidence?&quot;,&quot;o&quot;:[&quot;How Have I Grown and Contributed&quot;,&quot;Time Off&quot;,&quot;Expenses&quot;,&quot;Benefits&quot;],&quot;a&quot;:0,&quot;e&quot;:&quot;Share 2 to 5 evidence-based bullets per pillar under How Have I Grown and Contributed.&quot;},
+{&quot;q&quot;:&quot;What is the key metric for profitable impact in Vantage?&quot;,&quot;o&quot;:[&quot;Office space utilization&quot;,&quot;C-billability&quot;,&quot;Email volume&quot;,&quot;Number of slides produced&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;C-billability is the key metric for profitable impact.&quot;},
+{&quot;q&quot;:&quot;The target C-billability for Topic Activation is:&quot;,&quot;o&quot;:[&quot;More than 40%&quot;,&quot;Exactly 100%&quot;,&quot;Less than 10%&quot;,&quot;75%&quot;],&quot;a&quot;:0,&quot;e&quot;:&quot;Topic Activation targets more than 40% C-billable.&quot;},
+{&quot;q&quot;:&quot;The target C-billability for Client Focus is approximately:&quot;,&quot;o&quot;:[&quot;25%&quot;,&quot;55%&quot;,&quot;5%&quot;,&quot;90%&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;Client Focus targets about 55% C-billable.&quot;},
+{&quot;q&quot;:&quot;Sustained C-billability above roughly what level raises sustainability questions for an individual?&quot;,&quot;o&quot;:[&quot;25%&quot;,&quot;65%&quot;,&quot;100%&quot;,&quot;10%&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;Above roughly 65% sustained raises sustainability questions, since you must balance casework with business development.&quot;},
+{&quot;q&quot;:&quot;CD-billability is defined as:&quot;,&quot;o&quot;:[&quot;C-billability only&quot;,&quot;C-billability plus Client Investment plus Innovation Fund&quot;,&quot;Total hours worked&quot;,&quot;Billability minus vacation&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;CD-billability equals C-billability plus Client Investment plus Innovation Fund.&quot;},
+{&quot;q&quot;:&quot;Which codes should you avoid because they do not count toward billability?&quot;,&quot;o&quot;:[&quot;Client project codes&quot;,&quot;Other Time Tracking codes&quot;,&quot;Innovation Fund codes&quot;,&quot;Case module codes&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;Avoid Other Time Tracking codes; they do not count toward billability.&quot;},
+{&quot;q&quot;:&quot;Where do you verify a code accuracy and type before charging time?&quot;,&quot;o&quot;:[&quot;projectlookup.bcg.com&quot;,&quot;The client intranet&quot;,&quot;A social network&quot;,&quot;A personal spreadsheet only&quot;],&quot;a&quot;:0,&quot;e&quot;:&quot;Use projectlookup.bcg.com to verify a code accuracy and type.&quot;},
+{&quot;q&quot;:&quot;For client work linked to an Innovation Fund, you should charge:&quot;,&quot;o&quot;:[&quot;The internal 600 code&quot;,&quot;The linked C-code, not the Innovation Fund code&quot;,&quot;Any Other Time Tracking code&quot;,&quot;No code at all&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;Charge the linked C-code; the internal 600 code does not provide client billability.&quot;},
+{&quot;q&quot;:&quot;Where is the Vantage timesheet completed?&quot;,&quot;o&quot;:[&quot;On paper&quot;,&quot;In the Vantage Console on ServiceNow&quot;,&quot;By emailing HR&quot;,&quot;In the client system&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;The timesheet is done in the Vantage Console on ServiceNow.&quot;},
+{&quot;q&quot;:&quot;When you finish entering time for an engagement, you set the status to:&quot;,&quot;o&quot;:[&quot;Draft&quot;,&quot;Delivered&quot;,&quot;Archived&quot;,&quot;Pending&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;Set the status to delivered.&quot;},
+{&quot;q&quot;:&quot;After you submit your timesheet, a good final check is to:&quot;,&quot;o&quot;:[&quot;Assume it went through and move on&quot;,&quot;Confirm it submitted correctly and review your billability on the dashboard&quot;,&quot;Email HR a screenshot&quot;,&quot;Wait for the client to confirm&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;On the Vantage Billability dashboard, confirm your timesheet submitted correctly and that your billability looks healthy.&quot;},
+{&quot;q&quot;:&quot;Where do you go for IT support, access requests, and equipment?&quot;,&quot;o&quot;:[&quot;The BCG IT Enterprise Service Center&quot;,&quot;The Vantage Console&quot;,&quot;projectlookup.bcg.com&quot;,&quot;The Responsible AI microsite&quot;],&quot;a&quot;:0,&quot;e&quot;:&quot;Use the BCG IT Enterprise Service Center.&quot;},
+{&quot;q&quot;:&quot;Knowledge Navigator is used for:&quot;,&quot;o&quot;:[&quot;Profiles, cases, and the knowledge repository&quot;,&quot;Payroll only&quot;,&quot;Booking flights&quot;,&quot;Client invoicing&quot;],&quot;a&quot;:0,&quot;e&quot;:&quot;Knowledge Navigator holds profiles, cases, and the knowledge repository.&quot;},
+{&quot;q&quot;:&quot;The team sits at POP x TDA. What do POP and TDA refer to?&quot;,&quot;o&quot;:[&quot;People and Organization, and Tech and Digital Advantage&quot;,&quot;Proof of Performance, and Total Digital Access&quot;,&quot;Point of Purchase, and Technology Delivery Analytics&quot;,&quot;Process Operations, and Technical Design Authority&quot;],&quot;a&quot;:0,&quot;e&quot;:&quot;This is the (Gen)AI team across POP, People and Organization, and TDA, Tech and Digital Advantage.&quot;},
+{&quot;q&quot;:&quot;The POP and TDA (Gen)AI Vantage team is organized across which regions?&quot;,&quot;o&quot;:[&quot;APAC, EMESA, and NAMR&quot;,&quot;Europe only&quot;,&quot;North America only&quot;,&quot;APAC and LATAM only&quot;],&quot;a&quot;:0,&quot;e&quot;:&quot;The team is grouped into three regions: APAC, EMESA, and NAMR.&quot;},
+{&quot;q&quot;:&quot;Responsible AI emphasizes:&quot;,&quot;o&quot;:[&quot;Removing humans from all decisions&quot;,&quot;Human in the loop for safe and credible delivery&quot;,&quot;Skipping governance to move faster&quot;,&quot;Avoiding documentation&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;Responsible AI and human in the loop support safe, credible delivery.&quot;},
+{&quot;q&quot;:&quot;When a POP or TDA request comes in, the first step is to:&quot;,&quot;o&quot;:[&quot;Build everything from scratch&quot;,&quot;Find the topic in the Knowledge toolkit and reuse the linked materials&quot;,&quot;Decline it&quot;,&quot;Escalate to the client&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;Find the topic and reuse the linked materials, then ask the topic owner for depth.&quot;},
+{&quot;q&quot;:&quot;Incoming POP and TDA requests are:&quot;,&quot;o&quot;:[&quot;Low priority&quot;,&quot;Always high priority&quot;,&quot;Optional&quot;,&quot;Handled only quarterly&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;Incoming POP and TDA requests are always high priority.&quot;},
+{&quot;q&quot;:&quot;The onboarding launchpad is best described as:&quot;,&quot;o&quot;:[&quot;A copy of every deck&quot;,&quot;A launchpad that links out to authoritative Knowledge Navigator and SharePoint sources&quot;,&quot;A billing tool&quot;,&quot;A client deliverable&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;It is a launchpad, not a copy; it links to live sources kept current by their owners.&quot;},
+{&quot;q&quot;:&quot;BCG Vantage spans how many geographic markets?&quot;,&quot;o&quot;:[&quot;1&quot;,&quot;4&quot;,&quot;20&quot;,&quot;100&quot;],&quot;a&quot;:1,&quot;e&quot;:&quot;Vantage spans 4 geographic markets, with 20 Practices and more than 100 topics, sectors, and offers.&quot;}
+]
+&lt;/script&gt;
+
+&lt;script&gt;
+(function(){
+  var RAW = JSON.parse(document.getElementById(&#39;qdata&#39;).textContent);
+  var PER = 10;
+  var form = document.getElementById(&#39;quizForm&#39;);
+  var resultBox = document.getElementById(&#39;result&#39;);
+  var current = [];
+  var graded = false;
+
+  function shuffle(a){
+    for(var i=a.length-1;i&gt;0;i--){
+      var j=Math.floor(Math.random()*(i+1));
+      var t=a[i]; a[i]=a[j]; a[j]=t;
+    }
+    return a;
+  }
+
+  function newQuiz(){
+    graded = false;
+    resultBox.style.display = &#39;none&#39;;
+    var idx = shuffle(RAW.map(function(_,i){return i;})).slice(0, PER);
+    current = idx.map(function(i){
+      var item = RAW[i];
+      var correctText = item.o[item.a];
+      var opts = shuffle(item.o.slice());
+      return {stem:item.q, opts:opts, correctText:correctText, explain:item.e, picked:null};
+    });
+    render();
+    window.scrollTo({top:0, behavior:&#39;smooth&#39;});
+  }
+
+  function render(){
+    form.innerHTML = &#39;&#39;;
+    current.forEach(function(c, qi){
+      var card = document.createElement(&#39;div&#39;);
+      card.className = &#39;q&#39;;
+      var head = document.createElement(&#39;div&#39;);
+      head.className = &#39;num&#39;;
+      head.textContent = &#39;Question &#39; + (qi+1) + &#39; of &#39; + PER;
+      var stem = document.createElement(&#39;div&#39;);
+      stem.className = &#39;stem&#39;;
+      stem.textContent = c.stem;
+      card.appendChild(head);
+      card.appendChild(stem);
+      c.opts.forEach(function(optText, oi){
+        var lab = document.createElement(&#39;label&#39;);
+        lab.className = &#39;opt&#39;;
+        lab.setAttribute(&#39;data-q&#39;, qi);
+        lab.setAttribute(&#39;data-text&#39;, optText);
+        var input = document.createElement(&#39;input&#39;);
+        input.type = &#39;radio&#39;;
+        input.name = &#39;q&#39; + qi;
+        input.value = optText;
+        input.addEventListener(&#39;change&#39;, function(){
+          if(graded) return;
+          c.picked = optText;
+          updateProgress();
+        });
+        var span = document.createElement(&#39;span&#39;);
+        span.className = &#39;txt&#39;;
+        span.textContent = optText;
+        lab.appendChild(input);
+        lab.appendChild(span);
+        card.appendChild(lab);
+      });
+      form.appendChild(card);
+    });
+    updateProgress();
+  }
+
+  function updateProgress(){
+    if(graded){ document.getElementById(&#39;progress&#39;).textContent = &#39;&#39;; return; }
+    var answered = current.filter(function(c){return c.picked !== null;}).length;
+    document.getElementById(&#39;progress&#39;).textContent = answered + &#39; of &#39; + PER + &#39; answered&#39;;
+  }
+
+  function grade(){
+    if(graded) return;
+    graded = true;
+    var score = 0;
+    var cards = form.querySelectorAll(&#39;.q&#39;);
+    current.forEach(function(c, qi){
+      var isCorrect = (c.picked === c.correctText);
+      if(isCorrect) score++;
+      var card = cards[qi];
+      var labels = card.querySelectorAll(&#39;.opt&#39;);
+      labels.forEach(function(lab){
+        var txt = lab.getAttribute(&#39;data-text&#39;);
+        lab.classList.add(&#39;locked&#39;);
+        var inp = lab.querySelector(&#39;input&#39;);
+        inp.disabled = true;
+        if(txt === c.correctText){ lab.classList.add(&#39;correct&#39;); }
+        if(c.picked !== null &amp;&amp; txt === c.picked &amp;&amp; txt !== c.correctText){ lab.classList.add(&#39;wrong&#39;); }
+      });
+      var verdict = document.createElement(&#39;div&#39;);
+      verdict.className = &#39;verdict &#39; + (isCorrect ? &#39;ok&#39; : &#39;no&#39;);
+      if(isCorrect){ verdict.textContent = &#39;Correct&#39;; }
+      else if(c.picked === null){ verdict.textContent = &#39;Not answered. Correct answer: &#39; + c.correctText; }
+      else { verdict.textContent = &#39;Not quite. Correct answer: &#39; + c.correctText; }
+      card.appendChild(verdict);
+      var ex = document.createElement(&#39;div&#39;);
+      ex.className = &#39;explain&#39;;
+      ex.textContent = c.explain;
+      card.appendChild(ex);
+    });
+    showResult(score);
+  }
+
+  function showResult(score){
+    var pct = Math.round(score / PER * 100);
+    document.getElementById(&#39;scoreNum&#39;).textContent = score + &#39; / &#39; + PER;
+    document.getElementById(&#39;scorePct&#39;).textContent = pct + &#39;% correct&#39;;
+    var band;
+    if(score &gt;= 9) band = &#39;Excellent. You know the essentials.&#39;;
+    else if(score &gt;= 7) band = &#39;Strong. A quick review and you are set.&#39;;
+    else if(score &gt;= 5) band = &#39;Getting there. Revisit the launchpad sections.&#39;;
+    else band = &#39;Keep reviewing. Walk through the launchpad, then retry.&#39;;
+    document.getElementById(&#39;band&#39;).textContent = band;
+    resultBox.style.display = &#39;block&#39;;
+    document.getElementById(&#39;progress&#39;).textContent = &#39;&#39;;
+    resultBox.scrollIntoView({behavior:&#39;smooth&#39;, block:&#39;center&#39;});
+  }
+
+  document.getElementById(&#39;submitBtn&#39;).addEventListener(&#39;click&#39;, grade);
+  document.getElementById(&#39;newBtn&#39;).addEventListener(&#39;click&#39;, newQuiz);
+  document.getElementById(&#39;againBtn&#39;).addEventListener(&#39;click&#39;, newQuiz);
+
+  newQuiz();
+})();
+&lt;/script&gt;
+&lt;script&gt;(function(){function p(){try{parent.postMessage({quizHeight:Math.max(document.body.scrollHeight,document.documentElement.scrollHeight)},&#39;*&#39;);}catch(e){}}window.addEventListener(&#39;load&#39;,p);if(window.ResizeObserver){new ResizeObserver(p).observe(document.body);}setInterval(p,700);})();&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+  </section>
+  <script>
+  window.addEventListener('message', function(e){
+    if (e.data && typeof e.data.quizHeight === 'number') {
+      var f = document.getElementById('quizFrame');
+      if (f) { f.style.height = (e.data.quizHeight + 4) + 'px'; }
+    }
+  });
+
+  // In-page navigation uses data-jump (not href="#...") so the host never
+  // treats it as an external link. Scroll to the target on click.
+  document.addEventListener('click', function(e){
+    var a = e.target.closest('[data-jump]');
+    if (!a) return;
+    var id = a.getAttribute('data-jump');
+    var target = document.getElementById(id);
+    if (!target) return;
+    e.preventDefault();
+    target.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+  </script>
+</main>
+<footer>
+  <p>POP and TDA (Gen)AI Vantage onboarding launchpad. For new joiners across NAMR, EMESA, and APAC. Materials link to Knowledge Navigator and SharePoint, which are kept current by their owners.</p>
+  <p>Materials index sourced from the POPxTDA (Gen)AI Vantage Expert Advisory Toolkit.</p>
+</footer>
+<button class="totop" onclick="window.scrollTo({top:0,behavior:&#39;smooth&#39;})" aria-label="Back to top">↑</button>
+
+
+</body>
+</html>

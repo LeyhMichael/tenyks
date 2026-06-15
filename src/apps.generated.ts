@@ -3,37 +3,100 @@ import type { AppConfig } from './types';
 
 const apps: AppConfig[] = [
   {
+    "folder": "ai-use-cases",
+    "name": "AI Use Case Explorer",
+    "description": "Browse and explore AI use cases across BCG TDA \u2014 filterable library of AI applications, patterns and implementation examples.",
+    "icon": "\ud83e\udd16",
+    "accent": "#10b981",
+    "tag": "AI",
+    "author": "Rishabh Sharma",
+    "status": "live",
+    "visibility": "public",
+    "url": "/ai-use-cases"
+  },
+  {
+    "folder": "ascent",
+    "name": "The Ascent",
+    "description": "An interactive BFF 2026 experience \u2014 climb to the summit through BCG's most exciting challenges and milestones.",
+    "icon": "\ud83c\udfd4\ufe0f",
+    "accent": "#f59e0b",
+    "tag": "Experience",
+    "author": "Marcus Pinnau",
+    "status": "live",
+    "visibility": "public",
+    "url": "/ascent"
+  },
+  {
+    "folder": "intelligence",
+    "name": "Intelligence Dashboards",
+    "description": "TDA analytics suite \u2014 Leadership overview, volume trends, Nordics, PDLC, BFF, AIPG, QC reports and 7 AI deep-dive dashboards.",
+    "icon": "\ud83d\udcca",
+    "accent": "#6366f1",
+    "tag": "Analytics",
+    "author": "Giuseppe Colombo",
+    "status": "live",
+    "visibility": "public",
+    "url": "/intelligence"
+  },
+  {
+    "folder": "onboarding",
+    "name": "Onboarding Launchpad",
+    "description": "POP + TDA (Gen)AI Vantage onboarding guide \u2014 welcome, first-month ramp, team directory, knowledge toolkit, and a self-graded quiz.",
+    "icon": "\ud83c\udf3f",
+    "accent": "#12815d",
+    "tag": "Team",
+    "author": "Carmen Casas",
+    "status": "live",
+    "visibility": "team",
+    "url": "/onboarding"
+  },
+  {
     "folder": "quarterback",
     "name": "Quarterback Dashboard",
-    "description": "Manage Vantage requests end-to-end — assign tickets track team capacity block staffing and PTO and let AI recommend optimal assignments.",
-    "icon": "🏈",
+    "description": "Manage Vantage requests end-to-end \u2014 assign tickets track team capacity block staffing and PTO and let AI recommend optimal assignments.",
+    "icon": "\ud83c\udfc8",
     "accent": "#3b82f6",
     "tag": "Admin",
     "author": "Michael Leyh",
     "status": "live",
+    "visibility": "team",
     "url": "/quarterback"
   },
   {
     "folder": "rapid-bff",
-    "name": "Rapid BFF",
-    "description": "Rapid BFF survey experience.",
-    "icon": "💚",
+    "name": "BFF Quick Assessment",
+    "description": "Assess your team's AI maturity and navigate BCG's transformation framework \u2014 guided survey flows with personalised insights.",
+    "icon": "\ud83c\udfaf",
     "tag": "BFF",
     "accent": "#3d9b6d",
     "author": "Frank Anderson",
     "status": "live",
+    "visibility": "public",
     "url": "/rapid-bff"
   },
   {
     "folder": "testing",
     "name": "API Test",
-    "description": "Demonstrates platform API routing — ping, echo, and a live Claude call.",
-    "icon": "🧪",
+    "description": "Demonstrates platform API routing \u2014 ping, echo, and a live Claude call.",
+    "icon": "\u26a1",
     "accent": "#8b5cf6",
     "author": "Frank Anderson",
     "tag": "Dev",
     "status": "live",
+    "visibility": "public",
     "url": "/testing"
+  },
+  {
+    "folder": "token-economics",
+    "name": "Token Economics",
+    "description": "Interactive AI token cost primer \u2014 explore pricing tiers, architecture levers, and the cost playground to model and optimise your AI spend.",
+    "icon": "\ud83e\ude99",
+    "accent": "#009A44",
+    "tag": "AI",
+    "author": "Jun Wei EE",
+    "status": "live",
+    "visibility": "public",
+    "url": "/token-economics"
   }
 ];
 
