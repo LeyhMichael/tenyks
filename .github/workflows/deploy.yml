@@ -21,6 +21,7 @@ jobs:
         run: |
           npm install
           npm run build
+          npm prune --production
           zip -r ../deploy.zip . -x '.git/*' -x '*.zip'
 
       - name: Deploy to Azure Web App
