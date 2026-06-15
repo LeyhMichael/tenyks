@@ -507,8 +507,33 @@ async function setPto(name, date, type) {
 
 // ── Backlog tab ───────────────────────────────────────────────────────────────
 
+function getTeamNames() {
+  return state.teamNames.length ? state.teamNames : state.teamNamesLoaded;
+}
+
+function populateBacklogTeamSelects() {
+  const names = getTeamNames();
+  ['blLead', 'blTeam1', 'blTeam2', 'blTeam3'].forEach(id => {
+    const sel = document.getElementById(id);
+    const firstOpt = sel.options[0];
+    sel.innerHTML = '';
+    sel.appendChild(firstOpt);
+    names.forEach(n => {
+      const o = document.createElement('option');
+      o.value = n; o.textContent = n;
+      sel.appendChild(o);
+    });
+  });
+}
+
 async function loadBacklogTab() {
   try {
+    // Fetch team names if not yet loaded
+    if (!getTeamNames().length) {
+      const teamData = await apiFetch(`${API}/team`);
+      state.teamNamesLoaded = teamData.team_names || [];
+    }
+    populateBacklogTeamSelects();
     state.backlogItems = await apiFetch(`${API}/backlog`);
     populateGroupFilter();
     renderBacklog();
@@ -610,13 +635,15 @@ function openBacklogModal(item) {
   document.getElementById('blGroupField').value = item?.group || 'IP & Product';
   document.getElementById('blStatusField').value = item?.status || 'Backlog';
   document.getElementById('blPriorityField').value = item?.priority || 'Unset';
-  document.getElementById('blAllocation').value = item?.allocation_pct || '';
+  document.getElementById('blAllocation').value = String(item?.allocation_pct || 0);
   document.getElementById('blLead').value = item?.lead || '';
-  document.getElementById('blTeam').value = item?.team || '';
   document.getElementById('blStartDate').value = item?.start_date || '';
   document.getElementById('blEndDate').value = item?.end_date || '';
-  document.getElementById('blHours').value = item?.hours || '';
   document.getElementById('blPractice').value = item?.practice || '';
+  const teamArr = (item?.team || '').split(',').map(n => n.trim()).filter(Boolean);
+  document.getElementById('blTeam1').value = teamArr[0] || '';
+  document.getElementById('blTeam2').value = teamArr[1] || '';
+  document.getElementById('blTeam3').value = teamArr[2] || '';
   document.getElementById('blStakeholders').value = item?.stakeholders || '';
   document.getElementById('backlogOverlay').classList.add('show');
 }
@@ -627,6 +654,11 @@ function closeBacklogModal() {
 
 async function saveBacklogItem() {
   const id = document.getElementById('blId').value;
+  const team = [
+    document.getElementById('blTeam1').value,
+    document.getElementById('blTeam2').value,
+    document.getElementById('blTeam3').value,
+  ].filter(Boolean).join(', ');
   const payload = {
     id: id ? parseInt(id) : null,
     name:          document.getElementById('blName').value,
@@ -635,10 +667,10 @@ async function saveBacklogItem() {
     priority:      document.getElementById('blPriorityField').value,
     allocation_pct:document.getElementById('blAllocation').value,
     lead:          document.getElementById('blLead').value,
-    team:          document.getElementById('blTeam').value,
+    team,
     start_date:    document.getElementById('blStartDate').value,
     end_date:      document.getElementById('blEndDate').value,
-    hours:         document.getElementById('blHours').value,
+    hours:         0,
     practice:      document.getElementById('blPractice').value,
     stakeholders:  document.getElementById('blStakeholders').value,
   };
