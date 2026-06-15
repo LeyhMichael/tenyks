@@ -53,9 +53,9 @@ function tileVars(app: AppConfig): React.CSSProperties {
   } as React.CSSProperties;
 }
 
-function AppTile({ app }: { app: AppConfig }) {
+function AppTile({ app, index = 0 }: { app: AppConfig; index?: number }) {
   return (
-    <a className="app-tile" href={app.url} style={tileVars(app)}>
+    <a className="app-tile" href={app.url} style={{ ...tileVars(app), '--tile-i': index } as React.CSSProperties}>
       <div className="tile-header">
         <div className="tile-icon">{app.icon}</div>
         {app.tag && <span className="tile-badge">{app.tag}</span>}
@@ -127,21 +127,28 @@ export default function App() {
   const auth = useAuth();
   const [groupBy, setGroupBy] = useState<GroupBy>('none');
 
+
   const liveApps   = apps.filter((a) => a.status === 'live');
   const comingApps = apps.filter((a) => a.status === 'coming_soon');
 
   const publicApps = liveApps.filter((a) => a.visibility === 'public');
   const teamApps   = liveApps.filter((a) => a.visibility === 'team');
 
-  const handleLogin = () => {
-    window.location.href =
-      '/.auth/login/aad?post_login_redirect_uri=' + encodeURIComponent(window.location.pathname);
-  };
-
   const publicGroups = groupBy !== 'none' ? groupApps(publicApps, groupBy) : null;
 
   return (
     <>
+      <div className="mesh-bg" aria-hidden="true" />
+      <div className="corner-ornament" aria-hidden="true">
+        <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="9" y1="9" x2="38" y2="9" stroke="currentColor" strokeWidth="0.75"/>
+          <line x1="9" y1="9" x2="9" y2="38" stroke="currentColor" strokeWidth="0.75"/>
+          <line x1="5.5" y1="9" x2="12.5" y2="9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+          <line x1="9" y1="5.5" x2="9" y2="12.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+          <line x1="6.3" y1="6.3" x2="11.7" y2="11.7" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
+          <line x1="11.7" y1="6.3" x2="6.3" y2="11.7" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
+        </svg>
+      </div>
       <header>
         <div className="header-left">
           <div className="header-brand">
@@ -161,11 +168,6 @@ export default function App() {
               + Add your app
             </a>
           )}
-          {auth === 'none' && (
-            <button className="add-app-btn" onClick={handleLogin}>
-              BCG sign-in →
-            </button>
-          )}
         </div>
       </header>
 
@@ -184,13 +186,13 @@ export default function App() {
             <div key={key} className="swimlane">
               <div className="swimlane-label">{key}</div>
               <div className="grid">
-                {groupedApps.map((app) => <AppTile key={app.folder} app={app} />)}
+                {groupedApps.map((app, i) => <AppTile key={app.folder} app={app} index={i} />)}
               </div>
             </div>
           ))
         ) : (
           <div className="grid">
-            {publicApps.map((app) => <AppTile key={app.folder} app={app} />)}
+            {publicApps.map((app, i) => <AppTile key={app.folder} app={app} index={i} />)}
           </div>
         )}
 
@@ -204,7 +206,7 @@ export default function App() {
             </div>
             <p className="section-sub">Internal tools for the TDA Vantage team.</p>
             <div className="grid">
-              {teamApps.map((app) => <AppTile key={app.folder} app={app} />)}
+              {teamApps.map((app, i) => <AppTile key={app.folder} app={app} index={i} />)}
             </div>
           </>
         )}
@@ -217,8 +219,8 @@ export default function App() {
               <span className="section-fill" />
             </div>
             <div className="grid">
-              {comingApps.map((app) => (
-                <div key={app.folder} className="app-tile tile-coming-soon" style={tileVars(app)}>
+              {comingApps.map((app, i) => (
+                <div key={app.folder} className="app-tile tile-coming-soon" style={{ ...tileVars(app), '--tile-i': i } as React.CSSProperties}>
                   <div className="tile-header">
                     <div className="tile-icon">{app.icon}</div>
                     <span className="tile-badge">Soon</span>
