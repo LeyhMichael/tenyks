@@ -239,7 +239,7 @@ export default function App() {
       </div>
 
       <footer>
-        <span className="left">TDA Vantage Platform · BCG Boston</span>
+        <span className="left">TDA Vantage Platform · BCG Boston Consulting Group</span>
         <span className="right">Built with Claude · {liveApps.length} app{liveApps.length !== 1 ? 's' : ''}</span>
       </footer>
     </>
