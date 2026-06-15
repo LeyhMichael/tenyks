@@ -139,8 +139,9 @@ function serveApps(): Plugin {
             res.writeHead(302, { Location: `/${folder}/` });
             return res.end();
           }
+          const html = fs.readFileSync(indexPath, 'utf8').replace('</body>', '<script src="/back-nav.js"></script>\n</body>');
           res.setHeader('Content-Type', 'text/html; charset=utf-8');
-          return res.end(fs.readFileSync(indexPath));
+          return res.end(html);
         }
 
         next();

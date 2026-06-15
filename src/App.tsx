@@ -123,13 +123,27 @@ function GroupByMenu({ value, onChange }: { value: GroupBy; onChange: (v: GroupB
 
 // ── Main app ───────────────────────────────────────────────────────────────────
 
+function useHidden(): [Set<string>, () => void] {
+  const read = () => {
+    try { return new Set<string>(JSON.parse(localStorage.getItem('tenyks_hidden') || '[]')); }
+    catch { return new Set<string>(); }
+  };
+  const [hidden, setHidden] = useState<Set<string>>(read);
+  const reset = () => {
+    localStorage.removeItem('tenyks_hidden');
+    setHidden(new Set());
+  };
+  return [hidden, reset];
+}
+
 export default function App() {
   const auth = useAuth();
   const [groupBy, setGroupBy] = useState<GroupBy>('none');
+  const [hidden, resetHidden] = useHidden();
 
-
-  const liveApps   = apps.filter((a) => a.status === 'live');
+  const liveApps   = apps.filter((a) => a.status === 'live' && !hidden.has(a.folder));
   const comingApps = apps.filter((a) => a.status === 'coming_soon');
+  const hiddenCount = apps.filter((a) => a.status === 'live' && hidden.has(a.folder)).length;
 
   const publicApps = liveApps.filter((a) => a.visibility === 'public');
   const teamApps   = liveApps.filter((a) => a.visibility === 'team');
@@ -242,7 +256,17 @@ export default function App() {
 
       <footer>
         <span className="left">TDA Vantage Platform · BCG Boston Consulting Group</span>
-        <span className="right">Built with Claude · {liveApps.length} app{liveApps.length !== 1 ? 's' : ''}</span>
+        <span className="right">
+          {hiddenCount > 0 && (
+            <button
+              onClick={resetHidden}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', opacity: 0.5, fontSize: 'inherit', fontFamily: 'inherit', marginRight: 12 }}
+            >
+              {hiddenCount} hidden · show
+            </button>
+          )}
+          Built with Claude · {liveApps.length} app{liveApps.length !== 1 ? 's' : ''}
+        </span>
       </footer>
     </>
   );

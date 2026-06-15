@@ -213,7 +213,9 @@ http.createServer({ maxHeaderSize: 32768 }, async (req, res) => {
         res.writeHead(301, { Location: `/${topSegment}/` });
         return res.end();
       }
-      return send(res, subIndex);
+      const html = fs.readFileSync(subIndex, 'utf8').replace('</body>', '<script src="/back-nav.js"></script>\n</body>');
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      return res.end(html);
     }
   }
 
