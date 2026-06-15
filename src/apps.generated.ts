@@ -3,6 +3,39 @@ import type { AppConfig } from './types';
 
 const apps: AppConfig[] = [
   {
+    "folder": "ai-use-cases",
+    "name": "AI Use Case Explorer",
+    "description": "Browse and explore AI use cases across BCG TDA — filterable library of AI applications, patterns and implementation examples.",
+    "icon": "🤖",
+    "accent": "#10b981",
+    "tag": "AI",
+    "author": "Rishabh Sharma",
+    "status": "live",
+    "url": "/ai-use-cases"
+  },
+  {
+    "folder": "ascent",
+    "name": "The Ascent",
+    "description": "An interactive BFF 2026 experience — climb to the summit through BCG's most exciting challenges and milestones.",
+    "icon": "🏔️",
+    "accent": "#f59e0b",
+    "tag": "Experience",
+    "author": "Marcus Pinnau",
+    "status": "live",
+    "url": "/ascent"
+  },
+  {
+    "folder": "intelligence",
+    "name": "Intelligence Dashboards",
+    "description": "TDA analytics suite — Leadership overview, volume trends, Nordics, PDLC, BFF, AIPG, QC reports and 7 AI deep-dive dashboards.",
+    "icon": "📊",
+    "accent": "#6366f1",
+    "tag": "Analytics",
+    "author": "Giuseppe Colombo",
+    "status": "live",
+    "url": "/intelligence"
+  },
+  {
     "folder": "quarterback",
     "name": "Quarterback Dashboard",
     "description": "Manage Vantage requests end-to-end — assign tickets track team capacity block staffing and PTO and let AI recommend optimal assignments.",
@@ -15,9 +48,9 @@ const apps: AppConfig[] = [
   },
   {
     "folder": "rapid-bff",
-    "name": "Rapid BFF",
-    "description": "Rapid BFF survey experience.",
-    "icon": "💚",
+    "name": "BFF Quick Assessment",
+    "description": "Assess your team's AI maturity and navigate BCG's transformation framework — guided survey flows with personalised insights.",
+    "icon": "🎯",
     "tag": "BFF",
     "accent": "#3d9b6d",
     "author": "Frank Anderson",
@@ -28,12 +61,23 @@ const apps: AppConfig[] = [
     "folder": "testing",
     "name": "API Test",
     "description": "Demonstrates platform API routing — ping, echo, and a live Claude call.",
-    "icon": "🧪",
+    "icon": "⚡",
     "accent": "#8b5cf6",
     "author": "Frank Anderson",
     "tag": "Dev",
     "status": "live",
     "url": "/testing"
+  },
+  {
+    "folder": "token-economics",
+    "name": "Token Economics",
+    "description": "Interactive AI token cost primer — explore pricing tiers, architecture levers, and the cost playground to model and optimise your AI spend.",
+    "icon": "🪙",
+    "accent": "#009A44",
+    "tag": "AI",
+    "author": "Jun Wei EE",
+    "status": "live",
+    "url": "/token-economics"
   }
 ];
 

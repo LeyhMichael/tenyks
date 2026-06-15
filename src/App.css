@@ -174,6 +174,108 @@ header {
   color: var(--accent-color);
 }
 
+/* ── All-apps section header (label + fill line + group-by menu) ── */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+.section-fill {
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+/* ── Group-by menu ── */
+.group-by-menu { position: relative; flex-shrink: 0; }
+.group-by-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.group-by-btn:hover { color: #111827; border-color: #9ca3af; }
+.group-by-btn.active { color: #1a7f4b; border-color: #1a7f4b; background: #1a7f4b0d; }
+.group-by-prefix { color: inherit; }
+.group-by-current {
+  font-weight: 700;
+  color: #1a7f4b;
+  background: #1a7f4b12;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+.group-by-chevron { color: #9ca3af; flex-shrink: 0; }
+.group-by-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+  overflow: hidden;
+  z-index: 100;
+  min-width: 148px;
+}
+.group-by-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  gap: 8px;
+  transition: background 0.1s;
+}
+.group-by-option:hover { background: #f9fafb; }
+.group-by-option.selected { color: #1a7f4b; font-weight: 600; }
+.group-by-option.selected svg { color: #1a7f4b; }
+
+/* ── Swimlanes ── */
+.swimlane { margin-bottom: 40px; }
+.swimlane-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #6b7280;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.swimlane-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #f3f4f6;
+}
+.swimlane .grid { margin-bottom: 0; }
+
 /* ── Coming soon ── */
 .tile-coming-soon {
   opacity: 0.5;

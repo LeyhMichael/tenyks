@@ -1,8 +1,26 @@
+import { useState, useRef, useEffect } from 'react';
 import type { AppConfig } from './types';
 import apps from './apps.generated';
 
 const liveApps = apps.filter((a) => a.status === 'live');
 const comingApps = apps.filter((a) => a.status === 'coming_soon');
+
+type GroupBy = 'none' | 'tag' | 'author';
+
+const GROUP_OPTIONS: { value: GroupBy; label: string }[] = [
+  { value: 'none',   label: 'No grouping' },
+  { value: 'tag',    label: 'Tag' },
+  { value: 'author', label: 'Author' },
+];
+
+function groupApps(list: AppConfig[], by: 'tag' | 'author'): [string, AppConfig[]][] {
+  const map = new Map<string, AppConfig[]>();
+  for (const app of list) {
+    const key = by === 'tag' ? (app.tag ?? 'Other') : app.author;
+    (map.get(key) ?? (map.set(key, []), map.get(key)!)).push(app);
+  }
+  return Array.from(map.entries());
+}
 
 function tileVars(app: AppConfig): React.CSSProperties {
   return {
@@ -34,7 +52,60 @@ function AppTile({ app }: { app: AppConfig }) {
   );
 }
 
+function GroupByMenu({ value, onChange }: { value: GroupBy; onChange: (v: GroupBy) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handle = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, [open]);
+
+  const active = GROUP_OPTIONS.find((o) => o.value === value)!;
+
+  return (
+    <div className="group-by-menu" ref={ref}>
+      <button
+        className={`group-by-btn${value !== 'none' ? ' active' : ''}`}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <span className="group-by-prefix">Group by</span>
+        {value !== 'none' && <span className="group-by-current">{active.label}</span>}
+        <svg className="group-by-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none">
+          <path d={open ? 'M2 7l3-4 3 4' : 'M2 3l3 4 3-4'} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+
+      {open && (
+        <div className="group-by-dropdown">
+          {GROUP_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              className={`group-by-option${opt.value === value ? ' selected' : ''}`}
+              onClick={() => { onChange(opt.value); setOpen(false); }}
+            >
+              {opt.label}
+              {opt.value === value && (
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
+  const [groupBy, setGroupBy] = useState<GroupBy>('none');
+  const groups = groupBy !== 'none' ? groupApps(liveApps, groupBy) : null;
+
   return (
     <>
       <header>
@@ -58,10 +129,26 @@ export default function App() {
       </header>
 
       <div className="grid-container">
-        <div className="section-title">All apps</div>
-        <div className="grid">
-          {liveApps.map((app) => <AppTile key={app.folder} app={app} />)}
+        <div className="section-header">
+          <span className="section-label">All apps</span>
+          <span className="section-fill" />
+          <GroupByMenu value={groupBy} onChange={setGroupBy} />
         </div>
+
+        {groups ? (
+          groups.map(([key, groupApps]) => (
+            <div key={key} className="swimlane">
+              <div className="swimlane-label">{key}</div>
+              <div className="grid">
+                {groupApps.map((app) => <AppTile key={app.folder} app={app} />)}
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="grid">
+            {liveApps.map((app) => <AppTile key={app.folder} app={app} />)}
+          </div>
+        )}
 
         {comingApps.length > 0 && (
           <>
