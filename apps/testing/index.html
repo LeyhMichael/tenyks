@@ -7,6 +7,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <script>
+    (function() {
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return;
+      fetch('/api/me', { credentials: 'include' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.isTeamMember) {
+            window.location.href = '/.auth/login/aad?post_login_redirect_uri=' + encodeURIComponent(window.location.pathname);
+          }
+        })
+        .catch(function() { });
+    })();
+  </script>
 </head>
 <body>
 

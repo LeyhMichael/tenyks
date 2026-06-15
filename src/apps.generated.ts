@@ -83,7 +83,7 @@ const apps: AppConfig[] = [
     "author": "Frank Anderson",
     "tag": "Dev",
     "status": "live",
-    "visibility": "public",
+    "visibility": "team",
     "url": "/testing"
   },
   {
@@ -93,7 +93,7 @@ const apps: AppConfig[] = [
     "icon": "🪙",
     "accent": "#009A44",
     "tag": "AI",
-    "author": "Jun Wei EE",
+    "author": "Giuseppe Colombo and Jun Wei EE",
     "status": "live",
     "visibility": "public",
     "url": "/token-economics"

@@ -33,7 +33,7 @@ const TEAM_EMAILS = new Set(
 );
 
 // Routes whose top-level folder requires team membership
-const TEAM_PATHS = new Set(['quarterback', 'onboarding']);
+const TEAM_PATHS = new Set(['quarterback', 'onboarding', 'testing']);
 
 // Azure App Service EasyAuth injects the signed-in user's UPN / email here
 function getCallerEmail(req) {
