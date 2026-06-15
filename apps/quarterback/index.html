@@ -5,6 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quarterback Dashboard</title>
   <link rel="stylesheet" href="style.css">
+  <script>
+    // Team-membership guard — server handles the real enforcement via server.js.
+    // This client-side check just gives a fast redirect for non-team BCG users
+    // rather than waiting for the page to fully load before the server 403s.
+    (function() {
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') return;
+      fetch('/api/me', { credentials: 'include' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.isTeamMember && !data.email) {
+            // Not signed in — send to Azure AD login
+            window.location.href = '/.auth/login/aad?post_login_redirect_uri=' + encodeURIComponent(window.location.pathname);
+          }
+          // If signed in but not team member, server.js will serve the 403 page
+        })
+        .catch(function() { /* allow on error */ });
+    })();
+  </script>
 </head>
 <body>
 

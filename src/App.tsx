@@ -2,8 +2,26 @@ import { useState, useRef, useEffect } from 'react';
 import type { AppConfig } from './types';
 import apps from './apps.generated';
 
-const liveApps = apps.filter((a) => a.status === 'live');
-const comingApps = apps.filter((a) => a.status === 'coming_soon');
+// ── Auth / team state ──────────────────────────────────────────────────────────
+
+type AuthState = 'loading' | 'team' | 'bcg' | 'none';
+
+function useAuth(): AuthState {
+  const [state, setState] = useState<AuthState>('loading');
+  useEffect(() => {
+    fetch('/api/me', { credentials: 'include' })
+      .then((r) => r.json())
+      .then((data: { email: string | null; isTeamMember: boolean }) => {
+        if (data.isTeamMember) setState('team');
+        else if (data.email)   setState('bcg');
+        else                   setState('none');
+      })
+      .catch(() => setState('none'));
+  }, []);
+  return state;
+}
+
+// ── Group-by ───────────────────────────────────────────────────────────────────
 
 type GroupBy = 'none' | 'tag' | 'author';
 
@@ -21,6 +39,8 @@ function groupApps(list: AppConfig[], by: 'tag' | 'author'): [string, AppConfig[
   }
   return Array.from(map.entries());
 }
+
+// ── Tile helpers ───────────────────────────────────────────────────────────────
 
 function tileVars(app: AppConfig): React.CSSProperties {
   return {
@@ -79,7 +99,6 @@ function GroupByMenu({ value, onChange }: { value: GroupBy; onChange: (v: GroupB
           <path d={open ? 'M2 7l3-4 3 4' : 'M2 3l3 4 3-4'} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </button>
-
       {open && (
         <div className="group-by-dropdown">
           {GROUP_OPTIONS.map((opt) => (
@@ -102,9 +121,24 @@ function GroupByMenu({ value, onChange }: { value: GroupBy; onChange: (v: GroupB
   );
 }
 
+// ── Main app ───────────────────────────────────────────────────────────────────
+
 export default function App() {
+  const auth = useAuth();
   const [groupBy, setGroupBy] = useState<GroupBy>('none');
-  const groups = groupBy !== 'none' ? groupApps(liveApps, groupBy) : null;
+
+  const liveApps   = apps.filter((a) => a.status === 'live');
+  const comingApps = apps.filter((a) => a.status === 'coming_soon');
+
+  const publicApps = liveApps.filter((a) => a.visibility === 'public');
+  const teamApps   = liveApps.filter((a) => a.visibility === 'team');
+
+  const handleLogin = () => {
+    window.location.href =
+      '/.auth/login/aad?post_login_redirect_uri=' + encodeURIComponent(window.location.pathname);
+  };
+
+  const publicGroups = groupBy !== 'none' ? groupApps(publicApps, groupBy) : null;
 
   return (
     <>
@@ -114,45 +148,74 @@ export default function App() {
             <span className="bcg-badge">BCG TDA</span>
             <span className="header-title">Vantage Platform</span>
           </div>
-          <div className="header-subtitle">Internal tools built by the team, for the team</div>
+          <div className="header-subtitle">AI tools built by the team — explore, share, use</div>
         </div>
         <div className="header-right">
-          <a
-            className="add-app-btn"
-            href="https://github.com/bcgx-pi-60017564-1-2/tenyks"
-            target="_blank"
-            rel="noreferrer"
-          >
-            + Add your app
-          </a>
+          {auth === 'team' && (
+            <a
+              className="add-app-btn"
+              href="https://github.com/bcgx-pi-60017564-1-2/tenyks"
+              target="_blank"
+              rel="noreferrer"
+            >
+              + Add your app
+            </a>
+          )}
+          {auth === 'none' && (
+            <button className="add-app-btn" onClick={handleLogin}>
+              BCG sign-in →
+            </button>
+          )}
         </div>
       </header>
 
       <div className="grid-container">
+
+        {/* ── Public tools — all BCG employees ── */}
         <div className="section-header">
-          <span className="section-label">All apps</span>
+          <span className="section-label">Our tools</span>
           <span className="section-fill" />
           <GroupByMenu value={groupBy} onChange={setGroupBy} />
         </div>
+        <p className="section-sub">Explore what the TDA Vantage team has built. Available to everyone at BCG.</p>
 
-        {groups ? (
-          groups.map(([key, groupApps]) => (
+        {publicGroups ? (
+          publicGroups.map(([key, groupedApps]) => (
             <div key={key} className="swimlane">
               <div className="swimlane-label">{key}</div>
               <div className="grid">
-                {groupApps.map((app) => <AppTile key={app.folder} app={app} />)}
+                {groupedApps.map((app) => <AppTile key={app.folder} app={app} />)}
               </div>
             </div>
           ))
         ) : (
           <div className="grid">
-            {liveApps.map((app) => <AppTile key={app.folder} app={app} />)}
+            {publicApps.map((app) => <AppTile key={app.folder} app={app} />)}
           </div>
         )}
 
+        {/* ── Team tools — Vantage team members only ── */}
+        {teamApps.length > 0 && auth === 'team' && (
+          <>
+            <div className="section-header">
+              <span className="section-label section-team">Team tools</span>
+              <span className="section-team-badge">✓ team member</span>
+              <span className="section-fill" />
+            </div>
+            <p className="section-sub">Internal tools for the TDA Vantage team.</p>
+            <div className="grid">
+              {teamApps.map((app) => <AppTile key={app.folder} app={app} />)}
+            </div>
+          </>
+        )}
+
+        {/* ── Coming soon ── */}
         {comingApps.length > 0 && (
           <>
-            <div className="section-title">Coming soon</div>
+            <div className="section-header">
+              <span className="section-label">Coming soon</span>
+              <span className="section-fill" />
+            </div>
             <div className="grid">
               {comingApps.map((app) => (
                 <div key={app.folder} className="app-tile tile-coming-soon" style={tileVars(app)}>

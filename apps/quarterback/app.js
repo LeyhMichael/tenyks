@@ -93,19 +93,39 @@ function toast(msg, type = '') {
 
 // ── Tab switching ─────────────────────────────────────────────────────────────
 
+function activateTab(tab) {
+  document.querySelectorAll('.nav-tab[data-tab]').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.nav-tab[data-tab="${tab}"]`);
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById('tab-' + tab);
+  if (panel) panel.classList.add('active');
+  if (tab === 'staffing') loadStaffingTab();
+  if (tab === 'pto')      loadPtoTab();
+  if (tab === 'backlog')  loadBacklogTab();
+}
+
 document.querySelectorAll('.nav-tab[data-tab]').forEach(btn => {
   btn.addEventListener('click', () => {
     const tab = btn.dataset.tab;
-    document.querySelectorAll('.nav-tab[data-tab]').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('tab-' + tab).classList.add('active');
-
-    if (tab === 'staffing') loadStaffingTab();
-    if (tab === 'pto')      loadPtoTab();
-    if (tab === 'backlog')  loadBacklogTab();
+    history.pushState({ tab }, '', '#' + tab);
+    activateTab(tab);
   });
 });
+
+// Restore tab from hash on load or when back/forward is pressed
+window.addEventListener('popstate', (e) => {
+  const tab = (e.state && e.state.tab) || window.location.hash.replace('#', '') || 'requests';
+  activateTab(tab);
+});
+
+// On initial load, honour the hash if present
+(function initTabFromHash() {
+  const hash = window.location.hash.replace('#', '');
+  if (hash && document.getElementById('tab-' + hash)) {
+    activateTab(hash);
+  }
+})();
 
 // ── Initial load ──────────────────────────────────────────────────────────────
 

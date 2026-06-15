@@ -7,5 +7,6 @@ export interface AppConfig {
   author: string;
   tag?: string;
   status: 'live' | 'coming_soon';
+  visibility: 'public' | 'team';
   url: string;
 }

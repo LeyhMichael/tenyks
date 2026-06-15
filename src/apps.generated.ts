@@ -11,6 +11,7 @@ const apps: AppConfig[] = [
     "tag": "AI",
     "author": "Rishabh Sharma",
     "status": "live",
+    "visibility": "public",
     "url": "/ai-use-cases"
   },
   {
@@ -22,6 +23,7 @@ const apps: AppConfig[] = [
     "tag": "Experience",
     "author": "Marcus Pinnau",
     "status": "live",
+    "visibility": "public",
     "url": "/ascent"
   },
   {
@@ -33,7 +35,20 @@ const apps: AppConfig[] = [
     "tag": "Analytics",
     "author": "Giuseppe Colombo",
     "status": "live",
+    "visibility": "public",
     "url": "/intelligence"
+  },
+  {
+    "folder": "onboarding",
+    "name": "Onboarding Launchpad",
+    "description": "POP + TDA (Gen)AI Vantage onboarding guide — welcome, first-month ramp, team directory, knowledge toolkit, and a self-graded quiz.",
+    "icon": "🌿",
+    "accent": "#12815d",
+    "tag": "Team",
+    "author": "Carmen Casas",
+    "status": "live",
+    "visibility": "team",
+    "url": "/onboarding"
   },
   {
     "folder": "quarterback",
@@ -44,6 +59,7 @@ const apps: AppConfig[] = [
     "tag": "Admin",
     "author": "Michael Leyh",
     "status": "live",
+    "visibility": "team",
     "url": "/quarterback"
   },
   {
@@ -55,6 +71,7 @@ const apps: AppConfig[] = [
     "accent": "#3d9b6d",
     "author": "Frank Anderson",
     "status": "live",
+    "visibility": "public",
     "url": "/rapid-bff"
   },
   {
@@ -66,6 +83,7 @@ const apps: AppConfig[] = [
     "author": "Frank Anderson",
     "tag": "Dev",
     "status": "live",
+    "visibility": "public",
     "url": "/testing"
   },
   {
@@ -77,6 +95,7 @@ const apps: AppConfig[] = [
     "tag": "AI",
     "author": "Jun Wei EE",
     "status": "live",
+    "visibility": "public",
     "url": "/token-economics"
   }
 ];
