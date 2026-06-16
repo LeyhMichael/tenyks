@@ -70,8 +70,10 @@ function priorityBadge(p) {
 
 function formatName(name) {
   if (!name) return '';
-  const parts = name.trim().split(/\s+/);
-  if (parts.length < 2) return name;
+  // Strip BCG office disambiguators like "(BKA)", "(GUK)", etc.
+  const clean = name.trim().replace(/\s*\([A-Z]{2,}\)\s*$/, '');
+  const parts = clean.split(/\s+/);
+  if (parts.length < 2) return clean;
   return parts.slice(1).join(' ') + ' ' + parts[0];
 }
 
