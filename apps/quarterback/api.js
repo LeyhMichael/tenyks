@@ -48,7 +48,7 @@ async function loadRequests() {
   `);
   _requestsCache = rows.map(r => ({
     number:            r.number,
-    short_description: (r.short_description || '').slice(0, 80),
+    short_description: r.short_description || '',
     country:           r.country || 'Unknown',
     project_code:      r.project_code || '',
     requestor:         r.requestor || '',

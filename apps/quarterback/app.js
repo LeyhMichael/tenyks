@@ -212,7 +212,7 @@ function requestCard(r) {
   const btnLabel = isUnassigned ? 'Assign →' : 'Reassign →';
 
   return `
-  <div class="request-card ${isUnassigned ? 'unassigned-card' : ''}" id="card-${r.number}">
+  <div class="request-card ${isUnassigned ? 'unassigned-card' : ''}" id="card-${r.number}" onclick="openRequestDetail('${r.number}')" style="cursor:pointer;">
     <div class="card-top">
       <span class="card-number">${r.number}</span>
       ${statusBadgeHtml}
@@ -224,7 +224,7 @@ function requestCard(r) {
       ${r.deadline ? `<span>⏰ ${r.deadline}</span>` : ''}
     </div>
     <div class="badges">${unassignedBadge}${assigneeBadge}${blockBadge}</div>
-    <div class="assign-row">
+    <div class="assign-row" onclick="event.stopPropagation()">
       <select id="sel-${r.number}">
         <option value="">— ${isUnassigned ? 'Assign to team member' : 'Reassign'} —</option>
         ${opts}
@@ -259,6 +259,81 @@ async function assign(number) {
   } catch (err) {
     toast('Assignment failed: ' + err.message, 'error');
   }
+}
+
+// ── Request detail modal ──────────────────────────────────────────────────────
+
+function openRequestDetail(number) {
+  const r = state.requests.find(req => req.number === number);
+  if (!r) return;
+
+  const flag = FLAGS[r.country] || '🌍';
+  const isUnassigned = r.is_unassigned;
+
+  const statusBadgeHtml = {
+    'New': '<span class="badge badge-new">New</span>',
+    'Assigned': '<span class="badge badge-assigned">Assigned</span>',
+    'Work in progress': '<span class="badge badge-wip">In Progress</span>',
+  }[r.status] || `<span class="badge">${escHtml(r.status)}</span>`;
+
+  document.getElementById('rdTitle').innerHTML = `${escHtml(r.number)} ${statusBadgeHtml}`;
+  document.getElementById('rdSubtitle').textContent = r.short_description;
+
+  const fields = [
+    { label: 'Requestor',     value: r.requestor },
+    { label: 'Country',       value: `${flag} ${r.country}` },
+    { label: 'Project Code',  value: r.project_code || '—' },
+    { label: 'Created',       value: r.created_date || '—' },
+    { label: 'Deadline',      value: r.deadline || '—' },
+    { label: 'Assigned To',   value: r.assigned_to || 'Unassigned' },
+  ];
+
+  document.getElementById('rdBody').innerHTML = `
+    <div class="rd-grid">
+      ${fields.map(f => `
+        <div class="rd-field">
+          <div class="rd-label">${escHtml(f.label)}</div>
+          <div class="rd-value">${escHtml(f.value)}</div>
+        </div>`).join('')}
+    </div>`;
+
+  const opts = state.teamNames.map(name => {
+    const isBlocked = state.blocked[name];
+    const label = isBlocked ? `${name} ${blockLabel(state.blockReasons[name])}` : name;
+    return `<option value="${name}" ${isBlocked ? 'disabled' : ''} ${!isUnassigned && r.assigned_to === name ? 'selected' : ''}>${label}</option>`;
+  }).join('');
+
+  const btnLabel = isUnassigned ? 'Assign →' : 'Reassign →';
+  document.getElementById('rdAssignRow').innerHTML = `
+    <select id="rd-sel-${r.number}">
+      <option value="">— ${isUnassigned ? 'Assign to team member' : 'Reassign'} —</option>
+      ${opts}
+    </select>
+    <button onclick="assignFromDetail('${r.number}')">  ${btnLabel}</button>`;
+
+  document.getElementById('rdSuccessMsg').style.display = 'none';
+  document.getElementById('requestOverlay').classList.add('show');
+}
+
+async function assignFromDetail(number) {
+  const sel = document.getElementById('rd-sel-' + number);
+  if (!sel || !sel.value) return toast('Please select a team member first', 'warn');
+  const assignee = sel.value;
+  try {
+    const data = await fetch(`${API}/assign`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ number, assignee }),
+    }).then(r => r.json());
+    if (data.error) return toast('⛔ ' + data.error, 'error');
+    document.getElementById('rdSuccessMsg').style.display = 'block';
+    setTimeout(() => { closeRequestDetail(); loadRequests(); }, 1200);
+  } catch (err) {
+    toast('Assignment failed: ' + err.message, 'error');
+  }
+}
+
+function closeRequestDetail() {
+  document.getElementById('requestOverlay').classList.remove('show');
 }
 
 // ── Capacity panel ────────────────────────────────────────────────────────────

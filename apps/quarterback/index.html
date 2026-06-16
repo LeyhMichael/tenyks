@@ -30,7 +30,6 @@
 <header>
   <div>
     <h1>🏈 Quarterback Dashboard</h1>
-    <div class="subtitle">Vantage Request Staffing</div>
   </div>
 </header>
 
@@ -281,6 +280,25 @@
   <div class="cal-popup-title" id="calPopupTitle"></div>
   <div class="cal-popup-btns" id="calPopupBtns"></div>
   <span class="cal-popup-close" onclick="closeCalPopup()">✕ close</span>
+</div>
+
+<!-- ── Request detail modal ──────────────────────────────────────────────── -->
+<div class="overlay" id="requestOverlay" onclick="if(event.target===this)closeRequestDetail()">
+  <div class="modal modal-sm" id="requestModal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="rdTitle"></div>
+        <div class="modal-subtitle" id="rdSubtitle"></div>
+      </div>
+      <button class="modal-close" onclick="closeRequestDetail()">✕</button>
+    </div>
+    <div class="modal-body" id="rdBody"></div>
+    <div class="modal-footer" style="flex-direction:column;align-items:stretch;gap:10px;">
+      <div style="font-size:11px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:0.8px;">Assign / Reassign</div>
+      <div class="assign-row" id="rdAssignRow"></div>
+      <div class="success-msg" id="rdSuccessMsg">✓ Assigned!</div>
+    </div>
+  </div>
 </div>
 
 <!-- ── Toast ────────────────────────────────────────────────────────────── -->
