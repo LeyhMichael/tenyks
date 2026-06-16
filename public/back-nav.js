@@ -1,4 +1,7 @@
 (function () {
+  // Respect global "show back button" setting
+  try { if (localStorage.getItem('showBackButton') !== 'true') return; } catch (_) {}
+
   // Only show when arriving from the platform homepage
   try {
     var ref = document.referrer;
