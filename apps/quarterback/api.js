@@ -205,7 +205,7 @@ async function buildCapacity(requests) {
                      : total >= cap         ? 'full'
                      : total >= cap * 0.7   ? 'warn' : 'ok';
 
-    if (total > 0 || breakdown.is_blocked) {
+    if (total > 0 || breakdown.total > 0) {
       result.push({
         name, daily, spillover, total, pct,
         is_blocked:    breakdown.is_blocked,
