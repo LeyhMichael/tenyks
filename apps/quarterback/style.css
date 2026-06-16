@@ -745,6 +745,122 @@ header .subtitle {
   color: var(--ink);
 }
 
+/* ── List tables (staffing / PTO) ────────────────────────────────────────── */
+
+.list-table-wrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--ring);
+}
+
+.list-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.list-table thead th {
+  background: rgba(26,127,75,0.07);
+  color: var(--text-2);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--ring);
+  white-space: nowrap;
+  text-align: left;
+}
+
+.list-table tbody tr {
+  cursor: pointer;
+  transition: background 0.15s;
+  border-bottom: 1px solid var(--ring);
+}
+
+.list-table tbody tr:last-child { border-bottom: none; }
+
+.list-table tbody tr:hover { background: rgba(26,127,75,0.05); }
+
+.list-table tbody tr.row-active { background: rgba(26,127,75,0.08); }
+
+.list-table tbody tr.row-active:hover { background: rgba(26,127,75,0.13); }
+
+.list-table td {
+  padding: 10px 14px;
+  color: var(--ink);
+  vertical-align: middle;
+}
+
+/* ── Capacity pills ──────────────────────────────────────────────────────── */
+
+.capacity-pill {
+  display: inline-block;
+  background: rgba(26,127,75,0.12);
+  color: var(--green);
+  border: 1px solid rgba(26,127,75,0.25);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+}
+
+.capacity-pill-sm {
+  display: inline-block;
+  background: rgba(26,127,75,0.1);
+  color: var(--green);
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+}
+
+/* ── Block reason chips (member cards) ───────────────────────────────────── */
+
+.block-reasons-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.block-reason-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.25);
+  color: #dc2626;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+}
+
+.member-meta-line {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-top: 2px;
+}
+
+/* ── Team member chips in backlog table ──────────────────────────────────── */
+
+.team-cell { max-width: 220px; }
+
+.team-member-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(10,33,24,0.05);
+  border: 1px solid var(--ring);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  margin: 2px 2px 2px 0;
+  white-space: nowrap;
+}
+
 /* ── Scrollbar ────────────────────────────────────────────────────────────── */
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }

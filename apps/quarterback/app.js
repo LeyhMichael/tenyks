@@ -11,9 +11,7 @@ const FLAGS = {
 let state = {
   requests: [], team: [], teamNames: [], blocked: {}, blockReasons: {},
   unassignedCount: 0, weekLabels: [], todayLabel: '', maxRequests: 14,
-  staffingMonth: monthKey(new Date()),
-  ptoMonth: monthKey(new Date()),
-  staffingData: {}, ptoData: {}, teamNamesLoaded: [],
+  staffingItems: [], ptoItems: [], teamNamesLoaded: [],
   backlogItems: [],
   agentRecs: [],
   workloadOffset: 0, workloadData: null,
@@ -167,14 +165,10 @@ loadRequests();
 
 function renderStats() {
   const s = state;
-  const blockedNames  = Object.keys(s.blocked);
-  const staffedCount  = blockedNames.filter(n => s.blockReasons[n] === 'on case today').length;
-  const absenceCount  = blockedNames.filter(n => s.blockReasons[n] !== 'on case today').length;
+  const blockedCount = Object.keys(s.blocked).length;
   let html = `<div class="stat-chip urgent"><div class="stat-dot dot-red"></div>${s.unassignedCount} requests unassigned</div>`;
-  if (staffedCount > 0)
-    html += `<div class="stat-chip staffed"><div class="stat-dot dot-purple"></div>${staffedCount} staffed</div>`;
-  if (absenceCount > 0)
-    html += `<div class="stat-chip absence"><div class="stat-dot dot-orange"></div>${absenceCount} on absence</div>`;
+  if (blockedCount > 0)
+    html += `<div class="stat-chip staffed"><div class="stat-dot dot-purple"></div>${blockedCount} member${blockedCount > 1 ? 's' : ''} ≥75% blocked</div>`;
   document.getElementById('statsBar').innerHTML = html;
   document.getElementById('capSublabel').textContent = `Max ${s.maxRequests} req/week`;
 }
@@ -211,13 +205,13 @@ function requestCard(r) {
     ? `<span class="badge badge-person">${formatName(r.assigned_to)}</span>` : '';
 
   const blockBadge = !isUnassigned && state.blocked[r.assigned_to]
-    ? `<span class="badge badge-blocked">${blockLabel(state.blockReasons[r.assigned_to])}</span>` : '';
+    ? `<span class="badge badge-blocked">🔴 Blocked</span>` : '';
 
   const unassignedBadge = isUnassigned ? `<span class="badge badge-unassigned">Unassigned</span>` : '';
 
   const opts = state.teamNames.map(name => {
     const isBlocked = state.blocked[name];
-    const label = isBlocked ? `${formatName(name)} ${blockLabel(state.blockReasons[name])}` : formatName(name);
+    const label = isBlocked ? `${formatName(name)} 🔴` : formatName(name);
     return `<option value="${name}" ${isBlocked ? 'disabled' : ''} ${!isUnassigned && r.assigned_to === name ? 'selected' : ''}>${label}</option>`;
   }).join('');
 
@@ -247,12 +241,15 @@ function requestCard(r) {
   </div>`;
 }
 
-function blockLabel(reason) {
-  if (!reason) return '🔴 (Staffed)';
-  if (reason.includes('pto')) return '🏖️ (PTO)';
-  if (reason.includes('training')) return '📚 (Training)';
-  if (reason.includes('event')) return '🎉 (Event)';
-  return '🔴 (Staffed)';
+// reasons is string[] like ["Case (50%)", "PTO (100%)"]
+function blockLabel(reasons) {
+  if (!reasons || !reasons.length) return '🔴';
+  return reasons.map(r => {
+    const l = r.toLowerCase();
+    if (l.startsWith('pto'))     return `🏖️ ${r}`;
+    if (l.startsWith('backlog')) return `📌 ${r}`;
+    return `🔴 ${r}`;
+  }).join(' · ');
 }
 
 async function assign(number) {
@@ -311,7 +308,7 @@ function openRequestDetail(number) {
 
   const opts = state.teamNames.map(name => {
     const isBlocked = state.blocked[name];
-    const label = isBlocked ? `${formatName(name)} ${blockLabel(state.blockReasons[name])}` : formatName(name);
+    const label = isBlocked ? `${formatName(name)} 🔴` : formatName(name);
     return `<option value="${name}" ${isBlocked ? 'disabled' : ''} ${!isUnassigned && r.assigned_to === name ? 'selected' : ''}>${label}</option>`;
   }).join('');
 
@@ -361,16 +358,18 @@ function renderCapacityPanel() {
 }
 
 function memberCard(m) {
-  const statusLabel = {
-    blocked: blockLabel(m.block_reason),
-    full: '🔴 Full', warn: '🟡 Limited', ok: '🟢 Available',
-  }[m.status];
-
   const fillClass = { blocked: 'fill-red', full: 'fill-red', warn: 'fill-yellow', ok: 'fill-green' }[m.status];
+  const statusLabel = { full: '🔴 Full', warn: '🟡 Limited', ok: '🟢 Available' }[m.status] || '';
+
+  const reasonChips = (m.block_reasons || []).map(r => {
+    const l = r.toLowerCase();
+    const icon = l.startsWith('pto') ? '🏖️' : l.startsWith('backlog') ? '📌' : '💼';
+    return `<span class="block-reason-tag">${icon} ${escHtml(r)}</span>`;
+  }).join('');
 
   const metaHtml = m.is_blocked
-    ? `${blockLabel(m.block_reason)} · Cannot take requests`
-    : `${m.total} / ${state.maxRequests} requests · ${m.effective_cap} cap this week`;
+    ? `<div class="block-reasons-row">${reasonChips || '🔴 Blocked'}</div>`
+    : `<div class="member-meta-line">${m.total} / ${state.maxRequests} requests · ${m.effective_cap} cap this week</div>`;
 
   const spilloverHtml = m.spillover > 0
     ? `<span class="spillover-badge">↩ ${m.spillover} spillover</span>` : '';
@@ -394,9 +393,9 @@ function memberCard(m) {
   <div class="member-card ${m.is_blocked ? 'blocked-card' : ''}">
     <div class="member-top">
       <div class="member-name">${escHtml(formatName(m.name))}</div>
-      <span class="member-status status-${m.status}">${statusLabel}</span>
+      ${m.is_blocked ? '<span class="member-status status-blocked">🔴 Blocked ≥75%</span>' : `<span class="member-status status-${m.status}">${statusLabel}</span>`}
     </div>
-    <div class="member-meta">${metaHtml} ${spilloverHtml}</div>
+    ${metaHtml} ${spilloverHtml}
     ${barHtml}
   </div>`;
 }
@@ -404,194 +403,227 @@ function memberCard(m) {
 // ── Staffing tab ──────────────────────────────────────────────────────────────
 
 async function loadStaffingTab() {
-  document.getElementById('staffingMonthLabel').textContent = monthLabel(state.staffingMonth);
+  document.getElementById('staffingContent').innerHTML =
+    '<div class="empty-state"><div class="icon">⏳</div><p>Loading…</p></div>';
   try {
-    const [staffingData, teamData] = await Promise.all([
-      apiFetch(`${API}/staffing?month=${state.staffingMonth}`),
+    const [items, teamData] = await Promise.all([
+      apiFetch(`${API}/staffing`),
       apiFetch(`${API}/team`),
     ]);
-    state.staffingData = staffingData;
+    state.staffingItems   = items;
     state.teamNamesLoaded = teamData.team_names;
-    renderCalendar('staffing');
+    populateStaffingTeamSelect();
+    renderStaffing();
   } catch (err) {
-    document.getElementById('staffingCal').innerHTML = `<p style="color:#f87171">Error: ${err.message}</p>`;
+    document.getElementById('staffingContent').innerHTML =
+      `<div class="empty-state"><div class="icon">⚠️</div><p>Error: ${err.message}</p></div>`;
   }
+}
+
+function renderStaffing() {
+  const items = state.staffingItems;
+  if (!items.length) {
+    document.getElementById('staffingContent').innerHTML =
+      '<div class="empty-state"><div class="icon">💼</div><p>No staffing entries yet. Click <strong>+ New Entry</strong> to add one.</p></div>';
+    return;
+  }
+  const today = todayStr();
+  let html = `<div class="list-table-wrap"><table class="list-table"><thead><tr>
+    <th>Case Name</th><th>Case Code</th><th>Case Type</th>
+    <th>Industry</th><th>Region</th><th>Project Value</th>
+    <th>Team Member</th><th>Capacity</th><th>Start Date</th><th>End Date</th>
+  </tr></thead><tbody>`;
+  for (const i of items) {
+    const isActive = i.start_date && i.end_date && i.start_date <= today && i.end_date >= today;
+    html += `<tr class="${isActive ? 'row-active' : ''}" onclick="openStaffingModal(${JSON.stringify(i).replace(/"/g,'&quot;')})">
+      <td>${escHtml(i.case_name)}</td><td>${escHtml(i.case_code)}</td><td>${escHtml(i.case_type)}</td>
+      <td>${escHtml(i.industry)}</td><td>${escHtml(i.region)}</td><td>${escHtml(i.project_value)}</td>
+      <td>${escHtml(formatName(i.team_member))}</td>
+      <td><span class="capacity-pill">${i.capacity_pct}%</span></td>
+      <td>${i.start_date || '—'}</td><td>${i.end_date || '—'}</td>
+    </tr>`;
+  }
+  html += '</tbody></table></div>';
+  document.getElementById('staffingContent').innerHTML = html;
+}
+
+function populateStaffingTeamSelect() {
+  const names = getTeamNames();
+  const sel = document.getElementById('sfTeamMember');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Select —</option>';
+  names.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = formatName(n); if (n === cur) o.selected = true; sel.appendChild(o); });
+}
+
+function openStaffingModal(item) {
+  const isNew = !item;
+  document.getElementById('staffingModalTitle').textContent = isNew ? 'New Staffing Entry' : 'Edit Staffing Entry';
+  document.getElementById('sfDeleteBtn').style.display = isNew ? 'none' : 'inline-flex';
+  document.getElementById('sfId').value           = item?.id || '';
+  document.getElementById('sfCaseName').value     = item?.case_name     || '';
+  document.getElementById('sfCaseCode').value     = item?.case_code     || '';
+  document.getElementById('sfCaseType').value     = item?.case_type     || '';
+  document.getElementById('sfIndustry').value     = item?.industry      || '';
+  document.getElementById('sfRegion').value       = item?.region        || '';
+  document.getElementById('sfProjectValue').value = item?.project_value || '';
+  document.getElementById('sfTeamMember').value   = item?.team_member   || '';
+  document.getElementById('sfCapacity').value     = String(item?.capacity_pct || 50);
+  document.getElementById('sfStartDate').value    = item?.start_date    || '';
+  document.getElementById('sfEndDate').value      = item?.end_date      || '';
+  document.getElementById('staffingOverlay').classList.add('show');
+}
+
+function closeStaffingModal() {
+  document.getElementById('staffingOverlay').classList.remove('show');
+}
+
+async function saveStaffingEntry() {
+  const payload = {
+    id:            document.getElementById('sfId').value ? parseInt(document.getElementById('sfId').value) : null,
+    case_name:     document.getElementById('sfCaseName').value,
+    case_code:     document.getElementById('sfCaseCode').value,
+    case_type:     document.getElementById('sfCaseType').value,
+    industry:      document.getElementById('sfIndustry').value,
+    region:        document.getElementById('sfRegion').value,
+    project_value: document.getElementById('sfProjectValue').value,
+    team_member:   document.getElementById('sfTeamMember').value,
+    capacity_pct:  parseInt(document.getElementById('sfCapacity').value) || 50,
+    start_date:    document.getElementById('sfStartDate').value,
+    end_date:      document.getElementById('sfEndDate').value,
+  };
+  if (!payload.team_member) return toast('Please select a team member', 'warn');
+  if (!payload.start_date || !payload.end_date) return toast('Start and end date are required', 'warn');
+  try {
+    const data = await fetch(`${API}/staffing/save`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).then(r => r.json());
+    if (data.error) return toast(data.error, 'error');
+    if (data.reassigned > 0) toast(`↩ ${data.reassigned} request(s) moved back to queue`, 'warn');
+    closeStaffingModal();
+    await loadStaffingTab();
+    loadRequests();
+  } catch (err) {
+    toast('Failed to save: ' + err.message, 'error');
+  }
+}
+
+async function deleteStaffingEntry() {
+  const id = document.getElementById('sfId').value;
+  if (!id || !confirm('Delete this staffing entry?')) return;
+  try {
+    await fetch(`${API}/staffing/delete`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: parseInt(id) }) });
+    closeStaffingModal();
+    await loadStaffingTab();
+    loadRequests();
+  } catch (err) { toast('Failed to delete: ' + err.message, 'error'); }
 }
 
 async function loadPtoTab() {
-  document.getElementById('ptoMonthLabel').textContent = monthLabel(state.ptoMonth);
+  document.getElementById('ptoContent').innerHTML =
+    '<div class="empty-state"><div class="icon">⏳</div><p>Loading…</p></div>';
   try {
-    const [ptoData, teamData] = await Promise.all([
-      apiFetch(`${API}/pto?month=${state.ptoMonth}`),
+    const [items, teamData] = await Promise.all([
+      apiFetch(`${API}/pto`),
       apiFetch(`${API}/team`),
     ]);
-    state.ptoData = ptoData;
+    state.ptoItems        = items;
     state.teamNamesLoaded = teamData.team_names;
-    renderCalendar('pto');
+    populatePtoTeamSelect();
+    renderPto();
   } catch (err) {
-    document.getElementById('ptoCal').innerHTML = `<p style="color:#f87171">Error: ${err.message}</p>`;
+    document.getElementById('ptoContent').innerHTML =
+      `<div class="empty-state"><div class="icon">⚠️</div><p>Error: ${err.message}</p></div>`;
   }
 }
 
-function changeMonth(type, delta) {
-  if (type === 'staffing') {
-    state.staffingMonth = addMonths(state.staffingMonth, delta);
-    loadStaffingTab();
-  } else {
-    state.ptoMonth = addMonths(state.ptoMonth, delta);
-    loadPtoTab();
+const PTO_EMOJI = { PTO: '🏖️', Training: '📚', Event: '🎉' };
+
+function renderPto() {
+  const items = state.ptoItems;
+  if (!items.length) {
+    document.getElementById('ptoContent').innerHTML =
+      '<div class="empty-state"><div class="icon">🏖️</div><p>No absences recorded. Click <strong>+ New Entry</strong> to add one.</p></div>';
+    return;
   }
-}
-
-function renderCalendar(type) {
-  const monthKey = type === 'staffing' ? state.staffingMonth : state.ptoMonth;
-  const data     = type === 'staffing' ? state.staffingData  : state.ptoData;
-  const names    = state.teamNamesLoaded;
-  const today    = todayStr();
-  const days     = daysInMonth(monthKey);
-  const [y, m]   = monthKey.split('-').map(Number);
-
-  const dateStrs = Array.from({ length: days }, (_, i) => {
-    const d = String(i + 1).padStart(2, '0');
-    return `${y}-${String(m).padStart(2, '0')}-${d}`;
-  });
-
-  let html = '<table class="cal-table"><thead><tr>';
-  html += '<th style="min-width:140px;">Member</th>';
-  for (const d of dateStrs) {
-    const isToday   = d === today;
-    const weekend   = isWeekend(d);
-    const day       = d.slice(8);
-    const dayAbbr   = ['Su','Mo','Tu','We','Th','Fr','Sa'][dayOfWeek(d)];
-    const cls       = isToday ? 'today-col' : weekend ? 'weekend' : '';
-    html += `<th class="${cls}">${day}<br><span style="font-weight:400;">${dayAbbr}</span></th>`;
+  const today = todayStr();
+  let html = `<div class="list-table-wrap"><table class="list-table"><thead><tr>
+    <th>Team Member</th><th>Absence Type</th><th>Start Date</th><th>End Date</th><th>Capacity</th>
+  </tr></thead><tbody>`;
+  for (const i of items) {
+    const isActive = i.start_date && i.end_date && i.start_date <= today && i.end_date >= today;
+    const emoji    = PTO_EMOJI[i.absence_type] || '📅';
+    html += `<tr class="${isActive ? 'row-active' : ''}" onclick="openPtoModal(${JSON.stringify(i).replace(/"/g,'&quot;')})">
+      <td>${escHtml(formatName(i.team_member))}</td>
+      <td>${emoji} ${escHtml(i.absence_type)}</td>
+      <td>${i.start_date || '—'}</td><td>${i.end_date || '—'}</td>
+      <td><span class="capacity-pill">${i.capacity_pct}%</span></td>
+    </tr>`;
   }
-  html += '</tr></thead><tbody>';
-
-  for (const name of names) {
-    html += `<tr><td class="name-cell">${escHtml(formatName(name))}</td>`;
-    for (const d of dateStrs) {
-      const weekend = isWeekend(d);
-      const isToday = d === today;
-      let cellClass = 'day-cell-cal';
-      let inner = '';
-
-      if (weekend) {
-        cellClass += ' weekend-cell';
-        html += `<td class="${cellClass}"><div class="cal-cell-inner" style="color:#1e2433">·</div></td>`;
-        continue;
-      }
-
-      if (isToday) cellClass += ' today-cell';
-
-      if (type === 'staffing') {
-        const pct = (data[name] || {})[d] ?? null;
-        const pctClass = pct === null ? 'cal-pct-0' : `cal-pct-${pct}`;
-        const label    = pct !== null ? `${pct}%` : '';
-        inner = `<div class="cal-cell-inner ${pctClass}">${label}</div>`;
-        html += `<td class="${cellClass}" onclick="openStaffingPopup('${name}','${d}',this)">${inner}</td>`;
-      } else {
-        const ptoType = (data[name] || {})[d] || null;
-        const ptoClass = ptoType ? `cal-${ptoType.toLowerCase()}` : 'cal-pct-0';
-        const emoji    = { PTO: '🏖️', Training: '📚', Event: '🎉' }[ptoType] || '';
-        inner = `<div class="cal-cell-inner ${ptoClass}">${emoji}</div>`;
-        html += `<td class="${cellClass}" onclick="openPtoPopup('${name}','${d}',this)">${inner}</td>`;
-      }
-    }
-    html += '</tr>';
-  }
-
-  html += '</tbody></table>';
-  document.getElementById(type + 'Cal').innerHTML = html;
+  html += '</tbody></table></div>';
+  document.getElementById('ptoContent').innerHTML = html;
 }
 
-// ── Calendar popup ────────────────────────────────────────────────────────────
-
-let _popupTarget = null;
-
-function openStaffingPopup(name, date, cell) {
-  _popupTarget = { type: 'staffing', name, date, cell };
-  const cur = (state.staffingData[name] || {})[date] ?? null;
-  document.getElementById('calPopupTitle').textContent = `${name} · ${date}`;
-  document.getElementById('calPopupBtns').innerHTML = [0, 25, 50, 75, 100].map(pct =>
-    `<button class="cal-popup-btn ${cur === pct ? 'active' : ''}" onclick="setStaffing('${name}','${date}',${pct})">${pct}%${cur === pct ? ' ✓' : ''}</button>`
-  ).join('');
-  positionPopup(cell);
+function populatePtoTeamSelect() {
+  const names = getTeamNames();
+  const sel = document.getElementById('ptTeamMember');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Select —</option>';
+  names.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = formatName(n); if (n === cur) o.selected = true; sel.appendChild(o); });
 }
 
-function openPtoPopup(name, date, cell) {
-  _popupTarget = { type: 'pto', name, date, cell };
-  const cur = (state.ptoData[name] || {})[date] || null;
-  document.getElementById('calPopupTitle').textContent = `${name} · ${date}`;
-  document.getElementById('calPopupBtns').innerHTML = [
-    { label: '✕ Clear', value: '' },
-    { label: '🏖️ PTO', value: 'PTO' },
-    { label: '📚 Training', value: 'Training' },
-    { label: '🎉 Event', value: 'Event' },
-  ].map(({ label, value }) =>
-    `<button class="cal-popup-btn ${cur === value || (!cur && !value) ? 'active' : ''}" onclick="setPto('${name}','${date}','${value}')">${label}${(cur === value || (!cur && !value)) ? ' ✓' : ''}</button>`
-  ).join('');
-  positionPopup(cell);
+function openPtoModal(item) {
+  const isNew = !item;
+  document.getElementById('ptoModalTitle').textContent = isNew ? 'New Absence Entry' : 'Edit Absence Entry';
+  document.getElementById('ptDeleteBtn').style.display = isNew ? 'none' : 'inline-flex';
+  document.getElementById('ptId').value          = item?.id || '';
+  document.getElementById('ptTeamMember').value  = item?.team_member  || '';
+  document.getElementById('ptAbsenceType').value = item?.absence_type || 'PTO';
+  document.getElementById('ptStartDate').value   = item?.start_date   || '';
+  document.getElementById('ptEndDate').value     = item?.end_date     || '';
+  document.getElementById('ptCapacity').value    = String(item?.capacity_pct || 100);
+  document.getElementById('ptoOverlay').classList.add('show');
 }
 
-function positionPopup(cell) {
-  const popup = document.getElementById('calPopup');
-  popup.style.display = 'block';
-  const rect = cell.getBoundingClientRect();
-  const top  = Math.min(rect.bottom + 6, window.innerHeight - 200);
-  const left = Math.min(rect.left, window.innerWidth - 200);
-  popup.style.top  = top + 'px';
-  popup.style.left = left + 'px';
+function closePtoModal() {
+  document.getElementById('ptoOverlay').classList.remove('show');
 }
 
-function closeCalPopup() {
-  document.getElementById('calPopup').style.display = 'none';
-  _popupTarget = null;
-}
-
-document.addEventListener('click', e => {
-  const popup = document.getElementById('calPopup');
-  if (popup.style.display !== 'none' && !popup.contains(e.target) && !e.target.closest('.day-cell-cal'))
-    closeCalPopup();
-});
-
-async function setStaffing(name, date, pct) {
-  closeCalPopup();
+async function savePtoEntry() {
+  const payload = {
+    id:           document.getElementById('ptId').value ? parseInt(document.getElementById('ptId').value) : null,
+    team_member:  document.getElementById('ptTeamMember').value,
+    absence_type: document.getElementById('ptAbsenceType').value,
+    start_date:   document.getElementById('ptStartDate').value,
+    end_date:     document.getElementById('ptEndDate').value,
+    capacity_pct: parseInt(document.getElementById('ptCapacity').value) || 100,
+  };
+  if (!payload.team_member) return toast('Please select a team member', 'warn');
+  if (!payload.start_date || !payload.end_date) return toast('Start and end date are required', 'warn');
   try {
-    const data = await fetch(`${API}/staffing`, {
+    const data = await fetch(`${API}/pto/save`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, date, pct }),
+      body: JSON.stringify(payload),
     }).then(r => r.json());
-
-    if (!state.staffingData[name]) state.staffingData[name] = {};
-    state.staffingData[name][date] = pct;
-    renderCalendar('staffing');
-
-    if (data.reassigned > 0)
-      toast(`↩ ${data.reassigned} request(s) reassigned back to queue`, 'warn');
-  } catch (err) {
-    toast('Failed to update staffing: ' + err.message, 'error');
-  }
+    if (data.error) return toast(data.error, 'error');
+    if (data.reassigned > 0) toast(`↩ ${data.reassigned} request(s) moved back to queue`, 'warn');
+    closePtoModal();
+    await loadPtoTab();
+    loadRequests();
+  } catch (err) { toast('Failed to save: ' + err.message, 'error'); }
 }
 
-async function setPto(name, date, type) {
-  closeCalPopup();
+async function deletePtoEntry() {
+  const id = document.getElementById('ptId').value;
+  if (!id || !confirm('Delete this absence entry?')) return;
   try {
-    const data = await fetch(`${API}/pto`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, date, type }),
-    }).then(r => r.json());
-
-    if (!state.ptoData[name]) state.ptoData[name] = {};
-    if (type) state.ptoData[name][date] = type;
-    else delete state.ptoData[name][date];
-    renderCalendar('pto');
-
-    if (data.reassigned > 0)
-      toast(`↩ ${data.reassigned} request(s) reassigned back to queue`, 'warn');
-  } catch (err) {
-    toast('Failed to update PTO: ' + err.message, 'error');
-  }
+    await fetch(`${API}/pto/delete`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: parseInt(id) }) });
+    closePtoModal();
+    await loadPtoTab();
+    loadRequests();
+  } catch (err) { toast('Failed to delete: ' + err.message, 'error'); }
 }
 
 // ── Backlog tab ───────────────────────────────────────────────────────────────
@@ -682,21 +714,28 @@ function renderBacklog() {
           <table class="backlog-table">
             <thead>
               <tr>
-                <th>Name</th><th>Lead</th><th>Status</th><th>Priority</th>
-                <th>Timeline</th><th>Hours</th><th>Alloc %</th>
+                <th>Name</th><th>Lead</th><th>Lead Cap</th><th>Team Members</th>
+                <th>Status</th><th>Priority</th><th>Timeline</th>
               </tr>
             </thead>
             <tbody>
-              ${rows.map(i => `
+              ${rows.map(i => {
+                const teamArr = (i.team || '').split(',').map(n => n.trim()).filter(Boolean);
+                const teamAllocs = [i.team1_alloc, i.team2_alloc, i.team3_alloc];
+                const teamHtml = teamArr.length
+                  ? teamArr.map((n, idx) => `<span class="team-member-chip">${escHtml(formatName(n))}${teamAllocs[idx] ? ` <span class="capacity-pill-sm">${teamAllocs[idx]}%</span>` : ''}</span>`).join('')
+                  : '—';
+                return `
               <tr onclick="openBacklogModal(${JSON.stringify(i).replace(/"/g,'&quot;')})">
                 <td>${escHtml(i.name)}</td>
                 <td>${escHtml(formatName(i.lead))}</td>
+                <td>${i.lead_alloc ? `<span class="capacity-pill">${i.lead_alloc}%</span>` : '—'}</td>
+                <td class="team-cell">${teamHtml}</td>
                 <td>${statusBadge(i.status)}</td>
                 <td>${priorityBadge(i.priority)}</td>
                 <td style="font-size:11px;color:#6b7280;">${i.start_date && i.end_date ? `${i.start_date} → ${i.end_date}` : i.start_date || '—'}</td>
-                <td>${i.hours || '—'}</td>
-                <td>${i.allocation_pct ? i.allocation_pct + '%' : '—'}</td>
-              </tr>`).join('')}
+              </tr>`;
+              }).join('')}
             </tbody>
           </table>
         </div>

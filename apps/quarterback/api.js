@@ -13,8 +13,9 @@ function errMsg(err) {
   return msg;
 }
 
-const ACTIVE_STATUSES = ['New', 'Work in progress', 'Assigned'];
-const MAX_REQUESTS = 14;
+const ACTIVE_STATUSES   = ['New', 'Work in progress', 'Assigned'];
+const MAX_REQUESTS      = 14;
+const BLOCK_THRESHOLD   = 75;   // % at which a member is blocked from new requests
 
 const pool = new Pool({
   host:     process.env.DB_HOST,
@@ -70,26 +71,6 @@ async function loadTeamMembers() {
   return _membersCache;
 }
 
-async function loadStaffing() {
-  const { rows } = await pool.query('SELECT name, date::text AS date, percentage FROM staffing');
-  const data = {};
-  for (const r of rows) {
-    if (!data[r.name]) data[r.name] = {};
-    data[r.name][r.date.slice(0, 10)] = parseInt(r.percentage);
-  }
-  return data;
-}
-
-async function loadPto() {
-  const { rows } = await pool.query('SELECT name, date::text AS date, type FROM pto');
-  const data = {};
-  for (const r of rows) {
-    if (!data[r.name]) data[r.name] = {};
-    data[r.name][r.date.slice(0, 10)] = r.type;
-  }
-  return data;
-}
-
 // ── Date helpers ──────────────────────────────────────────────────────────────
 
 function todayStr() {
@@ -98,7 +79,7 @@ function todayStr() {
 
 function getMondayStr() {
   const now = new Date();
-  const day = now.getUTCDay(); // 0=Sun
+  const day = now.getUTCDay();
   const diff = day === 0 ? -6 : 1 - day;
   const d = new Date(now);
   d.setUTCDate(now.getUTCDate() + diff);
@@ -117,59 +98,66 @@ function dayName(dateStr) {
 
 // ── Capacity helpers ──────────────────────────────────────────────────────────
 
-async function getBacklogAllocationToday(name) {
-  const today = todayStr();
-  try {
-    const { rows } = await pool.query(`
-      SELECT lead, team, lead_alloc, team1_alloc, team2_alloc, team3_alloc, allocation_pct
-      FROM backlog
-      WHERE status NOT IN ('Complete', 'Deprioritized')
-        AND (lead = $1 OR team LIKE $2)
-        AND start_date IS NOT NULL AND end_date IS NOT NULL
-        AND start_date::text <= $3 AND end_date::text >= $3
-    `, [name, `%${name}%`, today]);
-    let total = 0;
-    for (const r of rows) {
-      if (r.lead === name) {
-        total += parseInt(r.lead_alloc) || parseInt(r.allocation_pct) || 0;
-      } else {
-        const teamArr = (r.team || '').split(',').map(n => n.trim());
-        const idx = teamArr.indexOf(name);
-        if (idx === 0) total += parseInt(r.team1_alloc) || 0;
-        if (idx === 1) total += parseInt(r.team2_alloc) || 0;
-        if (idx === 2) total += parseInt(r.team3_alloc) || 0;
-      }
+// Returns { staffingMap, ptoMap, backlogMap } each keyed by team_member name
+// with summed capacity_pct for records covering `date`.
+async function getCapacityBatchForDate(date) {
+  const [{ rows: sRows }, { rows: pRows }, { rows: bRows }] = await Promise.all([
+    pool.query(
+      `SELECT team_member, SUM(capacity_pct)::int AS total
+       FROM staffing WHERE start_date <= $1 AND end_date >= $1
+       GROUP BY team_member`, [date]
+    ),
+    pool.query(
+      `SELECT team_member, SUM(capacity_pct)::int AS total
+       FROM pto WHERE start_date <= $1 AND end_date >= $1
+       GROUP BY team_member`, [date]
+    ),
+    pool.query(
+      `SELECT lead, team, lead_alloc, team1_alloc, team2_alloc, team3_alloc, allocation_pct
+       FROM backlog
+       WHERE status NOT IN ('Complete','Deprioritized')
+         AND start_date IS NOT NULL AND end_date IS NOT NULL
+         AND start_date <= $1 AND end_date >= $1`, [date]
+    ),
+  ]);
+
+  const staffingMap = {};
+  for (const r of sRows) staffingMap[r.team_member] = Math.min(r.total, 100);
+
+  const ptoMap = {};
+  for (const r of pRows) ptoMap[r.team_member] = Math.min(r.total, 100);
+
+  const backlogMap = {};
+  for (const r of bRows) {
+    if (r.lead) {
+      const pct = parseInt(r.lead_alloc) || parseInt(r.allocation_pct) || 0;
+      if (pct) backlogMap[r.lead] = (backlogMap[r.lead] || 0) + pct;
     }
-    return Math.min(total, 100);
-  } catch {
-    return 0;
+    const teamArr = (r.team || '').split(',').map(n => n.trim()).filter(Boolean);
+    const allocs  = [parseInt(r.team1_alloc)||0, parseInt(r.team2_alloc)||0, parseInt(r.team3_alloc)||0];
+    teamArr.forEach((n, i) => { if (n && allocs[i]) backlogMap[n] = (backlogMap[n] || 0) + allocs[i]; });
   }
+  for (const n of Object.keys(backlogMap)) backlogMap[n] = Math.min(backlogMap[n], 100);
+
+  return { staffingMap, ptoMap, backlogMap };
 }
 
-function getEffectiveCapacity(name, staffing, pto, backlogAlloc = 0) {
-  const today = todayStr();
-  const staffingPct = (staffing[name] || {})[today] || 0;
-  if (staffingPct >= 50 || (pto[name] || {})[today]) return 0;
-  const monday = getMondayStr();
-  let absenceDays = 0;
-  for (let i = 0; i < 5; i++) {
-    if ((pto[name] || {})[addDays(monday, i)]) absenceDays++;
-  }
-  const effectivePct = Math.min(staffingPct + absenceDays * 20 + backlogAlloc, 100);
-  return Math.max(0, Math.floor(MAX_REQUESTS * (1 - effectivePct / 100)));
+// Pure function — computes how blocked a person is today
+function computeBreakdown(name, staffingMap, ptoMap, backlogMap) {
+  const staffing_pct = staffingMap[name] || 0;
+  const pto_pct      = ptoMap[name]      || 0;
+  const backlog_pct  = backlogMap[name]  || 0;
+  const total        = Math.min(staffing_pct + pto_pct + backlog_pct, 100);
+  const reasons      = [];
+  if (staffing_pct > 0) reasons.push(`Case (${staffing_pct}%)`);
+  if (pto_pct      > 0) reasons.push(`PTO (${pto_pct}%)`);
+  if (backlog_pct  > 0) reasons.push(`Backlog (${backlog_pct}%)`);
+  return { total, staffing_pct, pto_pct, backlog_pct, reasons, is_blocked: total >= BLOCK_THRESHOLD };
 }
 
-function isBlocked(name, staffing, pto) {
-  const today = todayStr();
-  return ((staffing[name] || {})[today] || 0) >= 50 || !!((pto[name] || {})[today]);
-}
-
-function getBlockReason(name, staffing, pto) {
-  const today = todayStr();
-  const pct = (staffing[name] || {})[today] || 0;
-  if (pct >= 50) return 'on case today';
-  const absence = (pto[name] || {})[today];
-  return absence ? absence.toLowerCase() : null;
+function effectiveCapFromBreakdown(breakdown) {
+  if (breakdown.is_blocked) return 0;
+  return Math.max(0, Math.floor(MAX_REQUESTS * (1 - breakdown.total / 100)));
 }
 
 function getActiveRequests(requests) {
@@ -180,12 +168,14 @@ function getMemberActiveRequests(requests, name) {
   return requests.filter(r => ACTIVE_STATUSES.includes(r.status) && r.assigned_to === name);
 }
 
-async function buildCapacity(requests, staffing, pto) {
+async function buildCapacity(requests) {
   const today     = todayStr();
   const monday    = getMondayStr();
   const weekDates = Array.from({ length: 5 }, (_, i) => addDays(monday, i));
   const lastThur  = addDays(monday, -4);
   const lastFri   = addDays(monday, -3);
+
+  const maps = await getCapacityBatchForDate(today);
 
   const names = [...new Set(
     requests.filter(r => r.assigned_to && r.assigned_to !== 'Unassigned').map(r => r.assigned_to)
@@ -194,42 +184,65 @@ async function buildCapacity(requests, staffing, pto) {
   const result = [];
   for (const name of names) {
     const windowReqs = requests.filter(r =>
-      ACTIVE_STATUSES.includes(r.status) &&
-      r.assigned_to === name &&
-      r.created_date >= lastThur &&
-      r.created_date <= today
+      ACTIVE_STATUSES.includes(r.status) && r.assigned_to === name &&
+      r.created_date >= lastThur && r.created_date <= today
     );
-
     const daily = {};
     for (const d of weekDates) {
       const next = addDays(d, 1);
       daily[dayName(d)] = windowReqs.filter(r => r.created_date >= d && r.created_date < next).length;
     }
+    const spillover  = windowReqs.filter(r => r.created_date === lastThur || r.created_date === lastFri).length;
+    const total      = Object.values(daily).reduce((a, b) => a + b, 0) + spillover;
+    const breakdown  = computeBreakdown(name, maps.staffingMap, maps.ptoMap, maps.backlogMap);
+    const cap        = effectiveCapFromBreakdown(breakdown);
+    const pct        = Math.min(Math.round((total / MAX_REQUESTS) * 100), 100);
+    const status     = breakdown.is_blocked ? 'blocked'
+                     : total >= cap         ? 'full'
+                     : total >= cap * 0.7   ? 'warn' : 'ok';
 
-    const spillover = windowReqs.filter(r => r.created_date === lastThur || r.created_date === lastFri).length;
-    const total     = Object.values(daily).reduce((a, b) => a + b, 0) + spillover;
-    const blocked   = isBlocked(name, staffing, pto);
-    const blockReason = getBlockReason(name, staffing, pto);
-    const backlogAlloc  = await getBacklogAllocationToday(name);
-    const effectiveCap  = getEffectiveCapacity(name, staffing, pto, backlogAlloc);
-    const pct = Math.min(Math.round((total / MAX_REQUESTS) * 100), 100);
-    const status = blocked ? 'blocked' : total >= effectiveCap ? 'full' : total >= effectiveCap * 0.7 ? 'warn' : 'ok';
-
-    if (total > 0 || blocked) {
-      result.push({ name, daily, spillover, total, pct, is_blocked: blocked, block_reason: blockReason,
-                    effective_cap: effectiveCap, at_capacity: total >= effectiveCap || blocked, status });
+    if (total > 0 || breakdown.is_blocked) {
+      result.push({
+        name, daily, spillover, total, pct,
+        is_blocked:    breakdown.is_blocked,
+        block_reasons: breakdown.reasons,
+        effective_cap: cap,
+        at_capacity:   total >= cap || breakdown.is_blocked,
+        status,
+      });
     }
   }
-
   result.sort((a, b) => (b.is_blocked - a.is_blocked) || (b.total - a.total));
   return { team: result, week_labels: weekDates.map(d => dayName(d)) };
+}
+
+// Spillover: if saving a record that covers today pushes someone over threshold,
+// return excess requests back to the queue.
+async function spilloverCheck(name, maps) {
+  const requests   = await loadRequests();
+  const breakdown  = computeBreakdown(name, maps.staffingMap, maps.ptoMap, maps.backlogMap);
+  const cap        = effectiveCapFromBreakdown(breakdown);
+  const memberReqs = getMemberActiveRequests(requests, name);
+  const overflow   = Math.max(0, memberReqs.length - cap);
+  if (overflow > 0) {
+    const nums = memberReqs
+      .sort((a, b) => b.created_date.localeCompare(a.created_date))
+      .slice(0, overflow).map(r => r.number);
+    await pool.query(
+      `UPDATE requests SET assigned_to='Unassigned', status='New' WHERE number=ANY($1)`, [nums]
+    );
+    invalidateRequests();
+  }
+  return overflow;
 }
 
 // ── Module export ─────────────────────────────────────────────────────────────
 
 module.exports = function ({ register, readJson, sendJson, sendError }) {
 
-  // Ensure backlog table exists + per-person allocation columns
+  // ── Schema init ───────────────────────────────────────────────────────────────
+
+  // Backlog table + per-person allocation columns
   pool.query(`
     CREATE TABLE IF NOT EXISTS backlog (
       id              SERIAL PRIMARY KEY,
@@ -254,19 +267,62 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
     ALTER TABLE backlog ADD COLUMN IF NOT EXISTS team3_alloc INTEGER DEFAULT 0;
   `)).catch(err => console.error('[quarterback] backlog table init:', err.message));
 
+  // Migrate staffing: drop old day-based table, create range-based one
+  pool.query(`
+    DO $$ BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name='staffing' AND column_name='date'
+      ) THEN DROP TABLE staffing; END IF;
+    END $$;
+    CREATE TABLE IF NOT EXISTS staffing (
+      id            SERIAL PRIMARY KEY,
+      case_name     TEXT DEFAULT '',
+      case_code     TEXT DEFAULT '',
+      case_type     TEXT DEFAULT '',
+      industry      TEXT DEFAULT '',
+      region        TEXT DEFAULT '',
+      project_value TEXT DEFAULT '',
+      team_member   TEXT NOT NULL,
+      capacity_pct  INTEGER DEFAULT 50,
+      start_date    DATE NOT NULL,
+      end_date      DATE NOT NULL
+    );
+  `).catch(err => console.error('[quarterback] staffing table init:', err.message));
+
+  // Migrate PTO: drop old day-based table, create range-based one
+  pool.query(`
+    DO $$ BEGIN
+      IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name='pto' AND column_name='date'
+      ) THEN DROP TABLE pto; END IF;
+    END $$;
+    CREATE TABLE IF NOT EXISTS pto (
+      id           SERIAL PRIMARY KEY,
+      team_member  TEXT NOT NULL,
+      absence_type TEXT DEFAULT 'PTO',
+      start_date   DATE NOT NULL,
+      end_date     DATE NOT NULL,
+      capacity_pct INTEGER DEFAULT 100
+    );
+  `).catch(err => console.error('[quarterback] pto table init:', err.message));
+
   // ── GET requests ─────────────────────────────────────────────────────────────
 
   register('GET', 'requests', async (req, res) => {
     try {
-      const [requests, teamMembers, staffing, pto] = await Promise.all([
-        loadRequests(), loadTeamMembers(), loadStaffing(), loadPto(),
-      ]);
+      const [requests, teamMembers] = await Promise.all([loadRequests(), loadTeamMembers()]);
+      const today = todayStr();
+      const maps  = await getCapacityBatchForDate(today);
 
+      // Build per-member blocking info for all team members
       const blocked = {}, blockReasons = {};
       for (const name of Object.keys(teamMembers)) {
-        if (isBlocked(name, staffing, pto)) {
-          blocked[name] = true;
-          blockReasons[name] = getBlockReason(name, staffing, pto) || 'on case today';
+        const bd = computeBreakdown(name, maps.staffingMap, maps.ptoMap, maps.backlogMap);
+        if (bd.is_blocked) {
+          blocked[name]      = true;
+          blockReasons[name] = bd.reasons;
         }
       }
 
@@ -274,23 +330,22 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
         .sort((a, b) => (b.assigned_to === 'Unassigned') - (a.assigned_to === 'Unassigned'))
         .map(r => ({
           ...r,
-          preview: r.short_description.slice(0, 60) + (r.short_description.length > 60 ? '…' : ''),
+          preview:       r.short_description.slice(0, 60) + (r.short_description.length > 60 ? '…' : ''),
           is_unassigned: r.assigned_to === 'Unassigned',
         }));
 
-      const { team, week_labels } = await buildCapacity(requests, staffing, pto);
-      const todayLabel = dayName(todayStr());
+      const { team, week_labels } = await buildCapacity(requests);
 
       sendJson(res, {
-        requests: requestList,
+        requests:        requestList,
         team,
-        team_names: Object.keys(teamMembers).sort(),
+        team_names:      Object.keys(teamMembers).sort(),
         blocked,
-        block_reasons: blockReasons,
+        block_reasons:   blockReasons,
         unassigned_count: requestList.filter(r => r.is_unassigned).length,
         week_labels,
-        today_label: todayLabel,
-        max_requests: MAX_REQUESTS,
+        today_label:     dayName(today),
+        max_requests:    MAX_REQUESTS,
       });
     } catch (err) {
       sendError(res, 500, errMsg(err));
@@ -304,17 +359,18 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
       const { number, assignee } = await readJson(req);
       if (!number || !assignee) return sendError(res, 400, 'Missing number or assignee');
 
-      const [requests, staffing, pto] = await Promise.all([loadRequests(), loadStaffing(), loadPto()]);
-      const blockReason  = getBlockReason(assignee, staffing, pto);
-      const backlogAlloc = await getBacklogAllocationToday(assignee);
-      const effectiveCap = getEffectiveCapacity(assignee, staffing, pto, backlogAlloc);
+      const today = todayStr();
+      const maps  = await getCapacityBatchForDate(today);
+      const bd    = computeBreakdown(assignee, maps.staffingMap, maps.ptoMap, maps.backlogMap);
+      const cap   = effectiveCapFromBreakdown(bd);
 
-      if (effectiveCap === 0)
-        return sendError(res, 400, `${assignee} is blocked (${blockReason || 'blocked today'})`);
+      if (bd.is_blocked)
+        return sendError(res, 400, `${assignee} is blocked today (${bd.reasons.join(', ')})`);
 
+      const requests = await loadRequests();
       const currentLoad = getMemberActiveRequests(requests, assignee).length;
-      if (currentLoad >= effectiveCap)
-        return sendError(res, 400, `${assignee} is at capacity (${currentLoad}/${effectiveCap} requests this week)`);
+      if (currentLoad >= cap)
+        return sendError(res, 400, `${assignee} is at capacity (${currentLoad}/${cap} requests this week)`);
 
       await pool.query('UPDATE requests SET assigned_to=$1, status=$2 WHERE number=$3',
         [assignee, 'Assigned', number]);
@@ -325,122 +381,160 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
     }
   });
 
-  // ── GET staffing?month=YYYY-MM ────────────────────────────────────────────────
+  // ── GET staffing ─────────────────────────────────────────────────────────────
+  // Returns list of all staffing records ordered by start_date DESC
 
   register('GET', 'staffing', async (req, res) => {
     try {
-      const month = new URL(req.url, 'http://x').searchParams.get('month') || todayStr().slice(0, 7);
-      const { rows } = await pool.query(
-        `SELECT name, date::text AS date, percentage FROM staffing WHERE date::text LIKE $1`,
-        [month + '%']
-      );
-      const result = {};
-      for (const r of rows) {
-        if (!result[r.name]) result[r.name] = {};
-        result[r.name][r.date.slice(0, 10)] = parseInt(r.percentage);
-      }
-      sendJson(res, result);
+      const { rows } = await pool.query(`
+        SELECT id, case_name, case_code, case_type, industry, region,
+               project_value, team_member, capacity_pct,
+               start_date::text, end_date::text
+        FROM staffing ORDER BY start_date DESC, team_member
+      `);
+      sendJson(res, rows.map(r => ({
+        id:            r.id,
+        case_name:     r.case_name     || '',
+        case_code:     r.case_code     || '',
+        case_type:     r.case_type     || '',
+        industry:      r.industry      || '',
+        region:        r.region        || '',
+        project_value: r.project_value || '',
+        team_member:   r.team_member   || '',
+        capacity_pct:  parseInt(r.capacity_pct) || 50,
+        start_date:    (r.start_date   || '').slice(0, 10),
+        end_date:      (r.end_date     || '').slice(0, 10),
+      })));
     } catch (err) {
       sendError(res, 500, errMsg(err));
     }
   });
 
-  // ── POST staffing { name, date, pct } ─────────────────────────────────────────
+  // ── POST staffing/save ────────────────────────────────────────────────────────
 
-  register('POST', 'staffing', async (req, res) => {
+  register('POST', 'staffing/save', async (req, res) => {
     try {
-      const { name, date, pct } = await readJson(req);
-      if (!name || !date || pct === undefined) return sendError(res, 400, 'Missing fields');
-      const pctInt = parseInt(pct);
-      if (isNaN(pctInt) || pctInt < 0 || pctInt > 100) return sendError(res, 400, 'Invalid pct');
+      const d = await readJson(req);
+      if (!d.team_member || !d.start_date || !d.end_date)
+        return sendError(res, 400, 'team_member, start_date and end_date are required');
+      const cap = Math.max(0, Math.min(100, parseInt(d.capacity_pct) || 50));
+      const p = [
+        d.case_name || '', d.case_code || '', d.case_type || '',
+        d.industry  || '', d.region    || '', d.project_value || '',
+        d.team_member, cap, d.start_date, d.end_date,
+      ];
 
-      await pool.query(
-        `INSERT INTO staffing (name, date, percentage) VALUES ($1,$2,$3)
-         ON CONFLICT (name, date) DO UPDATE SET percentage=$3`,
-        [name, date, pctInt]
-      );
-
-      let reassigned = 0;
-      if (date === todayStr()) {
-        const [requests, staffing, pto] = await Promise.all([loadRequests(), loadStaffing(), loadPto()]);
-        if (!staffing[name]) staffing[name] = {};
-        staffing[name][date] = pctInt;
-        const backlogAlloc = await getBacklogAllocationToday(name);
-        const effectiveCap = getEffectiveCapacity(name, staffing, pto, backlogAlloc);
-        const memberReqs   = getMemberActiveRequests(requests, name);
-        const spillover    = Math.max(0, memberReqs.length - effectiveCap);
-        if (spillover > 0) {
-          const nums = memberReqs.sort((a,b) => b.created_date.localeCompare(a.created_date))
-                                 .slice(0, spillover).map(r => r.number);
-          await pool.query(`UPDATE requests SET assigned_to='Unassigned', status='New' WHERE number=ANY($1)`, [nums]);
-          invalidateRequests();
-          reassigned = spillover;
-        }
+      let id;
+      if (d.id) {
+        await pool.query(`
+          UPDATE staffing SET case_name=$1,case_code=$2,case_type=$3,industry=$4,
+            region=$5,project_value=$6,team_member=$7,capacity_pct=$8,
+            start_date=$9,end_date=$10 WHERE id=$11`,
+          [...p, d.id]);
+        id = d.id;
+      } else {
+        const { rows } = await pool.query(`
+          INSERT INTO staffing (case_name,case_code,case_type,industry,region,
+            project_value,team_member,capacity_pct,start_date,end_date)
+          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`, p);
+        id = rows[0].id;
       }
 
-      sendJson(res, { success: true, is_blocked: pctInt >= 50, reassigned });
+      // Spillover check: if this record covers today, re-evaluate the member's capacity
+      let reassigned = 0;
+      const today = todayStr();
+      if (d.start_date <= today && d.end_date >= today) {
+        const maps = await getCapacityBatchForDate(today);
+        reassigned = await spilloverCheck(d.team_member, maps);
+      }
+
+      sendJson(res, { success: true, id, reassigned });
     } catch (err) {
       sendError(res, 500, errMsg(err));
     }
   });
 
-  // ── GET pto?month=YYYY-MM ─────────────────────────────────────────────────────
+  // ── POST staffing/delete ──────────────────────────────────────────────────────
+
+  register('POST', 'staffing/delete', async (req, res) => {
+    try {
+      const { id } = await readJson(req);
+      if (!id) return sendError(res, 400, 'Missing id');
+      await pool.query('DELETE FROM staffing WHERE id=$1', [id]);
+      sendJson(res, { success: true });
+    } catch (err) {
+      sendError(res, 500, errMsg(err));
+    }
+  });
+
+  // ── GET pto ──────────────────────────────────────────────────────────────────
+  // Returns list of all PTO records ordered by start_date DESC
 
   register('GET', 'pto', async (req, res) => {
     try {
-      const month = new URL(req.url, 'http://x').searchParams.get('month') || todayStr().slice(0, 7);
-      const { rows } = await pool.query(
-        `SELECT name, date::text AS date, type FROM pto WHERE date::text LIKE $1`,
-        [month + '%']
-      );
-      const result = {};
-      for (const r of rows) {
-        if (!result[r.name]) result[r.name] = {};
-        result[r.name][r.date.slice(0, 10)] = r.type;
-      }
-      sendJson(res, result);
+      const { rows } = await pool.query(`
+        SELECT id, team_member, absence_type, capacity_pct,
+               start_date::text, end_date::text
+        FROM pto ORDER BY start_date DESC, team_member
+      `);
+      sendJson(res, rows.map(r => ({
+        id:           r.id,
+        team_member:  r.team_member  || '',
+        absence_type: r.absence_type || 'PTO',
+        capacity_pct: parseInt(r.capacity_pct) || 100,
+        start_date:   (r.start_date  || '').slice(0, 10),
+        end_date:     (r.end_date    || '').slice(0, 10),
+      })));
     } catch (err) {
       sendError(res, 500, errMsg(err));
     }
   });
 
-  // ── POST pto { name, date, type } (type='' clears) ────────────────────────────
+  // ── POST pto/save ─────────────────────────────────────────────────────────────
 
-  register('POST', 'pto', async (req, res) => {
+  register('POST', 'pto/save', async (req, res) => {
     try {
-      const { name, date, type } = await readJson(req);
-      if (!name || !date) return sendError(res, 400, 'Missing fields');
+      const d = await readJson(req);
+      if (!d.team_member || !d.start_date || !d.end_date)
+        return sendError(res, 400, 'team_member, start_date and end_date are required');
+      const cap  = Math.max(0, Math.min(100, parseInt(d.capacity_pct) || 100));
+      const type = d.absence_type || 'PTO';
+      const p    = [d.team_member, type, d.start_date, d.end_date, cap];
 
-      if (type) {
-        await pool.query(
-          `INSERT INTO pto (name, date, type) VALUES ($1,$2,$3)
-           ON CONFLICT (name, date) DO UPDATE SET type=$3`,
-          [name, date, type]
-        );
+      let id;
+      if (d.id) {
+        await pool.query(`
+          UPDATE pto SET team_member=$1,absence_type=$2,start_date=$3,end_date=$4,
+            capacity_pct=$5 WHERE id=$6`, [...p, d.id]);
+        id = d.id;
       } else {
-        await pool.query('DELETE FROM pto WHERE name=$1 AND date=$2', [name, date]);
+        const { rows } = await pool.query(`
+          INSERT INTO pto (team_member,absence_type,start_date,end_date,capacity_pct)
+          VALUES ($1,$2,$3,$4,$5) RETURNING id`, p);
+        id = rows[0].id;
       }
 
       let reassigned = 0;
-      if (date === todayStr()) {
-        const [requests, staffing, pto] = await Promise.all([loadRequests(), loadStaffing(), loadPto()]);
-        if (type) { if (!pto[name]) pto[name] = {}; pto[name][date] = type; }
-        else if (pto[name]) delete pto[name][date];
-        const backlogAlloc = await getBacklogAllocationToday(name);
-        const effectiveCap = getEffectiveCapacity(name, staffing, pto, backlogAlloc);
-        const memberReqs   = getMemberActiveRequests(requests, name);
-        const spillover    = Math.max(0, memberReqs.length - effectiveCap);
-        if (spillover > 0) {
-          const nums = memberReqs.sort((a,b) => b.created_date.localeCompare(a.created_date))
-                                 .slice(0, spillover).map(r => r.number);
-          await pool.query(`UPDATE requests SET assigned_to='Unassigned', status='New' WHERE number=ANY($1)`, [nums]);
-          invalidateRequests();
-          reassigned = spillover;
-        }
+      const today = todayStr();
+      if (d.start_date <= today && d.end_date >= today) {
+        const maps = await getCapacityBatchForDate(today);
+        reassigned = await spilloverCheck(d.team_member, maps);
       }
 
-      const [staffing2, pto2] = await Promise.all([loadStaffing(), loadPto()]);
-      sendJson(res, { success: true, is_blocked: isBlocked(name, staffing2, pto2), reassigned });
+      sendJson(res, { success: true, id, reassigned });
+    } catch (err) {
+      sendError(res, 500, errMsg(err));
+    }
+  });
+
+  // ── POST pto/delete ───────────────────────────────────────────────────────────
+
+  register('POST', 'pto/delete', async (req, res) => {
+    try {
+      const { id } = await readJson(req);
+      if (!id) return sendError(res, 400, 'Missing id');
+      await pool.query('DELETE FROM pto WHERE id=$1', [id]);
+      sendJson(res, { success: true });
     } catch (err) {
       sendError(res, 500, errMsg(err));
     }
@@ -465,11 +559,11 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
         team:            r.team || '',
         status:          r.status || 'Backlog',
         start_date:      (r.start_date || '').slice(0, 10),
-        end_date:        (r.end_date || '').slice(0, 10),
+        end_date:        (r.end_date   || '').slice(0, 10),
         priority:        r.priority || 'Unset',
         hours:           parseFloat(r.hours) || 0,
         completion_date: (r.completion_date || '').slice(0, 10),
-        practice:        r.practice || '',
+        practice:        r.practice    || '',
         stakeholders:    r.stakeholders || '',
         allocation_pct:  parseInt(r.allocation_pct) || 0,
         lead_alloc:      parseInt(r.lead_alloc)  || 0,
@@ -514,7 +608,8 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
           INSERT INTO backlog (group_name,name,lead,team,status,start_date,end_date,
             priority,hours,completion_date,practice,stakeholders,allocation_pct,
             lead_alloc,team1_alloc,team2_alloc,team3_alloc)
-          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING id`, p);
+          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+          RETURNING id`, p);
         sendJson(res, { success: true, id: rows[0].id });
       }
     } catch (err) {
@@ -542,22 +637,23 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
       if (!process.env.ANTHROPIC_API_KEY)
         return sendError(res, 500, 'ANTHROPIC_API_KEY not set');
 
-      const [requests, teamMembers, staffing, pto] = await Promise.all([
-        loadRequests(), loadTeamMembers(), loadStaffing(), loadPto(),
-      ]);
-
+      const [requests, teamMembers] = await Promise.all([loadRequests(), loadTeamMembers()]);
       const today = todayStr();
+      const maps  = await getCapacityBatchForDate(today);
+
       const capacity = [];
       for (const [name, country] of Object.entries(teamMembers)) {
-        const load         = getMemberActiveRequests(requests, name).length;
-        const blocked      = isBlocked(name, staffing, pto);
-        const staffingPct  = (staffing[name] || {})[today] || 0;
-        const absence      = (pto[name] || {})[today] || '';
-        const backlogAlloc = await getBacklogAllocationToday(name);
-        const effectiveCap = getEffectiveCapacity(name, staffing, pto, backlogAlloc);
-        const entry = { name, country, current_requests: load, effective_capacity: effectiveCap,
-                        remaining_capacity: Math.max(0, effectiveCap - load), staffing_pct: staffingPct, blocked };
-        if (absence) entry.absence_today = absence;
+        const load      = getMemberActiveRequests(requests, name).length;
+        const bd        = computeBreakdown(name, maps.staffingMap, maps.ptoMap, maps.backlogMap);
+        const cap       = effectiveCapFromBreakdown(bd);
+        const entry     = {
+          name, country,
+          current_requests:   load,
+          effective_capacity: cap,
+          remaining_capacity: Math.max(0, cap - load),
+          blocked:            bd.is_blocked,
+          block_reasons:      bd.reasons,
+        };
         capacity.push(entry);
       }
 
@@ -584,7 +680,7 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
       let prompt, summaryPrefix;
 
       if (overcapacity.length && !unassigned.length) {
-        const ocNames    = overcapacity.map(m => m.name).join(', ');
+        const ocNames     = overcapacity.map(m => m.name).join(', ');
         const totalExcess = overcapacity.reduce((s, m) => s + m.excess_to_move, 0);
         prompt = `You are a quarterback agent for a BCG Vantage team.
 All requests are currently assigned, but the following team members are OVER CAPACITY and their excess requests must be redistributed.
@@ -669,7 +765,9 @@ Do not include any text outside the JSON array.`;
       const { recommendations } = await readJson(req);
       if (!recommendations?.length) return sendJson(res, { applied: 0, skipped: [], errors: [] });
 
-      const [requests, staffing, pto] = await Promise.all([loadRequests(), loadStaffing(), loadPto()]);
+      const today       = todayStr();
+      const maps        = await getCapacityBatchForDate(today);
+      const requests    = await loadRequests();
       const loadTracker = {};
       const applied = [], skipped = [];
 
@@ -677,9 +775,9 @@ Do not include any text outside the JSON array.`;
         if (!number || !assignee) continue;
         if (loadTracker[assignee] === undefined)
           loadTracker[assignee] = getMemberActiveRequests(requests, assignee).length;
-        const backlogAlloc = await getBacklogAllocationToday(assignee);
-        const effectiveCap = getEffectiveCapacity(assignee, staffing, pto, backlogAlloc);
-        if (loadTracker[assignee] >= effectiveCap) { skipped.push(number); continue; }
+        const bd  = computeBreakdown(assignee, maps.staffingMap, maps.ptoMap, maps.backlogMap);
+        const cap = effectiveCapFromBreakdown(bd);
+        if (loadTracker[assignee] >= cap) { skipped.push(number); continue; }
         await pool.query('UPDATE requests SET assigned_to=$1, status=$2 WHERE number=$3',
           [assignee, 'Assigned', number]);
         applied.push(number);
@@ -701,9 +799,7 @@ Do not include any text outside the JSON array.`;
       const weeks = Math.min(parseInt(url.searchParams.get('weeks')  || '6'), 12);
       const offset= parseInt(url.searchParams.get('offset') || '0');
 
-      const [requests, teamMembers, staffing, pto] = await Promise.all([
-        loadRequests(), loadTeamMembers(), loadStaffing(), loadPto(),
-      ]);
+      const [requests, teamMembers] = await Promise.all([loadRequests(), loadTeamMembers()]);
 
       // Active request count per person (current week only)
       const activeReqs = {};
@@ -712,16 +808,6 @@ Do not include any text outside the JSON array.`;
           activeReqs[r.assigned_to] = (activeReqs[r.assigned_to] || 0) + 1;
       }
 
-      // Backlog items that have dates + allocation
-      const { rows: backlogRows } = await pool.query(`
-        SELECT name, lead, team, start_date::text, end_date::text,
-               allocation_pct, lead_alloc, team1_alloc, team2_alloc, team3_alloc
-        FROM backlog
-        WHERE start_date IS NOT NULL AND end_date IS NOT NULL
-          AND status NOT IN ('Complete', 'Deprioritized')
-          AND (allocation_pct > 0 OR lead_alloc > 0 OR team1_alloc > 0 OR team2_alloc > 0 OR team3_alloc > 0)
-      `);
-
       // Build week ranges
       const baseMonday = addDays(getMondayStr(), offset * 7);
       const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -729,13 +815,36 @@ Do not include any text outside the JSON array.`;
       for (let w = 0; w < weeks; w++) {
         const from = addDays(baseMonday, w * 7);
         const to   = addDays(from, 4);
-        const fd = new Date(from + 'T00:00:00Z');
-        const td = new Date(to   + 'T00:00:00Z');
+        const fd   = new Date(from + 'T00:00:00Z');
+        const td   = new Date(to   + 'T00:00:00Z');
         const label = fd.getUTCMonth() === td.getUTCMonth()
           ? `${MONTHS[fd.getUTCMonth()]} ${fd.getUTCDate()}–${td.getUTCDate()}`
           : `${MONTHS[fd.getUTCMonth()]} ${fd.getUTCDate()} – ${MONTHS[td.getUTCMonth()]} ${td.getUTCDate()}`;
         weekRanges.push({ from, to, label });
       }
+
+      const rangeStart = weekRanges[0].from;
+      const rangeEnd   = weekRanges[weekRanges.length - 1].to;
+
+      // Load all staffing, PTO, backlog records covering the view range
+      const [{ rows: staffingRows }, { rows: ptoRows }, { rows: backlogRows }] = await Promise.all([
+        pool.query(
+          `SELECT team_member, case_name, capacity_pct, start_date::text, end_date::text
+           FROM staffing WHERE start_date <= $1 AND end_date >= $2`, [rangeEnd, rangeStart]
+        ),
+        pool.query(
+          `SELECT team_member, absence_type, capacity_pct, start_date::text, end_date::text
+           FROM pto WHERE start_date <= $1 AND end_date >= $2`, [rangeEnd, rangeStart]
+        ),
+        pool.query(
+          `SELECT name, lead, team, start_date::text, end_date::text,
+                  allocation_pct, lead_alloc, team1_alloc, team2_alloc, team3_alloc
+           FROM backlog
+           WHERE start_date IS NOT NULL AND end_date IS NOT NULL
+             AND status NOT IN ('Complete','Deprioritized')
+             AND start_date <= $1 AND end_date >= $2`, [rangeEnd, rangeStart]
+        ),
+      ]);
 
       const today   = todayStr();
       const members = Object.keys(teamMembers).sort();
@@ -744,28 +853,21 @@ Do not include any text outside the JSON array.`;
       for (const name of members) {
         data[name] = {};
         for (const week of weekRanges) {
-          // Case staffing: average % across Mon-Fri
-          let staffingSum = 0;
-          const staffingDays = {};
-          for (let i = 0; i < 5; i++) {
-            const d = addDays(week.from, i);
-            const pct = (staffing[name] || {})[d] || 0;
-            staffingSum += pct;
-            if (pct > 0) staffingDays[d] = pct;
-          }
-          const staffingAvg = Math.round(staffingSum / 5);
+          // Staffing: sum capacity_pct for records overlapping this week
+          const sItems = staffingRows.filter(r =>
+            r.team_member === name &&
+            r.start_date <= week.to && r.end_date >= week.from
+          );
+          const staffingPct = Math.min(sItems.reduce((s, r) => s + (parseInt(r.capacity_pct) || 0), 0), 100);
 
-          // PTO
-          let ptoDayCount = 0;
-          const ptoDays = {};
-          for (let i = 0; i < 5; i++) {
-            const d    = addDays(week.from, i);
-            const type = (pto[name] || {})[d];
-            if (type) { ptoDayCount++; ptoDays[d] = type; }
-          }
-          const ptoPct = Math.round((ptoDayCount / 5) * 100);
+          // PTO: sum capacity_pct for records overlapping this week
+          const pItems = ptoRows.filter(r =>
+            r.team_member === name &&
+            r.start_date <= week.to && r.end_date >= week.from
+          );
+          const ptoPct = Math.min(pItems.reduce((s, r) => s + (parseInt(r.capacity_pct) || 0), 0), 100);
 
-          // Backlog — per-person allocation
+          // Backlog
           let backlogPct = 0;
           const backlogItems = [];
           for (const item of backlogRows) {
@@ -788,19 +890,20 @@ Do not include any text outside the JSON array.`;
           }
           backlogPct = Math.min(backlogPct, 100);
 
-          // Requests — only current week has live count
           const isCurrent = week.from <= today && week.to >= today;
           const reqCount  = isCurrent ? (activeReqs[name] || 0) : 0;
           const reqPct    = Math.round((reqCount / MAX_REQUESTS) * 100);
-
-          const total = staffingAvg + ptoPct + backlogPct + reqPct; // allow >100 to show overload
+          const total     = staffingPct + ptoPct + backlogPct + reqPct;
 
           data[name][week.from] = {
-            staffing_pct: staffingAvg, staffing_days: staffingDays,
-            pto_pct: ptoPct,           pto_days: ptoDays,
-            backlog_pct: backlogPct,   backlog_items: backlogItems,
-            req_count: reqCount,       req_pct: reqPct,
-            total, is_current: isCurrent,
+            staffing_pct: staffingPct,
+            pto_pct:      ptoPct,
+            backlog_pct:  backlogPct,
+            backlog_items: backlogItems,
+            req_count:    reqCount,
+            req_pct:      reqPct,
+            total,
+            is_current:   isCurrent,
           };
         }
       }
