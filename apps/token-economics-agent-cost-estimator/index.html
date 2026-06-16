@@ -1,0 +1,3075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BCG | Agentic AI Cost Estimator v1.0</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    /* ── BCG Design Tokens ─────────────────────────────── */
+    :root {
+      --g900:#00461F; --g700:#006B2F; --g500:#009A44; --g300:#4DC87A;
+      --g100:#C8EDD8; --g50:#F0FAF4;
+      --n900:#1A1A1A; --n800:#2A2A2A; --n700:#404040; --n500:#6B6B6B; --n300:#BDBDBD;
+      --n200:#E0E0E0; --n100:#F0F0F0; --n50:#FAFAFA;
+      --amber:#F59E0B; --red:#EF4444; --blue:#3B82F6;
+      --shadow:0 1px 4px rgba(0,0,0,.10);
+      --shadow-md:0 4px 16px rgba(0,0,0,.12);
+      --radius:6px; --radius-lg:10px;
+      --font:'Inter',system-ui,-apple-system,sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--font);background:#F2F4F3;color:var(--n900);font-size:13px;line-height:1.5}
+
+    /* ── Header ──────────────────────────────────────────── */
+    header{background:var(--g900);color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+    .header-left{display:flex;align-items:center;gap:14px}
+    .bcg-wordmark{font-size:20px;font-weight:800;letter-spacing:-.5px;color:#fff}
+    .header-title{font-size:14px;font-weight:600;color:var(--g100)}
+    .header-badge{background:var(--g700);color:var(--g100);padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+    .header-right{display:flex;gap:8px;align-items:center}
+    .btn{padding:6px 14px;border-radius:var(--radius);border:none;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s}
+    .btn-outline{background:transparent;border:1.5px solid var(--g300);color:var(--g100)}
+    .btn-outline:hover{background:var(--g700)}
+    .btn-primary{background:var(--g500);color:#fff}
+    .btn-primary:hover{background:var(--g300);color:var(--g900)}
+
+    /* ── Layout ──────────────────────────────────────────── */
+    .layout{display:grid;grid-template-columns:380px 1fr;gap:0;min-height:calc(100vh - 90px)}
+
+    /* ── Left Panel (Inputs) ─────────────────────────────── */
+    .inputs-panel{background:#fff;border-right:1px solid var(--n300);overflow-y:auto;max-height:calc(100vh - 90px);position:sticky;top:90px}
+    .section{border-bottom:1px solid var(--n100)}
+    .section-header{padding:12px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;transition:background .1s}
+    .section-header:hover{background:var(--g50)}
+    .section-header.active{background:var(--g50)}
+    .section-label{display:flex;align-items:center;gap:8px;font-weight:700;font-size:12px;color:var(--n900);text-transform:uppercase;letter-spacing:.4px}
+    .layer-badge{width:20px;height:20px;border-radius:50%;background:var(--g500);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .layer-cost-preview{font-size:11px;font-weight:700;color:var(--g700)}
+    .chevron{color:var(--n500);transition:transform .2s;font-size:14px}
+    .chevron.open{transform:rotate(180deg)}
+    .section-body{padding:14px 16px;display:none;gap:10px;flex-direction:column}
+    .section-body.open{display:flex}
+    .scope-body{padding:14px 16px;display:flex;gap:10px;flex-direction:column;background:var(--g50)}
+
+    /* ── Form Controls ──────────────────────────────────── */
+    .field{display:flex;flex-direction:column;gap:4px}
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    label{font-size:11px;font-weight:600;color:var(--n700);display:flex;justify-content:space-between;align-items:center}
+    label span{font-weight:400;color:var(--n500)}
+    select,input[type=number]{width:100%;padding:6px 8px;border:1px solid var(--n300);border-radius:var(--radius);font-size:12px;font-family:var(--font);background:#fff;color:var(--n900);transition:border .15s}
+    select:focus,input[type=number]:focus{outline:none;border-color:var(--g500)}
+    input[type=range]{width:100%;accent-color:var(--g500);cursor:pointer;height:4px}
+    .range-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--n500);margin-top:2px}
+    .toggle-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0}
+    .toggle-label{font-size:12px;color:var(--n700);font-weight:500}
+    .toggle-sub{font-size:10px;color:var(--n500)}
+    .toggle{position:relative;width:36px;height:20px;flex-shrink:0}
+    .toggle input{opacity:0;width:0;height:0}
+    .slider-toggle{position:absolute;inset:0;background:var(--n300);border-radius:20px;cursor:pointer;transition:.2s}
+    .slider-toggle:before{content:'';position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+    input:checked+.slider-toggle{background:var(--g500)}
+    input:checked+.slider-toggle:before{transform:translateX(16px)}
+    .pill-group{display:flex;gap:6px;flex-wrap:wrap}
+    .pill{padding:5px 10px;border-radius:16px;border:1.5px solid var(--n300);background:#fff;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--n700)}
+    .pill:hover{border-color:var(--g500);color:var(--g700)}
+    .pill.active{background:var(--g500);border-color:var(--g500);color:#fff}
+    .info-box{background:var(--g50);border-left:3px solid var(--g500);padding:8px 10px;border-radius:0 var(--radius) var(--radius) 0;font-size:11px;color:var(--g700)}
+    .warn-box{background:#FFFBEB;border-left:3px solid var(--amber);padding:8px 10px;border-radius:0 var(--radius) var(--radius) 0;font-size:11px;color:#92400E}
+    .divider{height:1px;background:var(--n100);margin:4px 0}
+    .sub-label{font-size:10px;font-weight:700;color:var(--n500);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+
+    /* ── Right Panel (Dashboard) ─────────────────────────── */
+    .dashboard{padding:20px;overflow-y:auto;max-height:calc(100vh - 90px);display:flex;flex-direction:column;gap:16px}
+
+    /* KPI Cards */
+    .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .kpi-card{background:#fff;border-radius:var(--radius-lg);padding:14px 16px;box-shadow:var(--shadow);border-top:3px solid var(--g500)}
+    .kpi-card.accent{border-top-color:var(--g900);background:var(--g900);color:#fff}
+    .kpi-label{font-size:10px;font-weight:700;color:var(--n500);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+    .kpi-card.accent .kpi-label{color:var(--g300)}
+    .kpi-value{font-size:22px;font-weight:800;color:var(--g700);line-height:1}
+    .kpi-card.accent .kpi-value{color:#fff}
+    .kpi-sub{font-size:10px;color:var(--n500);margin-top:4px}
+    .kpi-card.accent .kpi-sub{color:var(--g100)}
+
+    /* Chart cards */
+    .chart-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .chart-card{background:#fff;border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow)}
+    .chart-card.wide{grid-column:1/-1}
+    .chart-title{font-size:12px;font-weight:700;color:var(--n900);margin-bottom:2px}
+    .chart-sub{font-size:10px;color:var(--n500);margin-bottom:12px}
+    .chart-wrap{position:relative}
+
+    /* Architecture Diagram */
+    .arch-card{background:#fff;border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow)}
+    .arch-title{font-size:12px;font-weight:700;color:var(--n900);margin-bottom:12px}
+    .arch-layers{display:flex;flex-direction:column;gap:6px}
+    .arch-layer{display:grid;grid-template-columns:180px 1fr auto;align-items:center;gap:12px;padding:8px 12px;border-radius:var(--radius);border:1px solid var(--n100);background:var(--n50)}
+    .arch-layer-name{font-size:11px;font-weight:700;color:var(--n900)}
+    .arch-layer-desc{font-size:10px;color:var(--n500)}
+    .arch-layer-cost{font-size:12px;font-weight:800;color:var(--g700);white-space:nowrap}
+    .arch-bar-wrap{height:4px;background:var(--n100);border-radius:2px;margin-top:4px}
+    .arch-bar{height:4px;border-radius:2px;background:var(--g500);transition:width .4s ease}
+
+    /* Breakdown Table */
+    .breakdown-card{background:#fff;border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow)}
+    .breakdown-title{font-size:12px;font-weight:700;color:var(--n900);margin-bottom:10px}
+    table{width:100%;border-collapse:collapse}
+    th{font-size:10px;font-weight:700;color:var(--n500);text-transform:uppercase;padding:6px 8px;text-align:left;border-bottom:2px solid var(--n100)}
+    td{padding:6px 8px;font-size:12px;border-bottom:1px solid var(--n50)}
+    tr:last-child td{border-bottom:none}
+    .td-label{color:var(--n700);font-weight:500}
+    .td-val{font-weight:700;color:var(--n900);text-align:right}
+    .td-pct{color:var(--n500);text-align:right;font-size:11px}
+    .td-note{color:var(--n500);font-size:10px}
+    .total-row td{font-weight:800;color:var(--g700);border-top:2px solid var(--n100);padding-top:8px}
+
+    /* Sensitivity */
+    .sensitivity-card{background:#fff;border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow)}
+    .sensitivity-title{font-size:12px;font-weight:700;margin-bottom:10px}
+    .sens-row{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--n50)}
+    .sens-label{flex:1;font-size:11px;color:var(--n700)}
+    .sens-bar-wrap{flex:2;height:8px;background:var(--n100);border-radius:4px;position:relative}
+    .sens-bar-neg{position:absolute;right:50%;top:0;height:8px;background:#FCA5A5;border-radius:4px 0 0 4px}
+    .sens-bar-pos{position:absolute;left:50%;top:0;height:8px;background:var(--g300);border-radius:0 4px 4px 0}
+    .sens-val{font-size:11px;font-weight:700;color:var(--n700);width:60px;text-align:right}
+
+    /* Methodology Footer */
+    .methodology{background:#fff;border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow);font-size:10px;color:var(--n500);line-height:1.6}
+    .methodology strong{color:var(--n700)}
+    .methodology a{color:var(--g700);text-decoration:none}
+
+    /* Tooltip */
+    .tip{display:inline-block;width:14px;height:14px;background:var(--n300);color:#fff;border-radius:50%;font-size:9px;font-weight:800;text-align:center;line-height:14px;cursor:help;margin-left:4px;flex-shrink:0}
+    .tip:hover::after{content:attr(data-tip);position:fixed;background:var(--n900);color:#fff;padding:6px 10px;border-radius:4px;font-size:10px;white-space:pre-wrap;max-width:240px;z-index:999;margin-top:16px;margin-left:-100px}
+
+    /* Scenario banner */
+    .scenario-bar{background:var(--g50);border:1px solid var(--g100);padding:8px 16px;display:flex;align-items:center;gap:10px;border-radius:var(--radius)}
+    .scenario-bar label{font-size:11px;font-weight:600;color:var(--g700);flex-shrink:0}
+    .scenario-select{flex:1;padding:4px 8px;border:1px solid var(--g300);border-radius:var(--radius);font-size:12px;color:var(--g900)}
+
+    /* ── Guide Button ────────────────────────────────────── */
+    .btn-guide{padding:2px 8px;border-radius:10px;border:1.5px solid var(--g300);background:transparent;color:var(--g700);font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.2px;transition:all .15s;line-height:1.6}
+    .btn-guide:hover{background:var(--g500);color:#fff;border-color:var(--g500)}
+
+    /* ── Flyout Drawer ───────────────────────────────────── */
+    .guide-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:200;opacity:0;pointer-events:none;transition:opacity .2s}
+    .guide-backdrop.open{opacity:1;pointer-events:all}
+    .guide-drawer{position:fixed;top:49px;right:0;bottom:0;width:400px;background:#fff;z-index:201;box-shadow:-4px 0 24px rgba(0,0,0,.15);transform:translateX(100%);transition:transform .25s ease;overflow-y:auto;display:flex;flex-direction:column}
+    .guide-drawer.open{transform:translateX(0)}
+    .guide-dheader{padding:14px 16px;background:var(--g900);color:#fff;display:flex;align-items:flex-start;justify-content:space-between;position:sticky;top:0;z-index:1}
+    .guide-dheader-left{display:flex;flex-direction:column;gap:2px}
+    .guide-dheader-emoji{font-size:18px;line-height:1}
+    .guide-dheader-title{font-size:13px;font-weight:700;color:#fff}
+    .guide-dheader-impact{font-size:10px;color:var(--g300);font-weight:600}
+    .guide-close{background:transparent;border:none;color:var(--g100);font-size:20px;cursor:pointer;padding:0;line-height:1;align-self:flex-start}
+    .guide-close:hover{color:#fff}
+    .guide-body{padding:14px;flex:1;display:flex;flex-direction:column;gap:12px}
+    .guide-summary{background:var(--g50);border-left:3px solid var(--g500);padding:8px 12px;border-radius:0 var(--radius) var(--radius) 0;font-size:11px;color:var(--g700);line-height:1.5}
+    .guide-sec-title{font-size:10px;font-weight:700;color:var(--n500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+    .guide-rule{padding:8px 10px;background:var(--n50);border-radius:var(--radius);margin-bottom:5px}
+    .guide-rule-label{font-size:10px;font-weight:700;color:var(--g700);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}
+    .guide-rule-text{font-size:11px;color:var(--n700);line-height:1.5}
+    .guide-flag{display:flex;align-items:flex-start;gap:8px;padding:6px 10px;border-radius:var(--radius);margin-bottom:5px;font-size:11px;line-height:1.4}
+    .guide-flag.red{background:#FEF2F2;border-left:3px solid #EF4444;color:#991B1B}
+    .guide-flag.amber{background:#FFFBEB;border-left:3px solid #F59E0B;color:#92400E}
+    .guide-flag.green{background:#F0FAF4;border-left:3px solid #009A44;color:#065F46}
+    .guide-flag-icon{font-weight:800;font-size:13px;flex-shrink:0;line-height:1.3}
+
+    /* ── Decision Dashboard ──────────────────────────────── */
+    .decision-card{background:#fff;border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow)}
+    .decision-title{font-size:12px;font-weight:700;color:var(--n900);margin-bottom:2px}
+    .decision-sub{font-size:10px;color:var(--n500);margin-bottom:12px}
+    .decision-check{display:flex;align-items:flex-start;gap:8px;padding:6px 10px;border-radius:var(--radius);margin-bottom:4px;font-size:11px;line-height:1.4}
+    .decision-check.red{background:#FEF2F2;border-left:3px solid #EF4444}
+    .decision-check.amber{background:#FFFBEB;border-left:3px solid #F59E0B}
+    .decision-check.green{background:#F0FAF4;border-left:3px solid #009A44}
+    .dc-layer{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+    .dc-text{font-size:11px;color:var(--n700);margin-top:1px}
+
+    /* ── Auth Overlay ────────────────────────────────────── */
+    #auth-overlay{position:fixed;inset:0;background:var(--g900);z-index:9999;display:flex;align-items:center;justify-content:center;transition:opacity .4s}
+    #auth-card{background:#fff;border-radius:var(--radius-lg);padding:40px 36px;width:400px;box-shadow:0 24px 64px rgba(0,0,0,.45);text-align:center}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+    .auth-shake{animation:shake .35s ease}
+    #auth-password{width:100%;padding:10px 14px;border:1.5px solid var(--n300);border-radius:var(--radius);font-size:13px;font-family:var(--font);text-align:center;letter-spacing:2px;margin-top:20px;transition:border .15s}
+    #auth-password:focus{outline:none;border-color:var(--g500)}
+    #auth-unlock{width:100%;margin-top:10px;padding:10px;background:var(--g900);color:#fff;border:none;border-radius:var(--radius);font-size:13px;font-weight:700;cursor:pointer;transition:background .15s}
+    #auth-unlock:hover{background:var(--g700)}
+    #auth-error{display:none;color:#EF4444;font-size:11px;margin-top:8px;font-weight:600}
+    .auth-divider{height:1px;background:var(--n100);margin:24px 0}
+
+    @media print{
+      .inputs-panel{display:none}
+      .layout{grid-template-columns:1fr}
+      .dashboard{max-height:none;padding:10px}
+    }
+    /* ── Tabs ── */
+    .tabbar{position:sticky;top:49px;z-index:99;background:#fff;border-bottom:1px solid var(--n300);display:flex;gap:4px;padding:6px 24px 0;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+    .tab{appearance:none;background:transparent;border:0;border-bottom:2px solid transparent;padding:9px 16px;font-size:13px;font-weight:600;color:var(--n500);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px}
+    .tab:hover{color:var(--n900)}
+    .tab.active{color:var(--g700);border-bottom-color:var(--g500)}
+    .tab-count{font-size:10px;font-weight:700;background:var(--g100);color:var(--g700);border-radius:10px;padding:1px 7px;min-width:8px;text-align:center}
+    /* ── Compare view ── */
+    .compare-view{padding:20px 24px;max-width:1400px;margin:0 auto;width:100%}
+    .cmp-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+    .cmp-title{font-size:18px;font-weight:800;color:var(--n900)}
+    .cmp-sub{font-size:12px;color:var(--n500);margin-top:2px;max-width:600px;line-height:1.5}
+    .cmp-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .cmp-empty{border:1.5px dashed var(--n300);border-radius:var(--radius);padding:48px 24px;text-align:center;color:var(--n500);font-size:13px;line-height:1.7}
+    .cmp-table-wrap{overflow-x:auto;border:1px solid var(--n200);border-radius:var(--radius)}
+    .cmp-tbl{width:100%;border-collapse:collapse;font-size:12px}
+    .cmp-tbl th,.cmp-tbl td{padding:8px 12px;border-bottom:1px solid var(--n100);text-align:right;white-space:nowrap}
+    .cmp-tbl th:first-child,.cmp-tbl td:first-child{text-align:left;position:sticky;left:0;background:#fff;font-weight:600;color:var(--n700);z-index:1}
+    .cmp-tbl thead th{background:var(--g50);color:var(--n900);font-weight:800;vertical-align:top;border-bottom:2px solid var(--n200)}
+    .cmp-tbl thead th:first-child{background:var(--g50)}
+    .cmp-tbl .grp td{background:var(--n50);font-weight:700;color:var(--n500);text-transform:uppercase;font-size:10px;letter-spacing:.4px;text-align:left}
+    .cmp-tbl .best{color:var(--g700);font-weight:800}
+    .cmp-name-input{width:96px;border:1px solid var(--n200);border-radius:4px;padding:3px 6px;font-size:12px;font-weight:800;font-family:inherit;color:var(--n900);text-align:center}
+    .cmp-col-actions{display:flex;gap:6px;justify-content:center;margin-top:6px}
+    .cmp-mini{font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--n200);background:#fff;cursor:pointer;font-family:inherit;color:var(--n700)}
+    .cmp-mini:hover{background:var(--n50)}
+    .cmp-mini.del:hover{background:#FEF2F2;border-color:#FCA5A5;color:#DC2626}
+    .cmp-charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+    @media print{.tabbar{display:none}}
+    @media (max-width:900px){.cmp-charts{grid-template-columns:1fr}}
+    /* ── Header action menu ── */
+    .menu-wrap{position:relative;display:inline-block}
+    .menu{position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid var(--n200);border-radius:8px;box-shadow:0 10px 28px rgba(0,0,0,.18);min-width:226px;padding:6px;display:none;z-index:200}
+    .menu.open{display:block}
+    .menu button{display:flex;width:100%;gap:9px;align-items:center;background:transparent;border:0;padding:8px 10px;font-size:12px;color:var(--n800);cursor:pointer;border-radius:6px;text-align:left;font-family:inherit}
+    .menu button:hover{background:var(--n50)}
+    .menu .sep{height:1px;background:var(--n100);margin:5px 2px}
+    .menu .menu-head{font-size:9px;font-weight:700;color:var(--n500);text-transform:uppercase;letter-spacing:.4px;padding:7px 10px 3px}
+    /* ── Print-only executive summary ── */
+    .print-only{display:none}
+    .exec-block{margin-bottom:13px}
+    .exec-h{font-size:13px;font-weight:800;color:var(--g700);border-bottom:1px solid var(--n200);padding-bottom:3px;margin-bottom:6px}
+    .exec-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px 28px;font-size:11px}
+    .exec-grid .k{color:var(--n500)}
+    .exec-grid .v{font-weight:700;color:var(--n900);text-align:right}
+    @media print{
+      @page{margin:14mm}
+      header,.tabbar,.inputs-panel,.guide-drawer,.guide-backdrop{display:none !important}
+      .layout{grid-template-columns:1fr !important;min-height:0 !important}
+      .dashboard{max-height:none !important;overflow:visible !important;padding:0 !important}
+      .print-only{display:block !important}
+      .chart-card,.kpi-card,#value-card,#bvb-card,#scenario-card,.cmp-table-wrap{break-inside:avoid;page-break-inside:avoid}
+      body{background:#fff !important}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ AUTH OVERLAY ══════════════════════════ -->
+<div id="auth-overlay">
+  <div id="auth-card">
+
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px">
+      <span style="font-size:22px;font-weight:800;color:var(--g900);letter-spacing:-.5px">BCG</span>
+      <span style="background:var(--g100);color:var(--g900);font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;letter-spacing:.3px">PROTOTYPE</span>
+    </div>
+
+    <div style="font-size:15px;font-weight:700;color:var(--n900);margin-top:16px;line-height:1.3">Agentic AI Cost Estimator</div>
+    <div style="font-size:11px;color:var(--n500);margin-top:4px">BCG AI Platforms Group · v1.0 · May 2026</div>
+
+    <div class="auth-divider"></div>
+
+    <div style="font-size:12px;color:var(--n700);line-height:1.6">
+      This is an <strong>early-stage prototype</strong> built to support CFO and CIO conversations on agentic AI investment sizing.<br>
+      It is intended for <strong>internal BCG use only</strong> and should not be shared externally without prior alignment.
+    </div>
+
+    <input type="password" id="auth-password" placeholder="Enter access code"
+      onkeydown="if(event.key==='Enter')unlockTool()">
+    <div id="auth-error">Incorrect access code — please try again.</div>
+    <button id="auth-unlock" onclick="unlockTool()">Unlock →</button>
+
+    <div class="auth-divider"></div>
+
+    <div style="font-size:11px;color:var(--n500);line-height:1.7">
+      Created by <strong style="color:var(--n900)">Giuseppe Colombo</strong><br>
+      TDA Vantage · AI Transformation<br>
+      <a href="mailto:colombo.giuseppe@bcg.com" style="color:var(--g700);text-decoration:none;font-weight:600">Reach out for questions or feedback →</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ HEADER ════════════════════════════════ -->
+<header>
+  <div class="header-left">
+    <span class="bcg-wordmark">BCG</span>
+    <div>
+      <div class="header-title">Agentic AI Cost Estimator</div>
+      <div style="font-size:10px;color:var(--g100);margin-top:1px">Based on BCG AI Platforms Group · "Building Effective Enterprise AI Agents" (Tom Martin et al., Nov 2025)</div>
+    </div>
+    <span class="header-badge">v1.0 · May 2026</span>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-outline" onclick="resetDefaults()">↺ Reset</button>
+    <button class="btn btn-outline" id="btn-save-scenario" onclick="saveScenario()">＋ Save Scenario</button>
+    <div class="menu-wrap">
+      <button class="btn btn-primary" id="btn-more" onclick="toggleMenu(event)">Share &amp; Export ▾</button>
+      <div class="menu" id="action-menu">
+        <div class="menu-head">Share &amp; save</div>
+        <button onclick="copyShareLink();closeMenu()">Copy share link</button>
+        <button onclick="saveConfig();closeMenu()">Save config (.json)</button>
+        <button onclick="document.getElementById('config-file').click();closeMenu()">Load config (.json)</button>
+        <div class="sep"></div>
+        <div class="menu-head">Export</div>
+        <button onclick="exportSummaryPDF();closeMenu()">Export summary (PDF)</button>
+        <button onclick="exportCSV();closeMenu()">Export data (CSV)</button>
+        <button onclick="window.print();closeMenu()">Print dashboard</button>
+      </div>
+    </div>
+    <input type="file" id="config-file" accept="application/json,.json" style="display:none" onchange="loadConfig(event)">
+  </div>
+</header>
+
+<!-- ═══════════════════════════════ TAB BAR ═══════════════════════════════ -->
+<div class="tabbar">
+  <button class="tab active" id="tab-estimator" onclick="switchTab('estimator')">Estimator</button>
+  <button class="tab" id="tab-compare" onclick="switchTab('compare')">Compare Scenarios <span class="tab-count" id="tab-count"></span></button>
+</div>
+
+<div id="print-summary" class="print-only"></div>
+
+<!-- ═══════════════════════════════ MAIN LAYOUT ═══════════════════════════ -->
+<div class="layout" id="view-estimator">
+
+  <!-- ─────────────────── LEFT: INPUTS PANEL ─────────────────── -->
+  <div class="inputs-panel">
+
+    <!-- SCOPE (always open) -->
+    <div class="section">
+      <div style="padding:10px 16px 4px;background:var(--g900)">
+        <div style="font-size:10px;font-weight:700;color:var(--g300);text-transform:uppercase;letter-spacing:.5px">Project Scope</div>
+      </div>
+      <div class="scope-body">
+
+        <div class="field">
+          <label>Start from a template <span class="tip" data-tip="Pre-fills the whole model with a realistic configuration and BCG benchmark assumptions for a common use case. You can tweak anything afterwards.">?</span></label>
+          <select id="preset" onchange="applyPreset(this.value)">
+            <option value="">Custom (current settings)</option>
+            <option value="cs-pilot">Customer Service — Pilot</option>
+            <option value="cs-scale">Customer Service — Scale</option>
+            <option value="coding">Coding Copilot — Scale</option>
+            <option value="rag">Knowledge / RAG Assistant</option>
+            <option value="docproc">Document Processing — High Volume</option>
+            <option value="research">Multi-Agent Research — Transform</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Deployment Stage</label>
+          <div class="pill-group" id="stage-pills">
+            <span class="pill" data-val="pilot" onclick="setPill('stage',this)">Pilot<br><small style="font-weight:400">1–3 agents</small></span>
+            <span class="pill active" data-val="scale" onclick="setPill('stage',this)">Scale<br><small style="font-weight:400">4–15 agents</small></span>
+            <span class="pill" data-val="transform" onclick="setPill('stage',this)">Transform<br><small style="font-weight:400">15+ agents</small></span>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Number of agents <span id="lbl-agents">8</span></label>
+            <input type="range" id="num-agents" min="1" max="50" value="8" step="1" oninput="updateLabel('lbl-agents',this.value);recalc()">
+            <div class="range-labels"><span>1</span><span>25</span><span>50</span></div>
+          </div>
+          <div class="field">
+            <label>Daily interactions / agent <span id="lbl-interactions">200</span></label>
+            <input type="range" id="daily-interactions" min="10" max="5000" value="200" step="10" oninput="updateLabel('lbl-interactions',this.value);recalc()">
+            <div class="range-labels"><span>10</span><span>2,500</span><span>5K</span></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Task Complexity <span class="tip" data-tip="Determines token consumption per interaction. Simple: single-tool call. Standard: multi-step reasoning. Complex: loops + tool chains. Multi-agent: multiple sub-agents coordinated.">?</span></label>
+          <div class="pill-group" id="complexity-pills">
+            <span class="pill" data-val="simple" onclick="setPill('complexity',this)">Simple<br><small>~8K tok</small></span>
+            <span class="pill active" data-val="standard" onclick="setPill('complexity',this)">Standard<br><small>~25K tok</small></span>
+            <span class="pill" data-val="complex" onclick="setPill('complexity',this)">Complex<br><small>~80K tok</small></span>
+            <span class="pill" data-val="multiagent" onclick="setPill('complexity',this)">Multi-agent<br><small>~300K tok</small></span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Team Geography</label>
+          <div class="pill-group" id="geo-pills">
+            <span class="pill active" data-val="us" onclick="setPill('geo',this)">US / Canada</span>
+            <span class="pill" data-val="eu" onclick="setPill('geo',this)">W. Europe</span>
+            <span class="pill" data-val="offshore" onclick="setPill('geo',this)">E. EU / India</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Time Horizon</label>
+          <div class="pill-group" id="horizon-pills">
+            <span class="pill" data-val="1" onclick="setPill('horizon',this)">Year 1</span>
+            <span class="pill active" data-val="3" onclick="setPill('horizon',this)">3 Years</span>
+            <span class="pill" data-val="5" onclick="setPill('horizon',this)">5 Years</span>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /scope -->
+
+    <!-- LAYER 1: FOUNDATION MODELS -->
+    <div class="section">
+      <div class="section-header active" onclick="toggleSection('l1')">
+        <div class="section-label">
+          <div class="layer-badge">1</div>
+          Foundation Models & AI Gateway
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="layer-cost-preview" id="prev-l1">—</span>
+          <button class="btn-guide" onclick="event.stopPropagation();openGuide('l1')">Guide</button>
+          <span class="chevron open" id="chev-l1">▾</span>
+        </div>
+      </div>
+      <div class="section-body open" id="body-l1">
+
+        <div class="field">
+          <label>Primary LLM <span class="tip" data-tip="Standard on-demand cost per 1M tokens (input / output), before batch/caching discounts. Prices as of June 2026.">?</span></label>
+          <select id="llm" onchange="recalc()">
+            <optgroup label="Anthropic">
+              <option value="opus48" data-in="5.00" data-out="25.00">Claude Opus 4.8 — $5.00 / $25.00 per 1M</option>
+              <option value="sonnet46" data-in="3.00" data-out="15.00" selected>Claude Sonnet 4.6 — $3.00 / $15.00 per 1M</option>
+              <option value="haiku45" data-in="1.00" data-out="5.00">Claude Haiku 4.5 — $1.00 / $5.00 per 1M</option>
+            </optgroup>
+            <optgroup label="OpenAI">
+              <option value="gpt55" data-in="5.00" data-out="30.00">GPT-5.5 — $5.00 / $30.00 per 1M</option>
+              <option value="gpt54" data-in="2.50" data-out="15.00">GPT-5.4 — $2.50 / $15.00 per 1M</option>
+              <option value="gpt54mini" data-in="0.75" data-out="4.50">GPT-5.4 Mini — $0.75 / $4.50 per 1M</option>
+              <option value="gpt54nano" data-in="0.20" data-out="1.25">GPT-5.4 Nano — $0.20 / $1.25 per 1M</option>
+              <option value="o3" data-in="2.00" data-out="8.00">OpenAI o3 (reasoning) — $2.00 / $8.00 per 1M</option>
+            </optgroup>
+            <optgroup label="Google">
+              <option value="gemini31pro" data-in="2.00" data-out="12.00">Gemini 3.1 Pro — $2.00 / $12.00 per 1M</option>
+              <option value="gemini35flash" data-in="1.50" data-out="9.00">Gemini 3.5 Flash — $1.50 / $9.00 per 1M</option>
+              <option value="gemini31flashlite" data-in="0.25" data-out="1.50">Gemini 3.1 Flash-Lite — $0.25 / $1.50 per 1M</option>
+              <option value="gemini25flashlite" data-in="0.10" data-out="0.40">Gemini 2.5 Flash-Lite — $0.10 / $0.40 per 1M</option>
+            </optgroup>
+            <optgroup label="Mistral">
+              <option value="mistrallarge3" data-in="2.00" data-out="6.00">Mistral Large 3 — $2.00 / $6.00 per 1M</option>
+              <option value="mistralsmall31" data-in="0.20" data-out="0.60">Mistral Small 3.1 — $0.20 / $0.60 per 1M</option>
+              <option value="ministral8b" data-in="0.10" data-out="0.10">Ministral 8B — $0.10 / $0.10 per 1M</option>
+            </optgroup>
+            <optgroup label="DeepSeek">
+              <option value="deepseekv4flash" data-in="0.14" data-out="0.28">DeepSeek V4 Flash — $0.14 / $0.28 per 1M</option>
+              <option value="deepseekv4pro" data-in="1.74" data-out="3.48">DeepSeek V4 Pro — $1.74 / $3.48 per 1M</option>
+            </optgroup>
+            <optgroup label="xAI">
+              <option value="grok43" data-in="1.25" data-out="2.50">Grok 4.3 — $1.25 / $2.50 per 1M</option>
+            </optgroup>
+            <optgroup label="Amazon Nova (Bedrock)">
+              <option value="novapro" data-in="0.80" data-out="3.20">Amazon Nova Pro — $0.80 / $3.20 per 1M</option>
+              <option value="novalite" data-in="0.06" data-out="0.24">Amazon Nova Lite — $0.06 / $0.24 per 1M</option>
+              <option value="novamicro" data-in="0.035" data-out="0.14">Amazon Nova Micro — $0.035 / $0.14 per 1M</option>
+            </optgroup>
+            <optgroup label="Self-hosted (open-weight · infra cost only)">
+              <option value="llama4self" data-in="0" data-out="0">Llama 4 Maverick (self-hosted) — infra cost only</option>
+              <option value="deepseekself" data-in="0" data-out="0">DeepSeek V4 (self-hosted) — infra cost only</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>API Gateway / Inference Layer</label>
+          <select id="gateway" onchange="recalc()">
+            <option value="direct">Direct API — no gateway overhead</option>
+            <option value="bedrock" selected>AWS Bedrock — +8% markup on tokens</option>
+            <option value="azurefoundry">Azure AI Foundry — +8% markup on tokens</option>
+            <option value="vertex">Google Vertex AI — +5% markup on tokens</option>
+          </select>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Smart Model Routing</div>
+            <div class="toggle-sub">70% budget · 20% mid-tier · 10% primary → ~55% cost reduction</div>
+          </div>
+          <label class="toggle"><input type="checkbox" id="routing" onchange="recalc()"><span class="slider-toggle"></span></label>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Prompt Caching</div>
+            <div class="toggle-sub">Caches system prompts → ~35% input token savings</div>
+          </div>
+          <label class="toggle"><input type="checkbox" id="caching" checked onchange="recalc()"><span class="slider-toggle"></span></label>
+        </div>
+
+        <div class="info-box" id="token-preview">Token cost preview loading…</div>
+      </div>
+    </div><!-- /l1 -->
+
+    <!-- LAYER 2: ORCHESTRATION & MEMORY -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSection('l2')">
+        <div class="section-label">
+          <div class="layer-badge">2</div>
+          Orchestration & Memory
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="layer-cost-preview" id="prev-l2">—</span>
+          <button class="btn-guide" onclick="event.stopPropagation();openGuide('l2')">Guide</button>
+          <span class="chevron" id="chev-l2">▾</span>
+        </div>
+      </div>
+      <div class="section-body" id="body-l2">
+
+        <div class="field">
+          <label>Orchestration Framework</label>
+          <select id="orch-framework" onchange="recalc()">
+            <option value="langgraph">LangGraph (open-source, free)</option>
+            <option value="adk">Google ADK (open-source, free)</option>
+            <option value="autogen">Microsoft AutoGen 0.4 (open-source, free)</option>
+            <option value="n8n" selected>n8n Cloud — ~$150/mo managed</option>
+            <option value="bedrock-flows">Amazon Bedrock Flows (included w/ API)</option>
+            <option value="temporal">Temporal Cloud — ~$400/mo</option>
+            <option value="custom">Custom / in-house framework</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Multi-Agent Pattern</label>
+          <div class="pill-group" id="agent-pattern-pills">
+            <span class="pill active" data-val="single" onclick="setPill('agent-pattern',this)">Single</span>
+            <span class="pill" data-val="supervisor" onclick="setPill('agent-pattern',this)">Supervisor</span>
+            <span class="pill" data-val="peer" onclick="setPill('agent-pattern',this)">Peer-to-Peer</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Memory Architecture <span class="tip" data-tip="None: context window only. Session: Redis for per-session state. Long-term: persistent vector memory across sessions.">?</span></label>
+          <select id="memory" onchange="recalc()">
+            <option value="none">None — in-context window only</option>
+            <option value="session" selected>Session (Redis) — ~$80/mo</option>
+            <option value="longterm">Long-term (Vector DB) — +$250/mo</option>
+            <option value="hybrid">Hybrid (session + long-term) — +$350/mo</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Tool Integrations <span id="lbl-tools">8</span> APIs / connectors</label>
+          <input type="range" id="num-tools" min="0" max="40" value="8" step="1" oninput="updateLabel('lbl-tools',this.value);recalc()">
+          <div class="range-labels"><span>0</span><span>20</span><span>40</span></div>
+        </div>
+
+      </div>
+    </div><!-- /l2 -->
+
+    <!-- LAYER 3: DATA & KNOWLEDGE -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSection('l3')">
+        <div class="section-label">
+          <div class="layer-badge">3</div>
+          Data & Knowledge (RAG)
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="layer-cost-preview" id="prev-l3">—</span>
+          <button class="btn-guide" onclick="event.stopPropagation();openGuide('l3')">Guide</button>
+          <span class="chevron" id="chev-l3">▾</span>
+        </div>
+      </div>
+      <div class="section-body" id="body-l3">
+
+        <div class="field">
+          <label>RAG Architecture</label>
+          <div class="pill-group" id="rag-pills">
+            <span class="pill" data-val="none" onclick="setPill('rag',this)">None</span>
+            <span class="pill active" data-val="basic" onclick="setPill('rag',this)">Basic</span>
+            <span class="pill" data-val="advanced" onclick="setPill('rag',this)">Advanced</span>
+            <span class="pill" data-val="graphrag" onclick="setPill('rag',this)">GraphRAG</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Vector Database</label>
+          <select id="vectordb" onchange="recalc()">
+            <option value="none">None</option>
+            <option value="pinecone" selected>Pinecone Serverless — ~$80/mo (10GB)</option>
+            <option value="weaviate">Weaviate Cloud — ~$150/mo</option>
+            <option value="pgvector">pgvector (self-managed) — ~$50/mo compute</option>
+            <option value="azure-search">Azure AI Search — ~$150/mo</option>
+            <option value="opensearch">OpenSearch (AWS) — ~$120/mo</option>
+            <option value="chroma">Chroma Cloud — ~$60/mo</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Knowledge Base Size: <span id="lbl-kb">15</span> GB</label>
+          <input type="range" id="kb-size" min="1" max="500" value="15" step="1" oninput="updateLabel('lbl-kb',this.value);recalc()">
+          <div class="range-labels"><span>1 GB</span><span>250 GB</span><span>500 GB</span></div>
+        </div>
+
+        <div class="field">
+          <label>Embedding Model</label>
+          <select id="embedding" onchange="recalc()">
+            <option value="oai-small" data-price="0.02">OpenAI text-embedding-3-small — $0.02/1M tokens</option>
+            <option value="oai-large" data-price="0.13">OpenAI text-embedding-3-large — $0.13/1M tokens</option>
+            <option value="cohere" data-price="0.10">Cohere embed-v3 — $0.10/1M tokens</option>
+            <option value="gemini" data-price="0.025">Gemini text-embedding-004 — $0.025/1M tokens</option>
+            <option value="self-hosted" data-price="0">Llama/custom (self-hosted) — compute only</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Data Refresh Frequency</label>
+          <select id="data-refresh" onchange="recalc()">
+            <option value="onetime">One-time ingestion</option>
+            <option value="weekly" selected>Weekly refresh</option>
+            <option value="daily">Daily refresh</option>
+            <option value="realtime">Near-real-time streaming</option>
+          </select>
+        </div>
+
+      </div>
+    </div><!-- /l3 -->
+
+    <!-- LAYER 4: PLATFORM & LLMOps -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSection('l4')">
+        <div class="section-label">
+          <div class="layer-badge">4</div>
+          Platform, Ops & Monitoring
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="layer-cost-preview" id="prev-l4">—</span>
+          <button class="btn-guide" onclick="event.stopPropagation();openGuide('l4')">Guide</button>
+          <span class="chevron" id="chev-l4">▾</span>
+        </div>
+      </div>
+      <div class="section-body" id="body-l4">
+
+        <div class="field">
+          <label>Cloud Provider</label>
+          <select id="cloud" onchange="recalc()">
+            <option value="aws" selected>AWS</option>
+            <option value="azure">Microsoft Azure</option>
+            <option value="gcp">Google Cloud (GCP)</option>
+            <option value="multi">Multi-cloud (+15% overhead)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Deployment Model</label>
+          <select id="deploy-model" onchange="recalc()">
+            <option value="managed" selected>Managed API (lowest infra cost)</option>
+            <option value="vpc">VPC / Private Tenant (+$500/mo)</option>
+            <option value="selfhosted">Self-hosted (+$1,500/mo GPU compute)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>LLMOps & Observability <span class="tip" data-tip="Covers prompt versioning, trace logging, evaluation pipelines, and cost monitoring.">?</span></label>
+          <select id="llmops" onchange="recalc()">
+            <option value="basic">Basic (CloudWatch / native logging) — ~$50/mo</option>
+            <option value="langsmith" selected>LangSmith Pro — ~$150/mo</option>
+            <option value="arize">Arize Phoenix — ~$300/mo</option>
+            <option value="wandb">W&B Weave — ~$250/mo</option>
+            <option value="helicone">Helicone — ~$120/mo</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Guardrails & Safety <span class="tip" data-tip="Input/output filtering, toxicity detection, PII masking, hallucination detection.">?</span></label>
+          <select id="guardrails" onchange="recalc()">
+            <option value="none">None (not recommended)</option>
+            <option value="bedrock-guardrails" selected>AWS Bedrock Guardrails — +10% token cost</option>
+            <option value="nemo">NVIDIA NeMo Guardrails (self-hosted) — ~$100/mo</option>
+            <option value="llama-guard">Llama Guard 3 (self-hosted) — ~$80/mo</option>
+            <option value="azure-content">Azure AI Content Safety — ~$200/mo</option>
+          </select>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">CI/CD + Agent Versioning Pipeline</div>
+            <div class="toggle-sub">GitHub Actions / GitLab CI for agent deployment — ~$80/mo</div>
+          </div>
+          <label class="toggle"><input type="checkbox" id="cicd" checked onchange="recalc()"><span class="slider-toggle"></span></label>
+        </div>
+
+      </div>
+    </div><!-- /l4 -->
+
+    <!-- LAYER 5: GOVERNANCE & SECURITY -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSection('l5')">
+        <div class="section-label">
+          <div class="layer-badge">5</div>
+          Governance, Security & Compliance
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="layer-cost-preview" id="prev-l5">—</span>
+          <button class="btn-guide" onclick="event.stopPropagation();openGuide('l5')">Guide</button>
+          <span class="chevron" id="chev-l5">▾</span>
+        </div>
+      </div>
+      <div class="section-body" id="body-l5">
+
+        <div class="field">
+          <label>Governance Maturity Level</label>
+          <select id="gov-level" onchange="recalc()">
+            <option value="basic">Basic — policy doc + manual review (~$500/mo)</option>
+            <option value="standard" selected>Standard — dedicated tooling + 0.1 FTE (~$2,000/mo)</option>
+            <option value="enterprise">Enterprise — AI governance platform + 0.25 FTE (~$5,000/mo)</option>
+            <option value="regulated">Regulated (FS/Healthcare) — external audit + 0.5 FTE (~$12,000/mo)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Security Controls</label>
+          <select id="security" onchange="recalc()">
+            <option value="basic">Basic IAM + TLS</option>
+            <option value="enhanced" selected>Enhanced — SIEM + vault + network isolation</option>
+            <option value="zerotrust">Zero-trust — full posture management</option>
+          </select>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">EU AI Act Compliance Overhead</div>
+            <div class="toggle-sub">Adds ~$1,500/mo for documentation, risk classification & auditing</div>
+          </div>
+          <label class="toggle"><input type="checkbox" id="eu-ai-act" onchange="recalc()"><span class="slider-toggle"></span></label>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Human-in-the-Loop Review Layer</div>
+            <div class="toggle-sub">0.5 FTE supervisor per 5 agents for critical decisions</div>
+          </div>
+          <label class="toggle"><input type="checkbox" id="hitl" onchange="recalc()"><span class="slider-toggle"></span></label>
+        </div>
+
+      </div>
+    </div><!-- /l5 -->
+
+    <!-- PEOPLE & CHANGE -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSection('people')">
+        <div class="section-label">
+          <div class="layer-badge" style="background:var(--g900)">👤</div>
+          People & Change Management
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="layer-cost-preview" id="prev-people">—</span>
+          <button class="btn-guide" onclick="event.stopPropagation();openGuide('people')">Guide</button>
+          <label class="toggle" title="Include / exclude people cost" onclick="event.stopPropagation()">
+            <input type="checkbox" id="people-cost-toggle" checked onchange="recalc()">
+            <span class="slider-toggle"></span>
+          </label>
+          <span class="chevron" id="chev-people">▾</span>
+        </div>
+      </div>
+      <div class="section-body" id="body-people">
+
+        <div class="field">
+          <label>Engagement Model</label>
+          <select id="engagement" onchange="recalc()">
+            <option value="inhouse" selected>Fully in-house team</option>
+            <option value="bcg">BCG-led build (BCG + client team)</option>
+            <option value="partner">System integrator-led</option>
+            <option value="hybrid">Hybrid (in-house core + consulting)</option>
+          </select>
+        </div>
+
+        <div class="sub-label">Setup team (weeks of effort)</div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Setup weeks <span id="lbl-setup-weeks">16</span></label>
+            <input type="range" id="setup-weeks" min="4" max="52" value="16" step="1" oninput="updateLabel('lbl-setup-weeks',this.value);recalc()">
+          </div>
+          <div class="field">
+            <label>Consulting rate $/wk <span id="lbl-consult-rate">3000</span></label>
+            <input type="range" id="consult-rate" min="1500" max="6000" value="3000" step="500" oninput="updateLabel('lbl-consult-rate',this.value);recalc()">
+          </div>
+        </div>
+
+        <div class="sub-label">Run team (ongoing FTE)</div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Agent Engineers (run) <span id="lbl-eng-run">1.0</span> FTE</label>
+            <input type="range" id="eng-run" min="0" max="6" value="1.0" step="0.25" oninput="updateLabel('lbl-eng-run',this.value);recalc()">
+          </div>
+          <div class="field">
+            <label>Agent Ops (run) <span id="lbl-ops-run">0.5</span> FTE</label>
+            <input type="range" id="ops-run" min="0" max="4" value="0.5" step="0.25" oninput="updateLabel('lbl-ops-run',this.value);recalc()">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>PM / Governance <span id="lbl-pm-run">0.25</span> FTE</label>
+            <input type="range" id="pm-run" min="0" max="2" value="0.25" step="0.25" oninput="updateLabel('lbl-pm-run',this.value);recalc()">
+          </div>
+          <div class="field">
+            <label>Change Mgmt <span id="lbl-cm-run">0.5</span> FTE</label>
+            <input type="range" id="cm-run" min="0" max="3" value="0.5" step="0.25" oninput="updateLabel('lbl-cm-run',this.value);recalc()">
+          </div>
+        </div>
+
+        <div class="warn-box" id="people-preview">People cost preview loading…</div>
+
+      </div>
+    </div><!-- /people -->
+
+    <!-- VALUE & BENEFITS -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSection('value')">
+        <div class="section-label">
+          <div class="layer-badge" style="background:var(--g900)">📈</div>
+          Value &amp; Benefits
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="layer-cost-preview" id="prev-value">—</span>
+          <button class="btn-guide" onclick="event.stopPropagation();openGuide('value')">Guide</button>
+          <label class="toggle" title="Include / exclude value &amp; ROI" onclick="event.stopPropagation()">
+            <input type="checkbox" id="value-toggle" checked onchange="recalc()">
+            <span class="slider-toggle"></span>
+          </label>
+          <span class="chevron" id="chev-value">▾</span>
+        </div>
+      </div>
+      <div class="section-body" id="body-value">
+
+        <div class="info-box">Estimates the <strong>benefit</strong> side so the tool reports ROI, not just cost. Gartner method: direct cost avoidance from headcount shift + productivity uplift on remaining staff, net of productivity leak.</div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Workforce in scope <span>FTEs</span></label>
+            <input type="number" id="workforce-size" min="1" value="100" onchange="recalc()">
+          </div>
+          <div class="field">
+            <label>Fully-loaded $/FTE/yr</label>
+            <input type="number" id="human-cost" min="0" step="5000" value="80000" onchange="recalc()">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Headcount shifted to agents <span id="lbl-pct-replaced">20</span>% <span class="tip" data-tip="Share of in-scope workforce whose work is taken over by AI agents — direct cost avoidance. Gartner baseline: 10–30%.">?</span></label>
+          <input type="range" id="pct-replaced" min="0" max="50" value="20" step="1" oninput="updateLabel('lbl-pct-replaced',this.value);recalc()">
+          <div class="range-labels"><span>0%</span><span>Gartner 10–30%</span><span>50%</span></div>
+        </div>
+
+        <div class="field">
+          <label>Productivity uplift (remaining staff) <span id="lbl-prod-uplift">20</span>% <span class="tip" data-tip="Productivity improvement for staff augmented rather than replaced. Gartner baseline: 14–35%.">?</span></label>
+          <input type="range" id="prod-uplift" min="0" max="60" value="20" step="1" oninput="updateLabel('lbl-prod-uplift',this.value);recalc()">
+          <div class="range-labels"><span>0%</span><span>Gartner 14–35%</span><span>60%</span></div>
+        </div>
+
+        <div class="field">
+          <label>Productivity leak <span id="lbl-prod-leak">25</span>% <span class="tip" data-tip="Share of theoretical productivity gain that never converts to financial value — context switching, idle time, downstream bottlenecks. Gartner baseline: 20–30%. Higher = more conservative.">?</span></label>
+          <input type="range" id="prod-leak" min="0" max="60" value="25" step="1" oninput="updateLabel('lbl-prod-leak',this.value);recalc()">
+          <div class="range-labels"><span>0%</span><span>Gartner 20–30%</span><span>60%</span></div>
+        </div>
+
+        <div class="field">
+          <label>Other annual value <span>revenue / margin · optional</span></label>
+          <input type="number" id="incr-revenue" min="0" step="50000" value="0" onchange="recalc()">
+        </div>
+
+        <div class="info-box" id="value-preview">Value preview loading…</div>
+
+      </div>
+    </div><!-- /value -->
+
+    <!-- BUILD vs BUY -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSection('bvb')">
+        <div class="section-label">
+          <div class="layer-badge" style="background:var(--g900)">⇄</div>
+          Build vs Buy
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="layer-cost-preview" id="prev-bvb">—</span>
+          <button class="btn-guide" onclick="event.stopPropagation();openGuide('bvb')">Guide</button>
+          <span class="chevron" id="chev-bvb">▾</span>
+        </div>
+      </div>
+      <div class="section-body" id="body-bvb">
+
+        <div class="info-box">Compares your configured <strong>build</strong> stack against a managed <strong>buy</strong> platform priced per unit. Set the platform pricing model below; the dashboard shows both side-by-side plus the break-even volume.</div>
+
+        <div class="field">
+          <label>Buy Pricing Model <span class="tip" data-tip="Message-based (e.g. Copilot Studio), conversation-based (e.g. Agentforce), or outcome-based (e.g. Zendesk/Intercom — pay per resolution). Gartner's single biggest driver of cost variability.">?</span></label>
+          <div class="pill-group" id="buy-pricing-pills">
+            <span class="pill" data-val="message" onclick="setPill('buy-pricing',this)">Per message</span>
+            <span class="pill active" data-val="conversation" onclick="setPill('buy-pricing',this)">Per conversation</span>
+            <span class="pill" data-val="outcome" onclick="setPill('buy-pricing',this)">Per outcome</span>
+          </div>
+        </div>
+
+        <div class="sub-label">Message-based</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Messages / conversation</label>
+            <input type="number" id="msg-per-conv" min="1" value="20" onchange="recalc()">
+          </div>
+          <div class="field">
+            <label>$ / message</label>
+            <input type="number" id="price-per-msg" min="0" step="0.01" value="0.04" onchange="recalc()">
+          </div>
+        </div>
+
+        <div class="sub-label">Conversation-based</div>
+        <div class="field">
+          <label>$ / conversation <span>Gartner $0.30–$2.00</span></label>
+          <input type="number" id="price-per-conv" min="0" step="0.05" value="1.00" onchange="recalc()">
+        </div>
+
+        <div class="sub-label">Outcome-based</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Resolution rate <span id="">%</span></label>
+            <input type="number" id="resolution-rate" min="1" max="100" value="70" onchange="recalc()">
+          </div>
+          <div class="field">
+            <label>$ / resolution <span>$0.99–$2</span></label>
+            <input type="number" id="price-per-resolution" min="0" step="0.01" value="1.50" onchange="recalc()">
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /bvb -->
+
+  </div><!-- /inputs-panel -->
+
+
+  <!-- ─────────────────── RIGHT: DASHBOARD ─────────────────── -->
+  <div class="dashboard">
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">One-Time Setup</div>
+        <div class="kpi-value" id="kpi-setup">—</div>
+        <div class="kpi-sub">People + infra build</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Monthly Run Cost</div>
+        <div class="kpi-value" id="kpi-monthly">—</div>
+        <div class="kpi-sub">Tokens + infra + people</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Year 1 Total (TCO)</div>
+        <div class="kpi-value" id="kpi-y1">—</div>
+        <div class="kpi-sub">Setup + 12 months run</div>
+      </div>
+      <div class="kpi-card accent">
+        <div class="kpi-label" id="kpi-horizon-label">5-Year Total (TCO)</div>
+        <div class="kpi-value" id="kpi-horizon">—</div>
+        <div class="kpi-sub" id="kpi-horizon-sub">Includes ~20% YoY volume growth</div>
+      </div>
+    </div>
+
+    <!-- VALUE & ROI -->
+    <div class="chart-card wide" id="value-card">
+      <div class="chart-title">Business Value &amp; Return — Gartner Value/Cost Methodology</div>
+      <div class="chart-sub">Cost avoided (headcount shift) + productivity uplift, net of leak, vs. total cost of ownership over the selected horizon</div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);margin:12px 0 6px">
+        <div class="kpi-card">
+          <div class="kpi-label" id="kpi-value-label">3-Yr Value</div>
+          <div class="kpi-value" id="kpi-value-3yr">—</div>
+          <div class="kpi-sub">Cost avoided + productivity</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Net Benefit</div>
+          <div class="kpi-value" id="kpi-netbenefit">—</div>
+          <div class="kpi-sub">Value − TCO</div>
+        </div>
+        <div class="kpi-card accent">
+          <div class="kpi-label">ROI</div>
+          <div class="kpi-value" id="kpi-roi">—</div>
+          <div class="kpi-sub">(Value − Cost) / Cost</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Agent Value Multiple</div>
+          <div class="kpi-value" id="kpi-avm">—</div>
+          <div class="kpi-sub">Value ÷ TCO (AVM)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Payback</div>
+          <div class="kpi-value" id="kpi-payback">—</div>
+          <div class="kpi-sub">Setup ÷ monthly net</div>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:200px"><canvas id="chart-value"></canvas></div>
+    </div>
+
+    <!-- BUILD vs BUY -->
+    <div class="chart-card wide" id="bvb-card">
+      <div class="chart-title">Build vs Buy — Approach Comparison</div>
+      <div class="chart-sub">Your configured build stack (consumption pricing) vs a managed platform (per-unit pricing), over the selected horizon</div>
+      <div id="bvb-rec" style="padding:9px 12px;border-radius:0 var(--radius) var(--radius) 0;font-size:11px;line-height:1.5;margin:10px 0"></div>
+      <div id="bvb-table"></div>
+      <div class="chart-wrap" style="height:210px;margin-top:14px"><canvas id="chart-bvb"></canvas></div>
+    </div>
+
+    <!-- SCENARIO RANGE -->
+    <div class="chart-card wide" id="scenario-card">
+      <div class="chart-title">Scenario Range — Low / Base / High</div>
+      <div class="chart-sub">Uncertainty envelope in the Gartner style — single configuration, ranged across its least-certain cost and value drivers</div>
+      <div id="scenario-body" style="margin-top:14px"></div>
+    </div>
+
+    <!-- CHARTS ROW 1: Breakdown + Phase -->
+    <div class="chart-row">
+      <div class="chart-card">
+        <div class="chart-title">Cost Breakdown by Layer</div>
+        <div class="chart-sub">Annual run cost (excl. one-time setup)</div>
+        <div class="chart-wrap" style="height:200px">
+          <canvas id="chart-breakdown"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Setup vs Run Phase</div>
+        <div class="chart-sub">Total spend by phase over selected horizon</div>
+        <div class="chart-wrap" style="height:200px">
+          <canvas id="chart-phases"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHART ROW 2: 5-Year Projection -->
+    <div class="chart-card wide">
+      <div class="chart-title">Multi-Year Cost Projection</div>
+      <div class="chart-sub">Cumulative TCO with ~20% annual volume growth. Setup cost shown in Year 1.</div>
+      <div class="chart-wrap" style="height:180px">
+        <canvas id="chart-projection"></canvas>
+      </div>
+    </div>
+
+    <!-- ARCHITECTURE LAYER DIAGRAM -->
+    <div class="arch-card">
+      <div class="arch-title">Cost by Architecture Layer — BCG "Building Effective Enterprise AI Agents" Framework</div>
+      <div class="arch-layers" id="arch-layers-display">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
+
+    <!-- DETAILED BREAKDOWN TABLE -->
+    <div class="breakdown-card">
+      <div class="breakdown-title">Detailed Cost Breakdown</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Line Item</th>
+            <th style="text-align:right">Monthly</th>
+            <th style="text-align:right">Annual</th>
+            <th style="text-align:right">% of Run</th>
+          </tr>
+        </thead>
+        <tbody id="breakdown-table">
+          <tr><td colspan="4" style="text-align:center;color:var(--n500);padding:20px">Adjust inputs to generate breakdown…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SENSITIVITY ANALYSIS -->
+    <div class="sensitivity-card">
+      <div class="sensitivity-title">Sensitivity Analysis — Year 1 Total Cost Impact</div>
+      <div id="sensitivity-display">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
+
+    <!-- DECISION DASHBOARD -->
+    <div class="decision-card">
+      <div class="decision-title">Configuration Optimiser</div>
+      <div class="decision-sub">Live advisory — flags actions, saving opportunities and best-practice confirmations based on your current inputs</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <div style="flex:1;background:#FEF2F2;border-radius:var(--radius);padding:8px;text-align:center">
+          <div id="dc-count-red" style="font-size:18px;font-weight:800;color:#EF4444">—</div>
+          <div style="font-size:10px;color:#EF4444;font-weight:600">Actions</div>
+        </div>
+        <div style="flex:1;background:#FFFBEB;border-radius:var(--radius);padding:8px;text-align:center">
+          <div id="dc-count-amber" style="font-size:18px;font-weight:800;color:#F59E0B">—</div>
+          <div style="font-size:10px;color:#F59E0B;font-weight:600">Opportunities</div>
+        </div>
+        <div style="flex:1;background:#F0FAF4;border-radius:var(--radius);padding:8px;text-align:center">
+          <div id="dc-count-green" style="font-size:18px;font-weight:800;color:#009A44">—</div>
+          <div style="font-size:10px;color:#009A44;font-weight:600">Best Practice</div>
+        </div>
+      </div>
+      <div id="decision-checks"></div>
+    </div>
+
+    <!-- COST PER INTERACTION -->
+    <div class="chart-row">
+      <div class="chart-card">
+        <div class="chart-title">Unit Economics</div>
+        <div class="chart-sub">Cost per agent interaction (monthly run basis)</div>
+        <div id="unit-economics" style="padding:8px 0">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Model Routing Comparison</div>
+        <div class="chart-sub">Annual token cost: single model vs smart routing</div>
+        <div class="chart-wrap" style="height:160px">
+          <canvas id="chart-routing"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- METHODOLOGY -->
+    <div class="methodology">
+      <strong>Methodology & Sources:</strong> Architecture framework from BCG AI Platforms Group, "Building Effective Enterprise AI Agents" (Tom Martin, David Heurtaux, et al., Nov 2025).
+      Token consumption benchmarks: Gartner AI Infrastructure Report Mar 2026 (5–30× multiplier vs standard GenAI), BCG case experience.
+      LLM pricing as of May 2026:
+      <a href="https://pricepertoken.com" target="_blank">pricepertoken.com</a> ·
+      <a href="https://costgoat.com/compare/llm-api" target="_blank">costgoat.com</a>.
+      People cost benchmarks: Glassdoor/LinkedIn 2026 + 30% loaded cost premium.
+      Infrastructure costs: vendor public pricing pages.
+      <strong>Disclaimer:</strong> This is a directional cost model for strategic planning. Actual costs depend on use-case specifics, vendor negotiations, and operational decisions. Pricing data last validated May 2026 and will evolve over time.
+      <br><br>
+      <strong>Scope:</strong> Models technology &amp; people cost (the 30% in BCG's 10/20/70 model); business-change delivery cost (the 70%) is excluded. The <strong>Value &amp; Benefits</strong> module estimates the benefit side using Gartner's value methodology (headcount shift + productivity uplift, net of productivity leak) to produce ROI, Agent Value Multiple (AVM) and payback. Value is directional and depends heavily on whether productivity gains are actively harvested.
+    </div>
+
+  </div><!-- /dashboard -->
+</div><!-- /layout -->
+
+<!-- ═══════════════════════════ COMPARE SCENARIOS VIEW ═════════════════════ -->
+<div id="view-compare" class="compare-view" style="display:none">
+  <div class="cmp-head">
+    <div>
+      <div class="cmp-title">Scenario Comparison</div>
+      <div class="cmp-sub">Save options from the Estimator (＋ Save Scenario), then compare cost, value and ROI side by side. Best value per row is highlighted. Scenarios are held in memory for this session — export to keep them.</div>
+    </div>
+    <div class="cmp-actions">
+      <button class="btn btn-outline" onclick="switchTab('estimator')">＋ Add from Estimator</button>
+      <button class="btn btn-outline" onclick="exportCompareCSV()">↓ Export comparison</button>
+      <button class="btn btn-outline" onclick="clearScenarios()">Clear all</button>
+    </div>
+  </div>
+
+  <div id="cmp-empty" class="cmp-empty">
+    No scenarios saved yet.<br>
+    Configure an option in the <strong>Estimator</strong> tab, then click <strong>＋ Save Scenario</strong> in the top bar. Save several (e.g. Build vs Buy, Pilot vs Scale, conservative vs aggressive) and they'll line up here for comparison.
+  </div>
+
+  <div id="cmp-content" style="display:none">
+    <div class="cmp-table-wrap"><div id="cmp-table"></div></div>
+    <div class="cmp-charts">
+      <div class="chart-card">
+        <div class="chart-title">Horizon TCO vs Value</div>
+        <div class="chart-sub">Total cost of ownership against estimated value, per scenario</div>
+        <div class="chart-wrap" style="height:260px"><canvas id="chart-cmp-tco"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">ROI by Scenario</div>
+        <div class="chart-sub">Three-year return on investment — red where negative</div>
+        <div class="chart-wrap" style="height:260px"><canvas id="chart-cmp-roi"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════ GUIDE FLYOUT ══════════════════════════ -->
+<div class="guide-backdrop" id="guide-backdrop" onclick="closeGuide()"></div>
+<div class="guide-drawer" id="guide-drawer">
+  <div class="guide-dheader">
+    <div class="guide-dheader-left">
+      <span class="guide-dheader-emoji" id="guide-emoji"></span>
+      <span class="guide-dheader-title" id="guide-title"></span>
+      <span class="guide-dheader-impact" id="guide-impact"></span>
+    </div>
+    <button class="guide-close" onclick="closeGuide()">✕</button>
+  </div>
+  <div class="guide-body" id="guide-body"></div>
+</div>
+
+<!-- ═══════════════════════════════ JAVASCRIPT ════════════════════════════ -->
+<script>
+/* ─────────────────────────────────────────────────────────────
+   STATE
+───────────────────────────────────────────────────────────── */
+const state = {
+  stage: 'scale',
+  numAgents: 8,
+  dailyInteractions: 200,
+  complexity: 'standard',
+  geo: 'us',
+  horizon: 3,
+  llm: 'sonnet46',
+  gateway: 'bedrock',
+  routing: false,
+  caching: true,
+  orchFramework: 'n8n',
+  agentPattern: 'single',
+  memory: 'session',
+  numTools: 8,
+  rag: 'basic',
+  vectordb: 'pinecone',
+  kbSize: 15,
+  embedding: 'oai-small',
+  dataRefresh: 'weekly',
+  cloud: 'aws',
+  deployModel: 'managed',
+  llmops: 'langsmith',
+  guardrails: 'bedrock-guardrails',
+  cicd: true,
+  govLevel: 'standard',
+  security: 'enhanced',
+  euAiAct: false,
+  hitl: false,
+  engagement: 'inhouse',
+  setupWeeks: 16,
+  consultRate: 3000,
+  engRun: 1.0,
+  opsRun: 0.5,
+  pmRun: 0.25,
+  cmRun: 0.5,
+  includePeopleCost: true,
+  // ── Value & Benefits (Gartner value/cost methodology) ──
+  valueEnabled: true,
+  workforceSize: 100,    // human FTEs in the in-scope function
+  humanCost: 80000,      // annual fully-loaded cost per in-scope FTE
+  pctReplaced: 20,       // % headcount shifted to agents (Gartner 10–30%)
+  prodUplift: 20,        // % productivity uplift, remaining staff (Gartner 14–35%)
+  prodLeak: 25,          // % productivity leak (Gartner 20–30%)
+  incrRevenue: 0,        // optional annual incremental revenue / margin
+  // ── Build vs Buy (alternative pricing models) ──
+  buyPricing: 'conversation',  // message | conversation | outcome
+  msgPerConv: 20,        // messages per conversation (Gartner baseline 20)
+  pricePerMsg: 0.04,     // $/message (message-based platforms)
+  pricePerConv: 1.00,    // $/conversation (conversation-based, Gartner $0.30–$2)
+  resolutionRate: 70,    // % resolved (outcome-based)
+  pricePerResolution: 1.50 // $/resolution (Gartner $0.99–$2)
+};
+
+/* ─────────────────────────────────────────────────────────────
+   LOOKUP TABLES
+───────────────────────────────────────────────────────────── */
+const TOKENS = { simple: {in:5000,out:3000}, standard: {in:15000,out:10000}, complex: {in:50000,out:30000}, multiagent: {in:200000,out:100000} };
+const LLM_PRICES = {
+  // Anthropic
+  opus48:           {in:5.00,  out:25.00},
+  sonnet46:         {in:3.00,  out:15.00},
+  haiku45:          {in:1.00,  out:5.00},
+  // OpenAI
+  gpt55:            {in:5.00,  out:30.00},
+  gpt54:            {in:2.50,  out:15.00},
+  gpt54mini:        {in:0.75,  out:4.50},
+  gpt54nano:        {in:0.20,  out:1.25},
+  o3:               {in:2.00,  out:8.00},
+  // Google
+  gemini31pro:      {in:2.00,  out:12.00},
+  gemini35flash:    {in:1.50,  out:9.00},
+  gemini31flashlite:{in:0.25,  out:1.50},
+  gemini25flashlite:{in:0.10,  out:0.40},
+  // Mistral
+  mistrallarge3:    {in:2.00,  out:6.00},
+  mistralsmall31:   {in:0.20,  out:0.60},
+  ministral8b:      {in:0.10,  out:0.10},
+  // DeepSeek
+  deepseekv4flash:  {in:0.14,  out:0.28},
+  deepseekv4pro:    {in:1.74,  out:3.48},
+  // xAI
+  grok43:           {in:1.25,  out:2.50},
+  // Amazon Nova (Bedrock)
+  novapro:          {in:0.80,  out:3.20},
+  novalite:         {in:0.06,  out:0.24},
+  novamicro:        {in:0.035, out:0.14},
+  // Self-hosted (infra cost only)
+  llama4self:       {in:0,     out:0},
+  deepseekself:     {in:0,     out:0}
+};
+const LLM_LABELS = {
+  opus48:'Claude Opus 4.8', sonnet46:'Claude Sonnet 4.6', haiku45:'Claude Haiku 4.5',
+  gpt55:'GPT-5.5', gpt54:'GPT-5.4', gpt54mini:'GPT-5.4 Mini', gpt54nano:'GPT-5.4 Nano', o3:'OpenAI o3',
+  gemini31pro:'Gemini 3.1 Pro', gemini35flash:'Gemini 3.5 Flash', gemini31flashlite:'Gemini 3.1 Flash-Lite', gemini25flashlite:'Gemini 2.5 Flash-Lite',
+  mistrallarge3:'Mistral Large 3', mistralsmall31:'Mistral Small 3.1', ministral8b:'Ministral 8B',
+  deepseekv4flash:'DeepSeek V4 Flash', deepseekv4pro:'DeepSeek V4 Pro',
+  grok43:'Grok 4.3',
+  novapro:'Amazon Nova Pro', novalite:'Amazon Nova Lite', novamicro:'Amazon Nova Micro',
+  llama4self:'Llama 4 Maverick (self-hosted)', deepseekself:'DeepSeek V4 (self-hosted)'
+};
+// Budget routing mix: 70% Gemini 2.5 Flash-Lite, 20% GPT-5.4 Mini, 10% selected primary
+const BUDGET_LLM  = {in:0.10, out:0.40}; // Gemini 2.5 Flash-Lite (router/budget tier)
+const MID_LLM     = {in:0.75, out:4.50}; // GPT-5.4 Mini (mid tier)
+const GATEWAY_MARKUP = {direct:1.0, bedrock:1.08, azurefoundry:1.08, vertex:1.05};
+
+const ORCH_COST_MO = {langgraph:0, adk:0, autogen:0, 'n8n':150, 'bedrock-flows':0, temporal:400, custom:0};
+const MEMORY_COST_MO = {none:0, session:80, longterm:330, hybrid:430};
+const VECTORDB_COST_MO = {none:0, pinecone:80, weaviate:150, pgvector:50, 'azure-search':150, opensearch:120, chroma:60};
+const EMBED_PRICE = {'oai-small':0.02, 'oai-large':0.13, cohere:0.10, gemini:0.025, 'self-hosted':0};
+const REFRESH_MULTIPLIER = {onetime:1, weekly:2, daily:6, realtime:15};
+const LLMOPS_COST_MO = {basic:50, langsmith:150, arize:300, wandb:250, helicone:120};
+const GUARDRAIL_COST_MO = {none:0, 'bedrock-guardrails':0 /* computed as % */, nemo:100, 'llama-guard':80, 'azure-content':200};
+const GUARDRAIL_TOKEN_PCT = {'bedrock-guardrails':0.10, none:0, nemo:0, 'llama-guard':0, 'azure-content':0};
+const DEPLOY_EXTRA_MO = {managed:0, vpc:500, selfhosted:1500};
+const CLOUD_BASE_MO = {aws:180, azure:190, gcp:170, multi:240};
+const GOV_COST_MO = {basic:500, standard:2000, enterprise:5000, regulated:12000};
+const SECURITY_COST_MO = {basic:100, enhanced:400, zerotrust:900};
+
+const GEO_MULT = {us:1.0, eu:0.70, offshore:0.35};
+const SALARY = { // annual, fully loaded (base × 1.3)
+  architect: 390000, engineer: 295000, mleng: 240000,
+  opseng: 250000, pm: 280000, dataeng: 210000,
+  qa: 170000, cm: 185000, govfx: 360000
+};
+// Engagement model: multiplier on BCG consulting cost
+const ENGAGEMENT_CONSULT_MULT = {inhouse:0, bcg:1.0, partner:0.8, hybrid:0.5};
+
+/* ── Build vs Buy assumptions ──────────────────────────────────
+   Buy = managed agent platform (Agentforce / Copilot Studio / Zendesk-style).
+   Platform absorbs model, orchestration, memory, LLMOps & guardrails; you still
+   carry data grounding, governance, security and a lighter run team. */
+const BUY_SETUP_FACTOR  = 0.6;  // buy initial ≈ 60% of build (less engineering; Gartner $1.5–2.7M buy vs $2.5–4.3M build)
+const BUY_PEOPLE_FACTOR = 0.7;  // lighter run team on a managed platform
+const BUY_CLOUD_FACTOR  = 0.5;  // reduced infra footprint
+const GROWTH = 1.20;            // ~20% YoY volume growth (matches cost projection)
+
+/* ── Scenario band factors (Gartner-style uncertainty envelope) ──
+   Data management is the single largest swing; consumption is the next.  */
+const BAND = {
+  variable: { low:0.60, high:1.50 },  // token / platform consumption uncertainty
+  data:     { low:0.50, high:1.80 },  // data management — Gartner's biggest cost driver
+  people:   { low:0.85, high:1.15 },  // people & setup estimation uncertainty
+  fixed:    { low:0.90, high:1.10 }   // fixed infra & governance
+};
+
+/* ─────────────────────────────────────────────────────────────
+   SETUP PEOPLE COST (one-time)
+───────────────────────────────────────────────────────────── */
+function setupPeopleCost() {
+  const g = GEO_MULT[state.geo];
+  const w = state.setupWeeks;
+  const wpy = 52;
+  // FTE by stage
+  const FTE = {
+    pilot:     {arch:0.25, eng:1.0,  ml:0.5, ops:0,   pm:0.25, qa:0.25, cm:0.5,  gov:0.1 },
+    scale:     {arch:0.5,  eng:2.0,  ml:1.0, ops:0.5, pm:0.5,  qa:1.0,  cm:1.0,  gov:0.25},
+    transform: {arch:1.0,  eng:4.0,  ml:2.0, ops:1.0, pm:1.0,  qa:2.0,  cm:2.0,  gov:0.5 }
+  }[state.stage];
+
+  const inhouse =
+    (FTE.arch * SALARY.architect + FTE.eng * SALARY.engineer + FTE.ml * SALARY.mleng +
+     FTE.ops * SALARY.opseng + FTE.pm * SALARY.pm + FTE.qa * SALARY.qa +
+     FTE.cm * SALARY.cm + FTE.gov * SALARY.govfx) * g * (w / wpy);
+
+  const consulting = state.consultRate * w *
+    (FTE.arch + FTE.eng + FTE.ml) * ENGAGEMENT_CONSULT_MULT[state.engagement];
+
+  return {inhouse, consulting, total: inhouse + consulting};
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RUN PEOPLE COST (monthly)
+───────────────────────────────────────────────────────────── */
+function runPeopleCostMo() {
+  const g = GEO_MULT[state.geo];
+  const monthly = (sal => sal / 12);
+  const hitlFTE = state.hitl ? 0.5 * Math.ceil(state.numAgents / 5) : 0;
+  return (
+    state.engRun  * monthly(SALARY.engineer) +
+    state.opsRun  * monthly(SALARY.opseng) +
+    state.pmRun   * monthly(SALARY.pm) +
+    state.cmRun   * monthly(SALARY.cm) +
+    hitlFTE       * monthly(SALARY.govfx)
+  ) * g;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   TOKEN COST (monthly)
+───────────────────────────────────────────────────────────── */
+function tokenCostMo() {
+  const tok = TOKENS[state.complexity];
+  const priceRaw = LLM_PRICES[state.llm];
+  const gwMult = GATEWAY_MARKUP[state.gateway];
+  const cacheSave = state.caching ? 0.35 : 0; // 35% input saving
+  const totalInteractions = state.numAgents * state.dailyInteractions * 30;
+
+  // Effective token price with caching
+  const effIn  = priceRaw.in  * (1 - cacheSave) * gwMult;
+  const effOut = priceRaw.out * gwMult;
+
+  // Single model cost
+  const singleCost = totalInteractions * (tok.in * effIn + tok.out * effOut) / 1e6;
+
+  if (!state.routing) return {single: singleCost, routed: singleCost};
+
+  // Smart routing: 70% budget, 20% mid, 10% primary
+  const routedCost = totalInteractions * (
+    0.70 * (tok.in * BUDGET_LLM.in + tok.out * BUDGET_LLM.out) / 1e6 +
+    0.20 * (tok.in * MID_LLM.in    + tok.out * MID_LLM.out)    / 1e6 +
+    0.10 * (tok.in * effIn         + tok.out * effOut)          / 1e6
+  );
+
+  // Guardrail token overhead
+  const guardrailPct = GUARDRAIL_TOKEN_PCT[state.guardrails];
+  const finalCost = (state.routing ? routedCost : singleCost) * (1 + guardrailPct);
+  const finalSingle = singleCost * (1 + guardrailPct);
+
+  return {single: finalSingle, routed: finalCost, active: finalCost};
+}
+
+/* ─────────────────────────────────────────────────────────────
+   INFRASTRUCTURE COST (monthly)
+───────────────────────────────────────────────────────────── */
+function infraCostMo() {
+  const cloud  = CLOUD_BASE_MO[state.cloud] + DEPLOY_EXTRA_MO[state.deployModel];
+  const orch   = ORCH_COST_MO[state.orchFramework];
+  const memory = MEMORY_COST_MO[state.memory];
+  const vdb    = VECTORDB_COST_MO[state.vectordb];
+  const llmops = LLMOPS_COST_MO[state.llmops];
+  const gr     = GUARDRAIL_COST_MO[state.guardrails]; // flat fee guardrails
+  const cicd   = state.cicd ? 80 : 0;
+  const multiCloud = state.cloud === 'multi' ? 0.15 : 0;
+  // KB embedding refresh cost
+  const refreshMult = REFRESH_MULTIPLIER[state.dataRefresh];
+  const embedPrice  = EMBED_PRICE[state.embedding];
+  const kbTokens    = state.kbSize * 1e9 / 4; // ~4 bytes per token
+  const embedMonthly = refreshMult * kbTokens * embedPrice / 1e6 / 12; // amortised monthly
+  return {cloud, orch, memory, vdb, llmops, gr, cicd, embedMonthly, total:
+    (cloud + orch + memory + vdb + llmops + gr + cicd + embedMonthly) * (1 + multiCloud)};
+}
+
+/* ─────────────────────────────────────────────────────────────
+   GOVERNANCE COST (monthly)
+───────────────────────────────────────────────────────────── */
+function govCostMo() {
+  const base = GOV_COST_MO[state.govLevel];
+  const sec  = SECURITY_COST_MO[state.security];
+  const eu   = state.euAiAct ? 1500 : 0;
+  return base + sec + eu;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SELF-HOSTED COMPUTE ADDON
+───────────────────────────────────────────────────────────── */
+function selfHostedAddon() {
+  const selfHosted = ['llama4self','deepseekself'].includes(state.llm);
+  if (!selfHosted) return 0;
+  // Rough GPU cluster cost: ~$0.8/hr per A100; need ~4 A100s for 65B model at scale
+  const gpuHrCost = 0.8 * 4 * 24 * 30;
+  return gpuHrCost; // ~$2,304/mo
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BUSINESS VALUE (annual, Gartner value/cost methodology)
+   Direct cost avoidance from headcount shift + productivity uplift
+   on remaining staff, discounted by productivity leak.
+───────────────────────────────────────────────────────────── */
+function valueAnnual() {
+  if (!state.valueEnabled) return { replaced:0, productivity:0, revenue:0, annual:0 };
+  const loaded    = state.humanCost;
+  const N         = state.workforceSize;
+  const replaced  = N * (state.pctReplaced / 100) * loaded;                 // direct cost avoided
+  const remaining = N * (1 - state.pctReplaced / 100);
+  const productivity = remaining * loaded * (state.prodUplift / 100) * (1 - state.prodLeak / 100);
+  const revenue   = state.incrRevenue;
+  return { replaced, productivity, revenue, annual: replaced + productivity + revenue };
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BUILD vs BUY
+───────────────────────────────────────────────────────────── */
+function conversationsMo() { return state.numAgents * state.dailyInteractions * 30; }
+
+function buyEffCostPerConv() {
+  if (state.buyPricing === 'message') return state.msgPerConv * state.pricePerMsg;
+  if (state.buyPricing === 'outcome') return (state.resolutionRate / 100) * state.pricePerResolution;
+  return state.pricePerConv; // conversation-based
+}
+
+function growthSum() {
+  let g = 0;
+  for (let y = 1; y <= state.horizon; y++) g += Math.pow(GROWTH, y - 1);
+  return g;
+}
+
+function buildVsBuy(data) {
+  const conv = conversationsMo();
+  const G = growthSum();
+
+  // BUILD — TCO is the headline model exactly; people & tokens grow with volume
+  const buildRunMo    = data.monthlyRun;
+  const buildSetup    = data.setupTotal;
+  const buildTokenMo  = data.tokens;                          // volume-variable
+  const buildPeopleMo = state.includePeopleCost ? data.peopleMo : 0;
+  const buildFlatMo   = buildRunMo - buildTokenMo - buildPeopleMo;   // infra+gov+gpu (flat)
+  const buildTCO = data.horizonTotal;
+
+  // BUY — managed platform; platform & people grow, infra/gov flat
+  const platformMo  = buyEffCostPerConv() * conv;
+  const dataKnowMo  = data.infra.vdb + data.infra.embedMonthly;      // grounding still required
+  const buyPeopleMo = state.includePeopleCost ? data.peopleMo * BUY_PEOPLE_FACTOR : 0;
+  const buyFlatMo   = data.infra.cloud * BUY_CLOUD_FACTOR + dataKnowMo + data.govMo;
+  const buyRunMo    = platformMo + buyFlatMo + buyPeopleMo;
+  const buySetup    = buildSetup * BUY_SETUP_FACTOR;
+  const buyTCO = buySetup + platformMo * 12 * G + buyPeopleMo * 12 * G + buyFlatMo * 12 * state.horizon;
+
+  // unit economics (base-year all-in run cost per conversation)
+  const buildCPC = buildRunMo / conv;
+  const buyCPC   = buyRunMo / conv;
+
+  // ROI / AVM per path (value held constant)
+  const buildROI = buildTCO > 0 ? (data.horizonValue - buildTCO) / buildTCO : 0;
+  const buyROI   = buyTCO   > 0 ? (data.horizonValue - buyTCO)   / buyTCO   : 0;
+  const buildAVM = buildTCO > 0 ? data.horizonValue / buildTCO : 0;
+  const buyAVM   = buyTCO   > 0 ? data.horizonValue / buyTCO   : 0;
+
+  // break-even volume (steady-state monthly, setup amortised over horizon)
+  const amortBuild = buildSetup / (state.horizon * 12);
+  const amortBuy   = buySetup   / (state.horizon * 12);
+  const fixedB   = (buildRunMo - buildTokenMo) + amortBuild;   // all non-token monthly
+  const fixedBuy = (buyRunMo - platformMo)     + amortBuy;     // all non-platform monthly
+  const margB    = buildTokenMo / conv;        // build marginal $/conversation
+  const margBuy  = buyEffCostPerConv();        // buy marginal $/conversation
+  const denom    = margB - margBuy;
+  let beConv = null;
+  if (Math.abs(denom) > 1e-9) {
+    const v = (fixedBuy - fixedB) / denom;
+    beConv = v > 0 ? v : null;
+  }
+  const beAgents = beConv != null ? beConv / (state.dailyInteractions * 30) : null;
+  const cheaperNow = buyTCO <= buildTCO ? 'buy' : 'build';
+
+  return { conv, platformMo, buildRunMo, buyRunMo, buildSetup, buySetup, buildTCO, buyTCO,
+           buildCPC, buyCPC, buildROI, buyROI, buildAVM, buyAVM, beConv, beAgents, cheaperNow,
+           margB, margBuy, buildPeopleMo, buildFlatMo, buyPeopleMo, buyFlatMo, G };
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SCENARIO BAND — Low / Base / High (Gartner uncertainty envelope)
+───────────────────────────────────────────────────────────── */
+function valueWith(pr, up, lk) {
+  if (!state.valueEnabled) return 0;
+  const loaded = state.humanCost, N = state.workforceSize;
+  return N * (pr / 100) * loaded
+       + N * (1 - pr / 100) * loaded * (up / 100) * (1 - lk / 100)
+       + state.incrRevenue;
+}
+
+function scenarioBand(data) {
+  const G = growthSum();
+  const dataKnowMo  = data.infra.vdb + data.infra.embedMonthly;
+  const otherInfraMo = data.infra.total - dataKnowMo;
+  const variableH = data.tokens * 12 * G;
+  const dataH     = dataKnowMo * 12 * state.horizon;
+  const fixedH    = (otherInfraMo + data.govMo + data.gpuAddon) * 12 * state.horizon;
+  const peopleH   = data.peopleMo * 12 * G;   // people grows with volume, as in the base model
+  const setupH    = data.setupTotal;
+
+  const tco = (vf, df, pf, ff) =>
+    setupH * pf + variableH * vf + dataH * df + peopleH * pf + fixedH * ff;
+
+  const TCO_base = data.horizonTotal;
+  const TCO_low  = tco(BAND.variable.low,  BAND.data.low,  BAND.people.low,  BAND.fixed.low);
+  const TCO_high = tco(BAND.variable.high, BAND.data.high, BAND.people.high, BAND.fixed.high);
+
+  // value-side ranges (Gartner: headcount 10–30%, uplift 14–35%, leak 30→20%)
+  const val_base = data.horizonValue;
+  const val_low  = valueWith(10, 14, 30) * G;
+  const val_high = valueWith(30, 35, 20) * G;
+
+  const roi = (v, c) => c > 0 ? (v - c) / c : 0;
+  return {
+    TCO_low, TCO_base, TCO_high,
+    val_low, val_base, val_high,
+    roi_low:  roi(val_low,  TCO_high),   // conservative: low value, high cost
+    roi_base: data.roi,
+    roi_high: roi(val_high, TCO_low),    // optimistic:   high value, low cost
+    avm_low:  TCO_high > 0 ? val_low  / TCO_high : 0,
+    avm_base: data.avm,
+    avm_high: TCO_low  > 0 ? val_high / TCO_low  : 0
+  };
+}
+
+/* ─────────────────────────────────────────────────────────────
+   MAIN CALCULATION
+───────────────────────────────────────────────────────────── */
+function calculate() {
+  const tok    = tokenCostMo();
+  const infra  = infraCostMo();
+  const govMo  = govCostMo();
+  const peopleMo = state.includePeopleCost ? runPeopleCostMo() : 0;
+  const gpuAddon = selfHostedAddon();
+  const tokenActive = state.routing ? tok.routed : tok.single;
+
+  const monthlyRun = tokenActive + infra.total + govMo + peopleMo + gpuAddon;
+  const setup = state.includePeopleCost ? setupPeopleCost() : {total: 0, inhouse: 0, consulting: 0};
+
+  const growthFactor = (yr) => {
+    let total = 0;
+    for (let y = 1; y <= yr; y++) {
+      const volGrowth = Math.pow(1.20, y-1);
+      const runY = tokenActive * volGrowth + (infra.total + govMo + peopleMo * volGrowth + gpuAddon) ;
+      total += runY * 12;
+    }
+    return setup.total + total;
+  };
+
+  // ── Value & ROI (value grows with the same volume ramp as cost) ──
+  const val = valueAnnual();
+  const valueHorizon = (yr) => {
+    let t = 0;
+    for (let y = 1; y <= yr; y++) t += val.annual * Math.pow(1.20, y - 1);
+    return t;
+  };
+  const horizonValue = valueHorizon(state.horizon);
+  const horizonCost  = growthFactor(state.horizon);          // == horizonTotal
+  const netBenefit   = horizonValue - horizonCost;
+  const roi          = horizonCost > 0 ? netBenefit / horizonCost : 0;
+  const avm          = horizonCost > 0 ? horizonValue / horizonCost : 0;
+  const monthlyValue = val.annual / 12;
+  const paybackMo    = (state.valueEnabled && (monthlyValue - monthlyRun) > 0)
+                        ? setup.total / (monthlyValue - monthlyRun) : null;
+
+  return {
+    setupTotal: setup.total,
+    setupPeople: setup.inhouse,
+    setupConsulting: setup.consulting,
+    monthlyRun,
+    tokens: tokenActive,
+    tokenSingle: tok.single,
+    tokenRouted: tok.routed,
+    infra,
+    govMo,
+    peopleMo,
+    gpuAddon,
+    year1: setup.total + monthlyRun * 12,
+    year3: growthFactor(3),
+    year5: growthFactor(5),
+    horizonTotal: growthFactor(state.horizon),
+    costPerInteraction: monthlyRun / (state.numAgents * state.dailyInteractions * 30),
+    tok,
+    // ── value / ROI ──
+    valueAnnual: val.annual,
+    valueReplaced: val.replaced,
+    valueProductivity: val.productivity,
+    valueRevenue: val.revenue,
+    monthlyValue,
+    horizonValue,
+    netBenefit,
+    roi,
+    avm,
+    paybackMo
+  };
+}
+
+/* ─────────────────────────────────────────────────────────────
+   FORMAT HELPERS
+───────────────────────────────────────────────────────────── */
+function fmt(n, dec=0) {
+  if (n === undefined || n === null) return '—';
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return '$' + (n/1e3).toFixed(dec > 0 ? dec : 0) + 'K';
+  return '$' + n.toFixed(dec > 0 ? dec : 0);
+}
+function fmtFull(n) {
+  return '$' + Math.round(n).toLocaleString();
+}
+function pct(part, total) {
+  return total > 0 ? (part / total * 100).toFixed(0) + '%' : '—';
+}
+
+/* ─────────────────────────────────────────────────────────────
+   CHART INSTANCES
+───────────────────────────────────────────────────────────── */
+let charts = {};
+const BCG_GREENS = ['#009A44','#006B2F','#4DC87A','#00461F','#C8EDD8','#66BB6A','#1B5E20'];
+const BCG_GRAYS  = ['#404040','#BDBDBD'];
+
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+function renderBreakdownChart(data) {
+  destroyChart('breakdown');
+  const labels = ['Foundation\nModels','Orchestration\n& Memory','Data &\nKnowledge','Platform\n& Ops','Governance\n& Security','People\n(Run)'];
+  const orchMem = (data.infra.orch + data.infra.memory) * 12;
+  const dataKnow = (data.infra.vdb + data.infra.embedMonthly) * 12;
+  const platOps  = (data.infra.cloud + data.infra.llmops + data.infra.gr + data.infra.cicd + data.gpuAddon) * 12;
+  const govSec   = data.govMo * 12;
+  const peopleAnn= data.peopleMo * 12;
+  const values   = [data.tokens * 12, orchMem, dataKnow, platOps, govSec, peopleAnn];
+  const ctx = document.getElementById('chart-breakdown').getContext('2d');
+  charts['breakdown'] = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: values, backgroundColor: BCG_GREENS, borderWidth: 2, borderColor: '#fff' }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '60%',
+      plugins: {
+        legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } },
+        tooltip: { callbacks: { label: (c) => ` ${c.label.replace('\n',' ')}: ${fmt(c.raw)} (${pct(c.raw, values.reduce((a,b)=>a+b,0))})` } }
+      }
+    }
+  });
+}
+
+function renderPhasesChart(data) {
+  destroyChart('phases');
+  const setupVal = data.setupTotal;
+  const runTotal = data.horizonTotal - data.setupTotal;
+  const ctx = document.getElementById('chart-phases').getContext('2d');
+  charts['phases'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Setup\n(one-time)', `Run\n(${state.horizon} years)`],
+      datasets: [
+        { label: 'People', data: [data.setupPeople, data.peopleMo * 12 * state.horizon], backgroundColor: '#009A44' },
+        { label: 'Consulting', data: [data.setupConsulting, 0], backgroundColor: '#006B2F' },
+        { label: 'Technology', data: [0, (data.tokens + data.infra.total + data.gpuAddon) * 12 * state.horizon], backgroundColor: '#4DC87A' },
+        { label: 'Governance', data: [0, data.govMo * 12 * state.horizon], backgroundColor: '#C8EDD8' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, ticks: { callback: v => fmt(v) } } },
+      plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } },
+        tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${fmt(c.raw)}` } } }
+    }
+  });
+}
+
+function renderProjectionChart(data) {
+  destroyChart('projection');
+  const years = [1,2,3,4,5];
+  let cumul = [];
+  let run = 0;
+  const setup = data.setupTotal;
+  for (let y of years) {
+    const vol = Math.pow(1.20, y-1);
+    const annRun = data.tokens * vol * 12 + (data.infra.total + data.peopleMo + data.govMo + data.gpuAddon) * 12;
+    run += annRun;
+    cumul.push(setup + run);
+  }
+  const ctx = document.getElementById('chart-projection').getContext('2d');
+  charts['projection'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Year 1','Year 2','Year 3','Year 4','Year 5'],
+      datasets: [
+        { label: 'Cumulative TCO', data: cumul, fill: true,
+          backgroundColor: 'rgba(0,154,68,0.1)', borderColor: '#009A44', borderWidth: 2,
+          pointBackgroundColor: '#009A44', pointRadius: 4, tension: 0.3 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { grid: { display: false } },
+        y: { ticks: { callback: v => fmt(v) }, grid: { color: 'rgba(0,0,0,.05)' } }
+      },
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: c => ` Cumulative TCO: ${fmtFull(c.raw)}` } } }
+    }
+  });
+}
+
+function renderRoutingChart(data) {
+  destroyChart('routing');
+  const ctx = document.getElementById('chart-routing').getContext('2d');
+  charts['routing'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Single Model', 'Smart Routing'],
+      datasets: [{ data: [data.tokenSingle * 12, data.tokenRouted * 12],
+        backgroundColor: ['#009A44','#4DC87A'], borderRadius: 4, borderWidth: 0 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: { x: { grid: { display: false } }, y: { ticks: { callback: v => fmt(v) } } },
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: c => ` Annual token cost: ${fmtFull(c.raw)}` } } }
+    }
+  });
+}
+
+/* ─────────────────────────────────────────────────────────────
+   UPDATE ARCHITECTURE DIAGRAM
+───────────────────────────────────────────────────────────── */
+function updateArchDiagram(data) {
+  const orchMemMo = data.infra.orch + data.infra.memory;
+  const dataKnowMo = data.infra.vdb + data.infra.embedMonthly;
+  const platOpsMo  = data.infra.cloud + data.infra.llmops + data.infra.gr + data.infra.cicd + data.gpuAddon;
+  const layers = [
+    { num:'1', name:'Foundation Models & AI Gateway',  desc: `${LLM_LABELS[state.llm]} via ${state.gateway} · ${state.caching?'caching on':'no caching'} · ${state.routing?'smart routing':'single model'}`, cost: data.tokens, pct: data.tokens / data.monthlyRun },
+    { num:'2', name:'Orchestration, Memory & Tools',   desc: `${state.orchFramework} · ${state.memory} memory · ${state.numTools} tool integrations · ${state.agentPattern} pattern`,                                    cost: orchMemMo,   pct: orchMemMo / data.monthlyRun },
+    { num:'3', name:'Data, Knowledge & RAG',           desc: `${state.rag} RAG · ${state.vectordb} · ${state.kbSize} GB KB · ${state.dataRefresh} refresh`,                                                             cost: dataKnowMo,  pct: dataKnowMo / data.monthlyRun },
+    { num:'4', name:'Platform, LLMOps & Guardrails',   desc: `${state.cloud} · ${state.deployModel} · ${state.llmops} · ${state.guardrails}`,                                                                           cost: platOpsMo,   pct: platOpsMo / data.monthlyRun },
+    { num:'5', name:'Governance, Security & Compliance', desc:`${state.govLevel} governance · ${state.security} security ${state.euAiAct?'· EU AI Act':''} ${state.hitl?'· HITL':''}`,                                  cost: data.govMo,  pct: data.govMo / data.monthlyRun },
+    { num:'👤', name:'People (Run Phase)',              desc: `${(state.engRun+state.opsRun+state.pmRun+state.cmRun).toFixed(2)} FTE total · ${state.geo} rates ${state.hitl?'+ HITL':''}`,                              cost: data.peopleMo, pct: data.peopleMo / data.monthlyRun }
+  ];
+  const maxCost = Math.max(...layers.map(l => l.cost));
+  document.getElementById('arch-layers-display').innerHTML = layers.map(l => `
+    <div class="arch-layer">
+      <div>
+        <div class="arch-layer-name"><span style="display:inline-block;width:22px;height:22px;border-radius:50%;background:var(--g500);color:#fff;font-size:10px;font-weight:800;text-align:center;line-height:22px;margin-right:6px">${l.num}</span>${l.name}</div>
+        <div class="arch-layer-desc" style="margin-left:28px">${l.desc}</div>
+        <div style="margin-left:28px;margin-top:4px" class="arch-bar-wrap"><div class="arch-bar" style="width:${Math.max(2,Math.round((l.cost/maxCost)*100))}%"></div></div>
+      </div>
+      <div></div>
+      <div class="arch-layer-cost">${fmt(l.cost)}<div style="font-size:9px;color:var(--n500);text-align:right">/mo · ${(l.pct*100).toFixed(0)}%</div></div>
+    </div>`).join('');
+}
+
+/* ─────────────────────────────────────────────────────────────
+   UPDATE BREAKDOWN TABLE
+───────────────────────────────────────────────────────────── */
+function updateBreakdownTable(data) {
+  const annRun = data.monthlyRun * 12;
+  const rows = [
+    // Tokens
+    { label: `LLM API tokens (${LLM_LABELS[state.llm]}${state.routing?' + routing':''})`, mo: data.tokens, note: state.routing ? '70/20/10 routing blend' : state.caching ? 'prompt caching applied' : '' },
+    ...(data.gpuAddon > 0 ? [{ label: 'GPU compute (self-hosted LLM)', mo: data.gpuAddon, note: 'A100 cluster estimate' }] : []),
+    // Infra
+    { label: 'Cloud infrastructure / API management', mo: data.infra.cloud, note: `${state.cloud} · ${state.deployModel}` },
+    { label: `Orchestration (${state.orchFramework})`, mo: data.infra.orch, note: data.infra.orch === 0 ? 'open-source' : 'managed license' },
+    { label: `Memory (${state.memory})`, mo: data.infra.memory, note: '' },
+    { label: `Vector DB (${state.vectordb})`, mo: data.infra.vdb, note: `${state.kbSize} GB KB` },
+    { label: 'Embeddings & data refresh', mo: data.infra.embedMonthly, note: state.dataRefresh },
+    { label: `LLMOps (${state.llmops})`, mo: data.infra.llmops, note: '' },
+    { label: `Guardrails (${state.guardrails})`, mo: data.infra.gr, note: GUARDRAIL_TOKEN_PCT[state.guardrails] > 0 ? 'additional token overhead above' : '' },
+    { label: 'CI/CD & agent versioning', mo: state.cicd ? 80 : 0, note: '' },
+    // Governance
+    { label: `Governance & compliance (${state.govLevel})`, mo: GOV_COST_MO[state.govLevel], note: '' },
+    { label: `Security (${state.security})`, mo: SECURITY_COST_MO[state.security], note: '' },
+    ...(state.euAiAct ? [{ label: 'EU AI Act compliance', mo: 1500, note: '' }] : []),
+    // People
+    { label: `People — engineers (${state.engRun} FTE)`, mo: state.engRun * SALARY.engineer / 12 * GEO_MULT[state.geo], note: `${state.geo} rates, loaded` },
+    { label: `People — agent ops (${state.opsRun} FTE)`, mo: state.opsRun * SALARY.opseng / 12 * GEO_MULT[state.geo], note: '' },
+    { label: `People — PM/gov (${state.pmRun} FTE)`, mo: state.pmRun * SALARY.pm / 12 * GEO_MULT[state.geo], note: '' },
+    { label: `People — change mgmt (${state.cmRun} FTE)`, mo: state.cmRun * SALARY.cm / 12 * GEO_MULT[state.geo], note: '' },
+    ...(state.hitl ? [{ label: `HITL supervisors (${(0.5*Math.ceil(state.numAgents/5)).toFixed(1)} FTE)`, mo: 0.5*Math.ceil(state.numAgents/5)*SALARY.govfx/12*GEO_MULT[state.geo], note: '0.5 FTE per 5 agents' }] : [])
+  ].filter(r => r.mo > 0);
+
+  document.getElementById('breakdown-table').innerHTML =
+    rows.map(r => `<tr>
+      <td class="td-label">${r.label}${r.note ? `<div class="td-note">${r.note}</div>` : ''}</td>
+      <td class="td-val">${fmt(r.mo, 0)}</td>
+      <td class="td-val">${fmt(r.mo * 12)}</td>
+      <td class="td-pct">${pct(r.mo * 12, annRun)}</td>
+    </tr>`).join('') +
+    `<tr class="total-row">
+      <td>Total Annual Run Cost</td>
+      <td class="td-val">${fmt(data.monthlyRun)}</td>
+      <td class="td-val">${fmt(annRun)}</td>
+      <td class="td-pct">100%</td>
+    </tr>`;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SENSITIVITY ANALYSIS
+───────────────────────────────────────────────────────────── */
+function updateSensitivity(baseline) {
+  const base = baseline.year1;
+  function delta(overrides, label) {
+    const orig = {};
+    Object.assign(orig, ...Object.keys(overrides).map(k => ({ [k]: state[k] })));
+    Object.assign(state, overrides);
+    const alt = calculate().year1;
+    Object.assign(state, orig);
+    return { label, delta: alt - base, pct: (alt - base) / base };
+  }
+  const drivers = [
+    delta({ complexity: 'complex'  }, '+1 complexity tier'),
+    delta({ numAgents: state.numAgents * 2 }, '2× number of agents'),
+    delta({ dailyInteractions: state.dailyInteractions * 2 }, '2× daily interactions'),
+    delta({ llm: 'opus48' }, 'Upgrade to Claude Opus 4.8'),
+    delta({ caching: !state.caching }, state.caching ? 'Disable prompt caching' : 'Enable prompt caching'),
+    delta({ routing: !state.routing }, state.routing ? 'Disable smart routing' : 'Enable smart routing'),
+    delta({ deployModel: 'vpc' }, 'Upgrade to VPC deployment'),
+    delta({ govLevel: 'regulated' }, 'Upgrade to regulated governance'),
+    delta({ geo: 'offshore' }, 'Shift team to offshore rates')
+  ].sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta)).slice(0, 8);
+
+  const maxAbs = Math.max(...drivers.map(d => Math.abs(d.pct)));
+  document.getElementById('sensitivity-display').innerHTML = drivers.map(d => {
+    const barW = Math.round(Math.abs(d.pct) / maxAbs * 45);
+    const isPos = d.delta >= 0;
+    const color = isPos ? '#EF4444' : '#009A44';
+    const sign  = isPos ? '+' : '';
+    return `<div class="sens-row">
+      <div class="sens-label">${d.label}</div>
+      <div class="sens-bar-wrap">
+        ${isPos ? `<div class="sens-bar-pos" style="width:${barW}%;background:${color}"></div>` :
+                  `<div class="sens-bar-neg" style="width:${barW}%;background:${color}"></div>`}
+        <div style="position:absolute;left:50%;top:-1px;width:1px;height:10px;background:var(--n300)"></div>
+      </div>
+      <div class="sens-val" style="color:${color}">${sign}${(d.pct*100).toFixed(0)}%</div>
+    </div>`;
+  }).join('');
+}
+
+/* ─────────────────────────────────────────────────────────────
+   UPDATE UNIT ECONOMICS
+───────────────────────────────────────────────────────────── */
+function updateUnitEconomics(data) {
+  const cpi = data.costPerInteraction;
+  const totalDailyInteractions = state.numAgents * state.dailyInteractions;
+  document.getElementById('unit-economics').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="text-align:center;padding:12px;background:var(--g50);border-radius:var(--radius)">
+        <div style="font-size:20px;font-weight:800;color:var(--g700)">$${cpi.toFixed(3)}</div>
+        <div style="font-size:10px;color:var(--n500)">per interaction</div>
+      </div>
+      <div style="text-align:center;padding:12px;background:var(--n50);border-radius:var(--radius)">
+        <div style="font-size:20px;font-weight:800;color:var(--n700)">${(totalDailyInteractions*30).toLocaleString()}</div>
+        <div style="font-size:10px;color:var(--n500)">monthly interactions</div>
+      </div>
+      <div style="text-align:center;padding:12px;background:var(--n50);border-radius:var(--radius)">
+        <div style="font-size:16px;font-weight:800;color:var(--n700)">${fmt(data.tokens/totalDailyInteractions/30*100*100/100)}</div>
+        <div style="font-size:10px;color:var(--n500)">token cost / interaction</div>
+      </div>
+      <div style="text-align:center;padding:12px;background:var(--g50);border-radius:var(--radius)">
+        <div style="font-size:16px;font-weight:800;color:var(--g700)">${fmt(data.monthlyRun / state.numAgents)}</div>
+        <div style="font-size:10px;color:var(--n500)">run cost / agent / mo</div>
+      </div>
+    </div>`;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   UPDATE VALUE & ROI METRICS
+───────────────────────────────────────────────────────────── */
+function updateValueMetrics(data) {
+  const card = document.getElementById('value-card');
+  card.style.opacity = state.valueEnabled ? '1' : '0.4';
+
+  document.getElementById('kpi-value-label').textContent = `${state.horizon}-Yr Value`;
+
+  const set = (id, v) => document.getElementById(id).textContent = v;
+
+  if (!state.valueEnabled) {
+    ['kpi-value-3yr','kpi-netbenefit','kpi-roi','kpi-avm','kpi-payback'].forEach(i => set(i, '—'));
+    document.getElementById('prev-value').textContent = 'Excluded';
+    document.getElementById('value-preview').innerHTML = 'Value &amp; ROI excluded — toggle on to size the benefit case.';
+    return;
+  }
+
+  set('kpi-value-3yr', fmt(data.horizonValue));
+  set('kpi-netbenefit', (data.netBenefit < 0 ? '–' : '') + fmt(Math.abs(data.netBenefit)));
+  set('kpi-roi', (data.roi * 100).toFixed(0) + '%');
+  set('kpi-avm', data.avm.toFixed(2) + '×');
+  set('kpi-payback', data.paybackMo == null ? '—'
+        : (data.paybackMo > state.horizon * 12 ? '>' + state.horizon + 'y'
+        : data.paybackMo.toFixed(0) + ' mo'));
+
+  // colour ROI / net benefit by sign
+  const roiEl = document.getElementById('kpi-roi');
+  roiEl.style.color = data.roi < 0 ? '#fff' : '';
+  const netEl = document.getElementById('kpi-netbenefit');
+  netEl.style.color = data.netBenefit < 0 ? '#EF4444' : 'var(--g700)';
+
+  document.getElementById('prev-value').textContent = (data.roi * 100).toFixed(0) + '% ROI';
+  document.getElementById('value-preview').innerHTML =
+    `<strong>${fmt(data.valueAnnual)}/yr</strong> value · ` +
+    `${fmt(data.valueReplaced)} cost avoided + ${fmt(data.valueProductivity)} productivity` +
+    (data.valueRevenue > 0 ? ` + ${fmt(data.valueRevenue)} revenue` : '') + `<br>` +
+    `AVM ${data.avm.toFixed(2)}× · ${data.roi >= 0 ? '+' : ''}${(data.roi * 100).toFixed(0)}% ROI over ${state.horizon} yrs`;
+}
+
+function renderValueChart(data) {
+  destroyChart('value');
+  const labels = [], cumCostArr = [], cumValArr = [];
+  let cumCost = 0, cumVal = 0;
+  for (let y = 1; y <= state.horizon; y++) {
+    const vol = Math.pow(1.20, y - 1);
+    const annRun = data.tokens * vol * 12 + (data.infra.total + data.peopleMo + data.govMo + data.gpuAddon) * 12;
+    cumCost += (y === 1 ? data.setupTotal : 0) + annRun;
+    cumVal  += state.valueEnabled ? data.valueAnnual * vol : 0;
+    labels.push('Year ' + y);
+    cumCostArr.push(cumCost);
+    cumValArr.push(cumVal);
+  }
+  const ctx = document.getElementById('chart-value').getContext('2d');
+  charts['value'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Cumulative Cost (TCO)', data: cumCostArr, borderColor: '#404040',
+          backgroundColor: 'rgba(64,64,64,0.07)', borderWidth: 2, fill: true, tension: 0.3,
+          pointRadius: 3, pointBackgroundColor: '#404040' },
+        { label: 'Cumulative Value', data: cumValArr, borderColor: '#009A44',
+          backgroundColor: 'rgba(0,154,68,0.10)', borderWidth: 2, fill: true, tension: 0.3,
+          pointRadius: 3, pointBackgroundColor: '#009A44' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: { x: { grid: { display: false } }, y: { ticks: { callback: v => fmt(v) }, grid: { color: 'rgba(0,0,0,.05)' } } },
+      plugins: {
+        legend: { labels: { boxWidth: 10, font: { size: 10 } } },
+        tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${fmtFull(c.raw)}` } }
+      }
+    }
+  });
+}
+
+/* ─────────────────────────────────────────────────────────────
+   UPDATE BUILD vs BUY CARD
+───────────────────────────────────────────────────────────── */
+function updateBvB(data) {
+  const b = buildVsBuy(data);
+  const favBuild = b.cheaperNow === 'build';
+
+  const rec = document.getElementById('bvb-rec');
+  rec.style.background = favBuild ? 'var(--g50)' : '#FFFBEB';
+  rec.style.borderLeft = '3px solid ' + (favBuild ? 'var(--g500)' : '#F59E0B');
+  rec.style.color = favBuild ? 'var(--g700)' : '#92400E';
+  const beTxt = b.beConv == null
+    ? 'no clean break-even at these assumptions'
+    : `break-even ≈ ${Math.round(b.beConv).toLocaleString()} conversations/mo (~${Math.round(b.beAgents)} agents at your current daily volume)`;
+  rec.innerHTML = `<strong>${favBuild ? 'Build is cheaper at your current volume' : 'Buy is cheaper at your current volume'}</strong> — ${beTxt}. Below the break-even the managed platform wins; above it, the build amortises its fixed cost and pulls ahead.`;
+  document.getElementById('prev-bvb').textContent = favBuild ? 'Build favoured' : 'Buy favoured';
+
+  const pricingLabel = {
+    message: `message-based · $${state.pricePerMsg}/msg × ${state.msgPerConv} msgs`,
+    conversation: `conversation-based · $${state.pricePerConv}/conv`,
+    outcome: `outcome-based · ${state.resolutionRate}% resolved × $${state.pricePerResolution}`
+  }[state.buyPricing];
+
+  const buildWins = (a, c) => a <= c;   // lower is better for cost
+  const rows = [
+    ['Initial / setup',            fmt(b.buildSetup),                fmt(b.buySetup),                buildWins(b.buildSetup, b.buySetup)],
+    ['Monthly run',                fmt(b.buildRunMo),                fmt(b.buyRunMo),                buildWins(b.buildRunMo, b.buyRunMo)],
+    [`${state.horizon}-yr TCO`,    fmt(b.buildTCO),                  fmt(b.buyTCO),                  buildWins(b.buildTCO, b.buyTCO)],
+    ['All-in cost / conversation', '$' + b.buildCPC.toFixed(3),      '$' + b.buyCPC.toFixed(3),      buildWins(b.buildCPC, b.buyCPC)],
+    ['ROI',                        (b.buildROI*100).toFixed(0)+'%',  (b.buyROI*100).toFixed(0)+'%',  b.buildROI >= b.buyROI],
+    ['Agent Value Multiple',       b.buildAVM.toFixed(2)+'×',        b.buyAVM.toFixed(2)+'×',        b.buildAVM >= b.buyAVM]
+  ];
+  const cell = (txt, win) => `<div style="padding:7px 10px;font-size:12px;font-weight:700;text-align:right;${win?'color:var(--g700)':'color:var(--n700)'}">${txt}${win?' <span style="font-size:9px">✓</span>':''}</div>`;
+  document.getElementById('bvb-table').innerHTML = `
+    <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr;align-items:center;border-bottom:2px solid var(--n100)">
+      <div style="padding:7px 10px;font-size:10px;font-weight:700;color:var(--n500);text-transform:uppercase;letter-spacing:.3px">Metric</div>
+      <div style="padding:7px 10px;font-size:11px;font-weight:800;color:var(--n900);text-align:right">Build</div>
+      <div style="padding:7px 10px;font-size:11px;font-weight:800;color:var(--n900);text-align:right">Buy</div>
+    </div>
+    ${rows.map(r => `<div style="display:grid;grid-template-columns:1.5fr 1fr 1fr;align-items:center;border-bottom:1px solid var(--n50)">
+      <div style="padding:7px 10px;font-size:11px;color:var(--n700);font-weight:500">${r[0]}</div>
+      ${cell(r[1], r[3])}${cell(r[2], !r[3])}
+    </div>`).join('')}
+    <div style="font-size:10px;color:var(--n500);padding:8px 10px 0">Buy pricing: ${pricingLabel}. Buy absorbs model, orchestration, memory, LLMOps &amp; guardrails; data, governance, security and value held constant across both.</div>`;
+}
+
+function renderBvBChart(data) {
+  destroyChart('bvb');
+  const b = buildVsBuy(data);
+  const maxV = Math.max(b.conv * 2, (b.beConv || 0) * 1.3, b.conv * 1.1);
+  const steps = 8, labels = [], buildArr = [], buyArr = [];
+  for (let i = 0; i <= steps; i++) {
+    const V = maxV * i / steps;
+    labels.push((V / 1000).toFixed(0) + 'K');
+    buildArr.push(b.buildSetup + b.margB  * V * 12 * b.G + b.buildPeopleMo * 12 * b.G + b.buildFlatMo * 12 * state.horizon);
+    buyArr.push(  b.buySetup   + b.margBuy * V * 12 * b.G + b.buyPeopleMo   * 12 * b.G + b.buyFlatMo   * 12 * state.horizon);
+  }
+  const ctx = document.getElementById('chart-bvb').getContext('2d');
+  charts['bvb'] = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [
+      { label: 'Build TCO', data: buildArr, borderColor: '#009A44', backgroundColor: 'transparent', borderWidth: 2, tension: 0.1, pointRadius: 0 },
+      { label: 'Buy TCO',   data: buyArr,   borderColor: '#F59E0B', backgroundColor: 'transparent', borderWidth: 2, tension: 0.1, pointRadius: 0 }
+    ]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: {
+        x: { grid: { display: false }, title: { display: true, text: 'Monthly conversation volume', font: { size: 10 } } },
+        y: { ticks: { callback: v => fmt(v) }, grid: { color: 'rgba(0,0,0,.05)' } }
+      },
+      plugins: {
+        legend: { labels: { boxWidth: 10, font: { size: 10 } } },
+        tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${fmtFull(c.raw)}` } }
+      }
+    }
+  });
+}
+
+/* ─────────────────────────────────────────────────────────────
+   UPDATE SCENARIO RANGE CARD
+───────────────────────────────────────────────────────────── */
+function updateScenario(data) {
+  const s = scenarioBand(data);
+  const pctFmt = v => (v * 100).toFixed(0) + '%';
+  const avmFmt = v => v.toFixed(2) + '×';
+
+  function rangeRow(label, low, base, high, fmtFn, sub) {
+    const lo = Math.min(low, high), hi = Math.max(low, high);
+    const posBase = hi > lo ? Math.max(0, Math.min(100, ((base - lo) / (hi - lo)) * 100)) : 50;
+    return `<div style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px">
+        <span style="font-weight:700;color:var(--n900)">${label}</span>
+        <span style="color:var(--n500)">Base <strong style="color:var(--g700)">${fmtFn(base)}</strong></span>
+      </div>
+      <div style="position:relative;height:8px;background:linear-gradient(90deg,var(--g100),var(--g300));border-radius:4px">
+        <div style="position:absolute;left:${posBase}%;top:-4px;width:2px;height:16px;background:var(--g900);transform:translateX(-1px);border-radius:1px"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--n500);margin-top:4px">
+        <span>Low &nbsp;${fmtFn(low)}</span><span>${sub || ''}</span><span>High &nbsp;${fmtFn(high)}</span>
+      </div>
+    </div>`;
+  }
+
+  let html = rangeRow(`${state.horizon}-Year TCO`, s.TCO_low, s.TCO_base, s.TCO_high, fmt, 'cost — lower is better');
+  if (state.valueEnabled) {
+    html += rangeRow(`${state.horizon}-Year Value`, s.val_low, s.val_base, s.val_high, fmt);
+    html += rangeRow('ROI', s.roi_low, s.roi_base, s.roi_high, pctFmt, 'conservative ↔ optimistic');
+    html += rangeRow('Agent Value Multiple', s.avm_low, s.avm_base, s.avm_high, avmFmt);
+  }
+  html += `<div style="font-size:10px;color:var(--n500);line-height:1.6;margin-top:4px">
+    Envelope drivers (Gartner-weighted): consumption ±${Math.round((1-BAND.variable.low)*100)}/+${Math.round((BAND.variable.high-1)*100)}%, data management ${BAND.data.low}×–${BAND.data.high}× (largest swing), people ±15%, fixed ±10%.
+    Value range uses headcount 10–30%, uplift 14–35%, leak 30→20%. Low ROI pairs low value with high cost; high ROI pairs high value with low cost.</div>`;
+  document.getElementById('scenario-body').innerHTML = html;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   LAYER COST PREVIEWS (left panel)
+───────────────────────────────────────────────────────────── */
+function updatePreviews(data) {
+  const orchMem = data.infra.orch + data.infra.memory;
+  const dataKnow = data.infra.vdb + data.infra.embedMonthly;
+  const platOps  = data.infra.cloud + data.infra.llmops + data.infra.gr + data.infra.cicd + data.gpuAddon;
+  document.getElementById('prev-l1').textContent    = fmt(data.tokens) + '/mo';
+  document.getElementById('prev-l2').textContent    = fmt(orchMem) + '/mo';
+  document.getElementById('prev-l3').textContent    = fmt(dataKnow) + '/mo';
+  document.getElementById('prev-l4').textContent    = fmt(platOps) + '/mo';
+  document.getElementById('prev-l5').textContent    = fmt(data.govMo) + '/mo';
+  document.getElementById('prev-people').textContent= state.includePeopleCost ? fmt(data.peopleMo) + '/mo' : 'Excluded';
+
+  // Token preview info box
+  const tok = TOKENS[state.complexity];
+  const totalInteractions = state.numAgents * state.dailyInteractions * 30;
+  document.getElementById('token-preview').innerHTML =
+    `<strong>${LLM_LABELS[state.llm]}</strong> · ${((tok.in+tok.out)/1000).toFixed(0)}K tokens/task · ` +
+    `${(totalInteractions/1000).toFixed(1)}K tasks/mo<br>` +
+    (state.routing ? `Smart routing saves ~${fmt((data.tokenSingle - data.tokenRouted)*12)}/yr vs single model` : '') +
+    (state.caching ? (state.routing ? ' · ' : '') + 'Caching saves ~35% on inputs' : '');
+
+  // People preview warn box
+  const totalRunFTE = state.engRun + state.opsRun + state.pmRun + state.cmRun;
+  document.getElementById('people-preview').innerHTML =
+    `<strong>Run team: ${totalRunFTE.toFixed(2)} FTE</strong> · ${fmt(data.peopleMo)}/mo loaded cost<br>` +
+    `Setup: ${state.setupWeeks}wks · ${fmt(data.setupTotal)} one-time (incl. consulting)`;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   MAIN RECALC
+───────────────────────────────────────────────────────────── */
+function recalc() {
+  syncStateFromDOM();
+  const data = calculate();
+
+  // KPI cards
+  document.getElementById('kpi-setup').textContent   = fmt(data.setupTotal);
+  document.getElementById('kpi-monthly').textContent = fmt(data.monthlyRun) + '/mo';
+  document.getElementById('kpi-y1').textContent      = fmt(data.year1);
+  const horizonMap = {1: data.year1, 3: data.year3, 5: data.year5};
+  document.getElementById('kpi-horizon').textContent = fmt(horizonMap[state.horizon]);
+  document.getElementById('kpi-horizon-label').textContent = `${state.horizon}-Year Total (TCO)`;
+  document.getElementById('kpi-horizon-sub').textContent   = `Setup + ${state.horizon} yrs run · ~20%/yr volume growth`;
+
+  const peopleBody = document.getElementById('body-people');
+  peopleBody.style.opacity = state.includePeopleCost ? '1' : '0.35';
+  peopleBody.style.pointerEvents = state.includePeopleCost ? '' : 'none';
+
+  const valueBody = document.getElementById('body-value');
+  valueBody.style.opacity = state.valueEnabled ? '1' : '0.35';
+  valueBody.style.pointerEvents = state.valueEnabled ? '' : 'none';
+
+  updatePreviews(data);
+  renderBreakdownChart(data);
+  renderPhasesChart(data);
+  renderProjectionChart(data);
+  renderRoutingChart(data);
+  updateArchDiagram(data);
+  updateBreakdownTable(data);
+  updateSensitivity(data);
+  updateUnitEconomics(data);
+  updateValueMetrics(data);
+  renderValueChart(data);
+  updateBvB(data);
+  renderBvBChart(data);
+  updateScenario(data);
+  updateDecisionDashboard(data);
+  buildExecutiveSummary(data);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   DOM → STATE SYNC
+───────────────────────────────────────────────────────────── */
+function syncStateFromDOM() {
+  state.numAgents         = +document.getElementById('num-agents').value;
+  state.dailyInteractions = +document.getElementById('daily-interactions').value;
+  state.numTools          = +document.getElementById('num-tools').value;
+  state.kbSize            = +document.getElementById('kb-size').value;
+  state.setupWeeks        = +document.getElementById('setup-weeks').value;
+  state.consultRate       = +document.getElementById('consult-rate').value;
+  state.engRun            = +document.getElementById('eng-run').value;
+  state.opsRun            = +document.getElementById('ops-run').value;
+  state.pmRun             = +document.getElementById('pm-run').value;
+  state.cmRun             = +document.getElementById('cm-run').value;
+  state.llm               = document.getElementById('llm').value;
+  state.gateway           = document.getElementById('gateway').value;
+  state.routing           = document.getElementById('routing').checked;
+  state.caching           = document.getElementById('caching').checked;
+  state.orchFramework     = document.getElementById('orch-framework').value;
+  state.memory            = document.getElementById('memory').value;
+  state.rag               = getActivePill('rag');
+  state.vectordb          = document.getElementById('vectordb').value;
+  state.embedding         = document.getElementById('embedding').value;
+  state.dataRefresh       = document.getElementById('data-refresh').value;
+  state.cloud             = document.getElementById('cloud').value;
+  state.deployModel       = document.getElementById('deploy-model').value;
+  state.llmops            = document.getElementById('llmops').value;
+  state.guardrails        = document.getElementById('guardrails').value;
+  state.cicd              = document.getElementById('cicd').checked;
+  state.govLevel          = document.getElementById('gov-level').value;
+  state.security          = document.getElementById('security').value;
+  state.euAiAct           = document.getElementById('eu-ai-act').checked;
+  state.hitl              = document.getElementById('hitl').checked;
+  state.engagement        = document.getElementById('engagement').value;
+  state.includePeopleCost = document.getElementById('people-cost-toggle').checked;
+  state.valueEnabled      = document.getElementById('value-toggle').checked;
+  state.workforceSize     = +document.getElementById('workforce-size').value;
+  state.humanCost         = +document.getElementById('human-cost').value;
+  state.pctReplaced       = +document.getElementById('pct-replaced').value;
+  state.prodUplift        = +document.getElementById('prod-uplift').value;
+  state.prodLeak          = +document.getElementById('prod-leak').value;
+  state.incrRevenue       = +document.getElementById('incr-revenue').value;
+  state.buyPricing        = getActivePill('buy-pricing');
+  state.msgPerConv        = +document.getElementById('msg-per-conv').value;
+  state.pricePerMsg       = +document.getElementById('price-per-msg').value;
+  state.pricePerConv      = +document.getElementById('price-per-conv').value;
+  state.resolutionRate    = +document.getElementById('resolution-rate').value;
+  state.pricePerResolution = +document.getElementById('price-per-resolution').value;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   UI HELPERS
+───────────────────────────────────────────────────────────── */
+function updateLabel(id, val) { document.getElementById(id).textContent = parseFloat(val) % 1 === 0 ? parseInt(val) : parseFloat(val).toFixed(2); }
+
+function getActivePill(group) {
+  const el = document.querySelector(`#${group}-pills .pill.active`);
+  return el ? el.dataset.val : null;
+}
+
+function setPill(group, el) {
+  document.querySelectorAll(`#${group}-pills .pill`).forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  const map = { stage: 'stage', complexity: 'complexity', geo: 'geo', horizon: 'horizon', 'agent-pattern': 'agentPattern', rag: 'rag', 'buy-pricing': 'buyPricing' };
+  if (map[group]) state[map[group]] = el.dataset.val;
+  recalc();
+}
+
+function toggleSection(id) {
+  const body = document.getElementById('body-' + id);
+  const chev = document.getElementById('chev-' + id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+}
+
+function resetDefaults() {
+  location.reload();
+}
+
+function exportCSV() {
+  syncStateFromDOM();
+  const data = calculate();
+  const b = buildVsBuy(data);
+  const s = scenarioBand(data);
+  const rows = [
+    ['BCG Agentic AI Cost Estimator — Export', `May 2026`],
+    [''],
+    ['Configuration'],
+    ['Stage', state.stage],
+    ['Agents', state.numAgents],
+    ['Daily interactions/agent', state.dailyInteractions],
+    ['Complexity', state.complexity],
+    ['LLM', LLM_LABELS[state.llm]],
+    ['Geography', state.geo],
+    [''],
+    ['Cost Summary'],
+    ['One-time setup', Math.round(data.setupTotal)],
+    ['Monthly run', Math.round(data.monthlyRun)],
+    ['Year 1 total', Math.round(data.year1)],
+    ['Year 3 total', Math.round(data.year3)],
+    ['Year 5 total', Math.round(data.year5)],
+    ['Cost per interaction ($)', data.costPerInteraction.toFixed(4)],
+    [''],
+    ['Value & ROI'],
+    ['Value enabled', state.valueEnabled],
+    ['Workforce in scope (FTE)', state.workforceSize],
+    ['Fully-loaded cost/FTE', state.humanCost],
+    ['Headcount shifted %', state.pctReplaced],
+    ['Productivity uplift %', state.prodUplift],
+    ['Productivity leak %', state.prodLeak],
+    ['Annual value', Math.round(data.valueAnnual)],
+    [`${state.horizon}-yr value`, Math.round(data.horizonValue)],
+    ['Net benefit', Math.round(data.netBenefit)],
+    ['ROI %', (data.roi*100).toFixed(0)],
+    ['AVM (value/cost)', data.avm.toFixed(2)],
+    ['Payback (months)', data.paybackMo == null ? 'n/a' : data.paybackMo.toFixed(0)],
+    [''],
+    ['Build vs Buy'],
+    ['Buy pricing model', state.buyPricing],
+    ['Build setup', Math.round(b.buildSetup)],
+    ['Buy setup', Math.round(b.buySetup)],
+    ['Build monthly run', Math.round(b.buildRunMo)],
+    ['Buy monthly run', Math.round(b.buyRunMo)],
+    [`Build ${state.horizon}-yr TCO`, Math.round(b.buildTCO)],
+    [`Buy ${state.horizon}-yr TCO`, Math.round(b.buyTCO)],
+    ['Build cost/conversation', b.buildCPC.toFixed(4)],
+    ['Buy cost/conversation', b.buyCPC.toFixed(4)],
+    ['Break-even (conversations/mo)', b.beConv == null ? 'n/a' : Math.round(b.beConv)],
+    ['Break-even (agent equivalents)', b.beAgents == null ? 'n/a' : Math.round(b.beAgents)],
+    ['Cheaper at current volume', b.cheaperNow],
+    [''],
+    ['Scenario Range (Low / Base / High)'],
+    [`${state.horizon}-yr TCO low`, Math.round(s.TCO_low)],
+    [`${state.horizon}-yr TCO base`, Math.round(s.TCO_base)],
+    [`${state.horizon}-yr TCO high`, Math.round(s.TCO_high)],
+    ['ROI low %', (s.roi_low*100).toFixed(0)],
+    ['ROI base %', (s.roi_base*100).toFixed(0)],
+    ['ROI high %', (s.roi_high*100).toFixed(0)],
+    [''],
+    ['Monthly Cost Breakdown'],
+    ['LLM tokens', Math.round(data.tokens)],
+    ['Cloud infra', Math.round(data.infra.cloud)],
+    ['Orchestration', Math.round(data.infra.orch)],
+    ['Memory', Math.round(data.infra.memory)],
+    ['Vector DB', Math.round(data.infra.vdb)],
+    ['Embeddings', Math.round(data.infra.embedMonthly)],
+    ['LLMOps', Math.round(data.infra.llmops)],
+    ['Guardrails', Math.round(data.infra.gr)],
+    ['Governance', Math.round(data.govMo)],
+    ['People (run)', Math.round(data.peopleMo)],
+  ];
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `BCG_Agentic_Cost_Estimator_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+/* ─────────────────────────────────────────────────────────────
+   GUIDE CONTENT
+───────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────────
+   SCENARIO COMPARISON
+───────────────────────────────────────────────────────────── */
+let scenarios = [];
+let scenarioSeq = 0;
+
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function optionLetter(n){ let s=''; n=n+1; while(n>0){ n--; s=String.fromCharCode(65+(n%26))+s; n=Math.floor(n/26);} return s; }
+
+function switchTab(t){
+  document.getElementById('view-estimator').style.display = t === 'estimator' ? '' : 'none';
+  document.getElementById('view-compare').style.display   = t === 'compare'   ? '' : 'none';
+  document.getElementById('tab-estimator').classList.toggle('active', t === 'estimator');
+  document.getElementById('tab-compare').classList.toggle('active', t === 'compare');
+  if (t === 'compare') renderCompare();
+}
+
+function updateTabCount(){
+  const el = document.getElementById('tab-count');
+  if (el) el.textContent = scenarios.length ? scenarios.length : '';
+}
+
+function saveScenario(){
+  syncStateFromDOM();
+  const data = calculate();
+  const b = buildVsBuy(data);
+  const s = scenarioBand(data);
+  scenarios.push({
+    id: Date.now() + '-' + Math.random().toString(36).slice(2,6),
+    name: 'Option ' + optionLetter(scenarioSeq),
+    state: JSON.parse(JSON.stringify(state)),
+    m: {
+      stage: state.stage, agents: state.numAgents, model: LLM_LABELS[state.llm],
+      complexity: state.complexity, geo: state.geo, horizon: state.horizon,
+      approach: b.cheaperNow === 'build' ? 'Build' : 'Buy',
+      setup: data.setupTotal, run: data.monthlyRun, tco: data.horizonTotal,
+      cpi: data.costPerInteraction,
+      value: data.horizonValue, roi: data.roi, avm: data.avm, payback: data.paybackMo,
+      buildTCO: b.buildTCO, buyTCO: b.buyTCO, beAgents: b.beAgents,
+      tco_low: s.TCO_low, tco_high: s.TCO_high, roi_low: s.roi_low, roi_high: s.roi_high
+    }
+  });
+  scenarioSeq++;
+  updateTabCount();
+  const btn = document.getElementById('btn-save-scenario');
+  if (btn) { const o = btn.textContent; btn.textContent = '✓ Saved'; btn.disabled = true;
+    setTimeout(() => { btn.textContent = o; btn.disabled = false; }, 1100); }
+  if (document.getElementById('view-compare').style.display !== 'none') renderCompare();
+}
+
+function deleteScenario(id){ scenarios = scenarios.filter(x => x.id !== id); updateTabCount(); renderCompare(); }
+function clearScenarios(){ if (scenarios.length && confirm('Remove all saved scenarios?')) { scenarios = []; updateTabCount(); renderCompare(); } }
+function renameScenario(id, val){ const sc = scenarios.find(x => x.id === id); if (sc) { sc.name = val.trim() || sc.name; renderCompare(); } }
+
+function loadScenario(id){
+  const sc = scenarios.find(x => x.id === id);
+  if (!sc) return;
+  applyStateToDOM(sc.state);
+  recalc();
+  switchTab('estimator');
+}
+
+/* write a saved state back onto every control, then recalc reads it */
+function applyStateToDOM(st){
+  const setV = (id,v) => { const e = document.getElementById(id); if (e) e.value = v; };
+  const setC = (id,v) => { const e = document.getElementById(id); if (e) e.checked = !!v; };
+  const setPillActive = (group,val) => {
+    document.querySelectorAll('#' + group + '-pills .pill').forEach(p => p.classList.toggle('active', p.dataset.val == String(val)));
+  };
+  const lbl = (id,v) => { const e = document.getElementById(id); if (e) e.textContent = (parseFloat(v) % 1 === 0 ? parseInt(v) : parseFloat(v).toFixed(2)); };
+
+  setV('num-agents',st.numAgents); setV('daily-interactions',st.dailyInteractions);
+  setV('num-tools',st.numTools); setV('kb-size',st.kbSize);
+  setV('setup-weeks',st.setupWeeks); setV('consult-rate',st.consultRate);
+  setV('eng-run',st.engRun); setV('ops-run',st.opsRun); setV('pm-run',st.pmRun); setV('cm-run',st.cmRun);
+  setV('llm',st.llm); setV('gateway',st.gateway);
+  setC('routing',st.routing); setC('caching',st.caching);
+  setV('orch-framework',st.orchFramework); setV('memory',st.memory);
+  setV('vectordb',st.vectordb); setV('embedding',st.embedding); setV('data-refresh',st.dataRefresh);
+  setV('cloud',st.cloud); setV('deploy-model',st.deployModel); setV('llmops',st.llmops); setV('guardrails',st.guardrails);
+  setC('cicd',st.cicd); setV('gov-level',st.govLevel); setV('security',st.security);
+  setC('eu-ai-act',st.euAiAct); setC('hitl',st.hitl); setV('engagement',st.engagement);
+  setC('people-cost-toggle',st.includePeopleCost); setC('value-toggle',st.valueEnabled);
+  setV('workforce-size',st.workforceSize); setV('human-cost',st.humanCost);
+  setV('pct-replaced',st.pctReplaced); setV('prod-uplift',st.prodUplift); setV('prod-leak',st.prodLeak);
+  setV('incr-revenue',st.incrRevenue);
+  setV('msg-per-conv',st.msgPerConv); setV('price-per-msg',st.pricePerMsg); setV('price-per-conv',st.pricePerConv);
+  setV('resolution-rate',st.resolutionRate); setV('price-per-resolution',st.pricePerResolution);
+
+  // pill groups (rag & buy-pricing are re-read from the DOM; the rest are set on state directly)
+  setPillActive('stage',st.stage); setPillActive('complexity',st.complexity);
+  setPillActive('geo',st.geo); setPillActive('horizon',st.horizon);
+  setPillActive('agent-pattern',st.agentPattern); setPillActive('rag',st.rag);
+  setPillActive('buy-pricing',st.buyPricing);
+  state.stage = st.stage; state.complexity = st.complexity; state.geo = st.geo;
+  state.horizon = st.horizon; state.agentPattern = st.agentPattern;
+
+  // slider value labels
+  lbl('lbl-agents',st.numAgents); lbl('lbl-interactions',st.dailyInteractions);
+  lbl('lbl-tools',st.numTools); lbl('lbl-kb',st.kbSize);
+  lbl('lbl-setup-weeks',st.setupWeeks); lbl('lbl-consult-rate',st.consultRate);
+  lbl('lbl-eng-run',st.engRun); lbl('lbl-ops-run',st.opsRun); lbl('lbl-pm-run',st.pmRun); lbl('lbl-cm-run',st.cmRun);
+  lbl('lbl-pct-replaced',st.pctReplaced); lbl('lbl-prod-uplift',st.prodUplift); lbl('lbl-prod-leak',st.prodLeak);
+}
+
+function renderCompare(){
+  updateTabCount();
+  const empty = document.getElementById('cmp-empty');
+  const content = document.getElementById('cmp-content');
+  if (scenarios.length === 0) {
+    empty.style.display = ''; content.style.display = 'none';
+    destroyChart('cmptco'); destroyChart('cmproi');
+    return;
+  }
+  empty.style.display = 'none'; content.style.display = '';
+
+  const cols = scenarios;
+  const money = v => fmt(v);
+  const pct   = v => (v * 100).toFixed(0) + '%';
+  const mult  = v => v.toFixed(2) + '×';
+  const num   = v => Math.round(v).toLocaleString();
+  const payFmt = v => (v == null ? '—' : v.toFixed(0) + ' mo');
+
+  function valRow(label, key, fmtFn, better){
+    let bestIdx = -1;
+    if (better){ let bv = better === 'low' ? Infinity : -Infinity;
+      cols.forEach((c,i) => { const v = c.m[key]; if (v == null || !isFinite(v)) return;
+        if (better === 'low' ? v < bv : v > bv) { bv = v; bestIdx = i; } }); }
+    return `<tr><td>${label}</td>${cols.map((c,i) => {
+      const v = c.m[key]; const disp = (v == null || (typeof v === 'number' && !isFinite(v))) ? '—' : fmtFn(v);
+      return `<td class="${i === bestIdx ? 'best' : ''}">${disp}</td>`;
+    }).join('')}</tr>`;
+  }
+  const txtRow = (label, key) => `<tr><td>${label}</td>${cols.map(c => `<td>${escapeHtml(c.m[key])}</td>`).join('')}</tr>`;
+  const grp = label => `<tr class="grp"><td colspan="${cols.length + 1}">${label}</td></tr>`;
+
+  const thead = `<thead><tr><th>Metric</th>${cols.map(c => `<th>
+    <input class="cmp-name-input" value="${escapeHtml(c.name)}" onchange="renameScenario('${c.id}',this.value)">
+    <div class="cmp-col-actions">
+      <button class="cmp-mini" onclick="loadScenario('${c.id}')">Load</button>
+      <button class="cmp-mini del" onclick="deleteScenario('${c.id}')">✕</button>
+    </div></th>`).join('')}</tr></thead>`;
+
+  const body = `<tbody>
+    ${grp('Configuration')}
+    ${txtRow('Stage','stage')}
+    ${valRow('Agents','agents',num,null)}
+    ${txtRow('Model','model')}
+    ${txtRow('Complexity','complexity')}
+    ${txtRow('Geography','geo')}
+    ${valRow('Horizon (yrs)','horizon',v => v,null)}
+    ${txtRow('Cheaper approach','approach')}
+    ${grp('Cost')}
+    ${valRow('Initial / setup','setup',money,'low')}
+    ${valRow('Monthly run','run',money,'low')}
+    ${valRow('Horizon TCO','tco',money,'low')}
+    ${valRow('Cost / interaction','cpi',v => '$' + v.toFixed(3),'low')}
+    ${grp('Value & Return')}
+    ${valRow('Horizon value','value',money,'high')}
+    ${valRow('ROI','roi',pct,'high')}
+    ${valRow('Agent Value Multiple','avm',mult,'high')}
+    ${valRow('Payback','payback',payFmt,'low')}
+    ${grp('Build vs Buy')}
+    ${valRow('Build TCO','buildTCO',money,'low')}
+    ${valRow('Buy TCO','buyTCO',money,'low')}
+    ${valRow('Break-even (agents)','beAgents',v => Math.round(v),null)}
+    ${grp('Scenario range')}
+    ${valRow('TCO — low','tco_low',money,'low')}
+    ${valRow('TCO — high','tco_high',money,'low')}
+    ${valRow('ROI — low','roi_low',pct,'high')}
+    ${valRow('ROI — high','roi_high',pct,'high')}
+  </tbody>`;
+
+  document.getElementById('cmp-table').innerHTML = `<table class="cmp-tbl">${thead}${body}</table>`;
+  renderCompareCharts();
+}
+
+function renderCompareCharts(){
+  destroyChart('cmptco'); destroyChart('cmproi');
+  const labels = scenarios.map(s => s.name);
+  const c1 = document.getElementById('chart-cmp-tco').getContext('2d');
+  charts['cmptco'] = new Chart(c1, {
+    type: 'bar',
+    data: { labels, datasets: [
+      { label: 'Horizon TCO',   data: scenarios.map(s => s.m.tco),   backgroundColor: '#404040', borderRadius: 4 },
+      { label: 'Horizon Value', data: scenarios.map(s => s.m.value), backgroundColor: '#009A44', borderRadius: 4 }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false,
+      scales: { x: { grid: { display: false } }, y: { ticks: { callback: v => fmt(v) }, grid: { color: 'rgba(0,0,0,.05)' } } },
+      plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } },
+        tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${fmtFull(c.raw)}` } } } }
+  });
+  const c2 = document.getElementById('chart-cmp-roi').getContext('2d');
+  charts['cmproi'] = new Chart(c2, {
+    type: 'bar',
+    data: { labels, datasets: [
+      { label: 'ROI %', data: scenarios.map(s => s.m.roi * 100),
+        backgroundColor: scenarios.map(s => s.m.roi < 0 ? '#EF4444' : '#009A44'), borderRadius: 4 }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false,
+      scales: { x: { grid: { display: false } }, y: { ticks: { callback: v => v.toFixed(0) + '%' }, grid: { color: 'rgba(0,0,0,.05)' } } },
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: c => ` ROI: ${c.raw.toFixed(0)}%` } } } }
+  });
+}
+
+function exportCompareCSV(){
+  if (!scenarios.length) return;
+  const rows = [['Metric', ...scenarios.map(s => s.name)]];
+  const r = (l, f) => rows.push([l, ...scenarios.map(s => f(s.m))]);
+  r('Stage', m => m.stage); r('Agents', m => m.agents); r('Model', m => m.model);
+  r('Complexity', m => m.complexity); r('Geography', m => m.geo); r('Horizon (yrs)', m => m.horizon);
+  r('Cheaper approach', m => m.approach);
+  r('Setup', m => Math.round(m.setup)); r('Monthly run', m => Math.round(m.run)); r('Horizon TCO', m => Math.round(m.tco));
+  r('Cost/interaction', m => m.cpi.toFixed(4));
+  r('Horizon value', m => Math.round(m.value)); r('ROI %', m => (m.roi * 100).toFixed(0)); r('AVM', m => m.avm.toFixed(2));
+  r('Payback (mo)', m => m.payback == null ? 'n/a' : m.payback.toFixed(0));
+  r('Build TCO', m => Math.round(m.buildTCO)); r('Buy TCO', m => Math.round(m.buyTCO));
+  r('Break-even agents', m => m.beAgents == null ? 'n/a' : Math.round(m.beAgents));
+  r('TCO low', m => Math.round(m.tco_low)); r('TCO high', m => Math.round(m.tco_high));
+  r('ROI low %', m => (m.roi_low * 100).toFixed(0)); r('ROI high %', m => (m.roi_high * 100).toFixed(0));
+  const csv = rows.map(row => row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `BCG_Agentic_Scenario_Comparison_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+/* ─────────────────────────────────────────────────────────────
+   UX: SHARE / PERSIST / PRESETS / SUMMARY / MENU
+───────────────────────────────────────────────────────────── */
+const CONFIG_VERSION = 1;
+
+function toggleMenu(e){ e.stopPropagation(); document.getElementById('action-menu').classList.toggle('open'); }
+function closeMenu(){ const m = document.getElementById('action-menu'); if (m) m.classList.remove('open'); }
+function flashBtn(id, msg){ const b = document.getElementById(id); if (!b) return; const o = b.textContent; b.textContent = msg; setTimeout(() => { b.textContent = o; }, 1300); }
+
+/* — Shareable state via URL hash — */
+function encodeState(){ try { return btoa(unescape(encodeURIComponent(JSON.stringify(state)))); } catch (e) { return ''; } }
+function decodeState(s){ try { return JSON.parse(decodeURIComponent(escape(atob(s)))); } catch (e) { return null; } }
+
+function copyShareLink(){
+  syncStateFromDOM();
+  const enc = encodeState();
+  const url = location.origin + location.pathname + '#s=' + enc;
+  try { history.replaceState(null, '', '#s=' + enc); } catch (e) {}
+  const done = () => flashBtn('btn-more', '✓ Link copied');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(done).catch(() => fallbackCopy(url, done));
+  } else { fallbackCopy(url, done); }
+}
+function fallbackCopy(text, done){
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    done && done();
+  } catch (e) { window.prompt('Copy this link:', text); }
+}
+
+/* — Config file save / load — */
+function saveConfig(){
+  syncStateFromDOM();
+  const payload = { version: CONFIG_VERSION, savedAt: new Date().toISOString(),
+                    state: JSON.parse(JSON.stringify(state)), scenarios };
+  const a = document.createElement('a');
+  a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(payload, null, 2));
+  a.download = `BCG_Agentic_Estimator_Config_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+function loadConfig(ev){
+  const file = ev.target.files && ev.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const p = JSON.parse(r.result);
+      if (p && p.state) applyStateToDOM(p.state);
+      if (Array.isArray(p.scenarios)) { scenarios = p.scenarios; scenarioSeq = Math.max(scenarioSeq, scenarios.length); updateTabCount(); }
+      recalc();
+      flashBtn('btn-more', '✓ Config loaded');
+    } catch (e) { alert('Could not read that configuration file.'); }
+  };
+  r.readAsText(file);
+  ev.target.value = '';
+}
+
+/* — Use-case presets — */
+const PRESETS = {
+  'cs-pilot': { s:{ stage:'pilot', numAgents:3, dailyInteractions:1200, complexity:'standard', geo:'us', horizon:'3', agentPattern:'single',
+    numTools:6, kbSize:10, setupWeeks:6, consultRate:3000, engRun:0.5, opsRun:0.5, pmRun:0, cmRun:0.25,
+    llm:'haiku45', gateway:'bedrock', routing:true, caching:true, orchFramework:'langgraph', memory:'session',
+    rag:'basic', vectordb:'pinecone', embedding:'oai-small', dataRefresh:'weekly', cloud:'aws', deployModel:'managed',
+    llmops:'langsmith', guardrails:'bedrock-guardrails', cicd:true, govLevel:'standard', security:'enhanced', euAiAct:false, hitl:true, engagement:'hybrid',
+    valueEnabled:true, workforceSize:120, humanCost:60000, pctReplaced:15, prodUplift:18, prodLeak:28, incrRevenue:0,
+    buyPricing:'outcome', msgPerConv:20, pricePerMsg:0.04, pricePerConv:1.0, resolutionRate:70, pricePerResolution:1.5 } },
+  'cs-scale': { s:{ stage:'scale', numAgents:12, dailyInteractions:1800, complexity:'standard', geo:'us', horizon:'3', agentPattern:'supervisor',
+    numTools:10, kbSize:25, setupWeeks:14, consultRate:3000, engRun:1.5, opsRun:1.0, pmRun:0.25, cmRun:0.5,
+    llm:'gpt54mini', gateway:'bedrock', routing:true, caching:true, orchFramework:'langgraph', memory:'longterm',
+    rag:'advanced', vectordb:'pinecone', embedding:'oai-small', dataRefresh:'daily', cloud:'aws', deployModel:'managed',
+    llmops:'langsmith', guardrails:'bedrock-guardrails', cicd:true, govLevel:'standard', security:'enhanced', euAiAct:false, hitl:true, engagement:'hybrid',
+    valueEnabled:true, workforceSize:300, humanCost:62000, pctReplaced:22, prodUplift:22, prodLeak:25, incrRevenue:0,
+    buyPricing:'conversation', msgPerConv:20, pricePerMsg:0.04, pricePerConv:1.0, resolutionRate:70, pricePerResolution:1.5 } },
+  'coding': { s:{ stage:'scale', numAgents:10, dailyInteractions:150, complexity:'complex', geo:'us', horizon:'3', agentPattern:'single',
+    numTools:8, kbSize:20, setupWeeks:12, consultRate:3000, engRun:2.0, opsRun:0.5, pmRun:0.25, cmRun:0.25,
+    llm:'sonnet46', gateway:'direct', routing:false, caching:true, orchFramework:'langgraph', memory:'session',
+    rag:'advanced', vectordb:'pgvector', embedding:'oai-large', dataRefresh:'daily', cloud:'aws', deployModel:'managed',
+    llmops:'langsmith', guardrails:'none', cicd:true, govLevel:'standard', security:'enhanced', euAiAct:false, hitl:false, engagement:'hybrid',
+    valueEnabled:true, workforceSize:200, humanCost:145000, pctReplaced:5, prodUplift:30, prodLeak:25, incrRevenue:0,
+    buyPricing:'message', msgPerConv:25, pricePerMsg:0.04, pricePerConv:1.0, resolutionRate:70, pricePerResolution:1.5 } },
+  'rag': { s:{ stage:'scale', numAgents:6, dailyInteractions:600, complexity:'standard', geo:'us', horizon:'3', agentPattern:'single',
+    numTools:6, kbSize:80, setupWeeks:12, consultRate:3000, engRun:1.0, opsRun:0.5, pmRun:0.25, cmRun:0.5,
+    llm:'gemini35flash', gateway:'vertex', routing:true, caching:true, orchFramework:'langgraph', memory:'longterm',
+    rag:'graphrag', vectordb:'pinecone', embedding:'gemini', dataRefresh:'daily', cloud:'gcp', deployModel:'managed',
+    llmops:'langsmith', guardrails:'none', cicd:true, govLevel:'standard', security:'enhanced', euAiAct:false, hitl:false, engagement:'hybrid',
+    valueEnabled:true, workforceSize:150, humanCost:90000, pctReplaced:8, prodUplift:25, prodLeak:28, incrRevenue:0,
+    buyPricing:'conversation', msgPerConv:20, pricePerMsg:0.04, pricePerConv:1.0, resolutionRate:70, pricePerResolution:1.5 } },
+  'docproc': { s:{ stage:'scale', numAgents:6, dailyInteractions:4000, complexity:'simple', geo:'offshore', horizon:'3', agentPattern:'single',
+    numTools:4, kbSize:30, setupWeeks:8, consultRate:3000, engRun:1.0, opsRun:0.5, pmRun:0, cmRun:0,
+    llm:'gemini25flashlite', gateway:'vertex', routing:false, caching:true, orchFramework:'n8n', memory:'none',
+    rag:'basic', vectordb:'pgvector', embedding:'self-hosted', dataRefresh:'weekly', cloud:'gcp', deployModel:'managed',
+    llmops:'basic', guardrails:'none', cicd:true, govLevel:'standard', security:'enhanced', euAiAct:false, hitl:false, engagement:'inhouse',
+    valueEnabled:true, workforceSize:80, humanCost:45000, pctReplaced:35, prodUplift:15, prodLeak:25, incrRevenue:0,
+    buyPricing:'message', msgPerConv:4, pricePerMsg:0.02, pricePerConv:1.0, resolutionRate:70, pricePerResolution:1.5 } },
+  'research': { s:{ stage:'transform', numAgents:22, dailyInteractions:80, complexity:'multiagent', geo:'us', horizon:'5', agentPattern:'supervisor',
+    numTools:14, kbSize:60, setupWeeks:28, consultRate:3000, engRun:3.0, opsRun:1.5, pmRun:0.5, cmRun:1.0,
+    llm:'opus48', gateway:'bedrock', routing:true, caching:true, orchFramework:'langgraph', memory:'hybrid',
+    rag:'graphrag', vectordb:'pinecone', embedding:'oai-large', dataRefresh:'daily', cloud:'aws', deployModel:'vpc',
+    llmops:'arize', guardrails:'nemo', cicd:true, govLevel:'enterprise', security:'zerotrust', euAiAct:true, hitl:true, engagement:'bcg',
+    valueEnabled:true, workforceSize:60, humanCost:160000, pctReplaced:10, prodUplift:35, prodLeak:22, incrRevenue:0,
+    buyPricing:'conversation', msgPerConv:20, pricePerMsg:0.04, pricePerConv:2.0, resolutionRate:70, pricePerResolution:1.5 } }
+};
+function applyPreset(key){
+  if (!key || !PRESETS[key]) return;
+  Object.assign(state, PRESETS[key].s);
+  applyStateToDOM(state);
+  recalc();
+}
+
+/* — Client-ready executive summary (print) — */
+function buildExecutiveSummary(data){
+  const el = document.getElementById('print-summary'); if (!el) return;
+  const b = buildVsBuy(data); const s = scenarioBand(data);
+  const cur = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  const row = (k,v) => `<div class="k">${k}</div><div class="v">${v}</div>`;
+  const grid = arr => arr.map(r => row(r[0], r[1])).join('');
+  const payback = data.paybackMo == null ? '—' : (data.paybackMo > state.horizon*12 ? '>' + state.horizon + 'y' : data.paybackMo.toFixed(0) + ' mo');
+  const cfg = grid([['Deployment stage', state.stage], ['Agents', state.numAgents], ['Daily interactions/agent', state.dailyInteractions],
+    ['Task complexity', state.complexity], ['Primary model', LLM_LABELS[state.llm]], ['Geography', state.geo], ['Horizon', state.horizon + ' years']]);
+  const cost = grid([['One-time setup', fmtFull(data.setupTotal)], ['Monthly run cost', fmtFull(data.monthlyRun)],
+    [`${state.horizon}-year TCO`, fmtFull(data.horizonTotal)], ['Cost / interaction', '$' + data.costPerInteraction.toFixed(3)]]);
+  const value = state.valueEnabled ? grid([[`${state.horizon}-year value`, fmtFull(data.horizonValue)], ['Net benefit', fmtFull(data.netBenefit)],
+    ['ROI', (data.roi*100).toFixed(0) + '%'], ['Agent Value Multiple', data.avm.toFixed(2) + '×'], ['Payback', payback]]) : row('Value & ROI', 'Not modelled');
+  const bvb = grid([['Cheaper at current volume', b.cheaperNow === 'build' ? 'Build' : 'Buy'],
+    [`Build ${state.horizon}-yr TCO`, fmtFull(b.buildTCO)], [`Buy ${state.horizon}-yr TCO`, fmtFull(b.buyTCO)],
+    ['Break-even', b.beAgents == null ? '—' : '~' + Math.round(b.beAgents) + ' agents']]);
+  const range = grid([[`${state.horizon}-yr TCO range`, fmtFull(s.TCO_low) + ' – ' + fmtFull(s.TCO_high)],
+    ['ROI range', (s.roi_low*100).toFixed(0) + '% – ' + (s.roi_high*100).toFixed(0) + '%']]);
+  const assum = grid([['Model price (in/out per 1M)', '$' + LLM_PRICES[state.llm].in + ' / $' + LLM_PRICES[state.llm].out],
+    ['Routing / caching', (state.routing ? 'Smart routing' : 'Single model') + ' · ' + (state.caching ? 'caching on' : 'no caching')],
+    ['Governance', state.govLevel + ' · ' + state.security], ['Productivity leak', state.prodLeak + '%'], ['Volume growth', '~20%/yr']]);
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--g700);padding-bottom:8px;margin-bottom:14px">
+      <div>
+        <div style="font-size:18px;font-weight:800;color:var(--g700)">BCG · Agentic AI Cost &amp; Value Summary</div>
+        <div style="font-size:11px;color:var(--n500)">Generated ${cur} · Internal BCG use only</div>
+      </div>
+    </div>
+    <div class="exec-block"><div class="exec-h">Configuration</div><div class="exec-grid">${cfg}</div></div>
+    <div class="exec-block"><div class="exec-h">Cost</div><div class="exec-grid">${cost}</div></div>
+    <div class="exec-block"><div class="exec-h">Business Value &amp; Return</div><div class="exec-grid">${value}</div></div>
+    <div class="exec-block"><div class="exec-h">Build vs Buy</div><div class="exec-grid">${bvb}</div></div>
+    <div class="exec-block"><div class="exec-h">Scenario Range (Low–High)</div><div class="exec-grid">${range}</div></div>
+    <div class="exec-block"><div class="exec-h">Key Assumptions</div><div class="exec-grid">${assum}</div></div>`;
+}
+function exportSummaryPDF(){
+  if (typeof switchTab === 'function') switchTab('estimator');
+  syncStateFromDOM();
+  buildExecutiveSummary(calculate());
+  setTimeout(() => window.print(), 60);
+}
+
+const GUIDE = {
+  l1: {
+    emoji: '🧠', title: 'Foundation Models & AI Gateway',
+    impact: '40–70% of monthly run cost',
+    summary: 'The single largest cost lever. Model choice, routing strategy and caching compound each other — the difference between a well-tuned and a default configuration is typically 50–65% on this layer alone.',
+    rules: [
+      { label: 'Model tier', text: 'Start with GPT-4.1 Mini or Gemini 2.0 Flash for standard tasks. Frontier models (Claude Sonnet 4.6, GPT-4.1) cost 5–10× more — reserve them for complex reasoning or multi-agent coordination only.' },
+      { label: 'Smart routing', text: 'At ≥4 agents with standard complexity, routing almost always pays off. A 70/20/10 blend (budget / mid / primary) typically saves 40–55% on tokens with minimal accuracy degradation.' },
+      { label: 'Prompt caching', text: 'Enable by default. Saves ~35% on input tokens with negligible engineering effort. Only disable if system prompts are highly dynamic (personalised per user).' },
+      { label: 'Gateway choice', text: 'AWS Bedrock / Azure AI Foundry add 8% markup but deliver enterprise SLAs, native IAM, and audit logging. Worth it at Scale+ stage. Direct API is fine for pilots.' },
+    ],
+    flags: [
+      { type: 'red', text: 'Frontier model + no routing + no caching = maximum possible token cost' },
+      { type: 'amber', text: 'Multi-agent complexity without smart routing is a significant missed saving' },
+      { type: 'green', text: 'Budget model + routing + caching = BCG cost-optimal configuration' },
+    ]
+  },
+  l2: {
+    emoji: '⚙️', title: 'Orchestration & Memory',
+    impact: '5–15% of monthly run cost',
+    summary: 'Orchestration choice primarily affects engineering velocity and operational resilience, not cost. Memory architecture is the hidden cost driver — hybrid memory is frequently over-specified.',
+    rules: [
+      { label: 'Framework', text: 'LangGraph (open-source) is the BCG default for new builds — the strongest community, best agent loop support, and no licensing cost. n8n Cloud suits workflow-heavy automation without deep DevOps capacity.' },
+      { label: 'Memory', text: 'Session memory (Redis, ~$80/mo) covers 80% of use cases. Long-term vector memory is only justified when cross-session context materially improves outcomes — e.g. customer service, copilots, personal assistants.' },
+      { label: 'Multi-agent pattern', text: 'Start Single. Supervisor is the BCG recommended step-up for 5+ agent workflows. Peer-to-peer adds coordination overhead with limited benefit below 15 agents.' },
+      { label: 'Tool integrations', text: 'Each API connector adds latency and a failure surface. Budget ~0.5–1 day per tool for maintenance. 8–12 tools is typical for a Scale-stage deployment.' },
+    ],
+    flags: [
+      { type: 'red', text: 'Hybrid memory ($430/mo) without a personalisation use case — likely over-engineered' },
+      { type: 'amber', text: 'Temporal Cloud ($400/mo) is overkill unless you need durable, long-running workflow execution' },
+      { type: 'green', text: 'LangGraph + session memory = lowest-cost, highest-capability default' },
+    ]
+  },
+  l3: {
+    emoji: '📚', title: 'Data & Knowledge (RAG)',
+    impact: '5–20% of monthly run cost · directly impacts accuracy & hallucination rate',
+    summary: 'RAG quality is the main determinant of output accuracy. The most common cost trap is over-engineering refresh frequency — realtime ingestion can cost 15× more than weekly with minimal operational benefit.',
+    rules: [
+      { label: 'RAG tier', text: 'Basic RAG covers most enterprise document Q&A. Advanced RAG (reranking + hybrid search) adds 10–20% accuracy lift for knowledge-intensive tasks. GraphRAG is only justified when your knowledge has rich entity relationships (regulatory, biomedical, org charts).' },
+      { label: 'Refresh frequency', text: 'Realtime refresh multiplies embedding cost by 15×. Weekly is sufficient for most enterprise KBs. Only go daily/realtime for live operational data — pricing feeds, inventory, case status.' },
+      { label: 'Vector DB', text: 'Pinecone Serverless is the default for ≤50 GB — zero ops overhead. pgvector (self-managed) halves cost if you already run Postgres. Azure AI Search is best when already in an Azure deployment.' },
+      { label: 'KB curation', text: 'Cost scales with KB size × refresh frequency. 15–20 GB of curated, high-quality content consistently outperforms 200 GB of raw document dumps. Invest in curation over ingestion scale.' },
+    ],
+    flags: [
+      { type: 'red', text: 'Large KB + realtime refresh = exponential embedding cost — audit frequency vs. benefit' },
+      { type: 'amber', text: 'GraphRAG without a graph-structured knowledge domain wastes complexity and cost' },
+      { type: 'green', text: 'Basic RAG + weekly refresh + Pinecone = BCG standard for pilots and most Scale deployments' },
+    ]
+  },
+  l4: {
+    emoji: '🛠️', title: 'Platform, Ops & Monitoring',
+    impact: '10–20% of monthly run cost · critical for production reliability',
+    summary: 'Consistently underbudgeted in early stages. Observability gaps create silent failures in production that only surface as downstream business issues.',
+    rules: [
+      { label: 'Deployment model', text: 'Managed API is the right default for most enterprises — lowest ops burden, best SLAs. VPC deployment is required when data residency or compliance demands it (FS, healthcare, government). Self-hosted only when you have ML infra expertise and are running a budget model.' },
+      { label: 'LLMOps & observability', text: 'Never go to production without tracing. LangSmith Pro ($150/mo) is the BCG default — covers prompt versioning, execution tracing, and evaluation pipelines. Arize or W&B Weave for ML-heavy teams needing deeper experiment tracking.' },
+      { label: 'Guardrails', text: 'AWS Bedrock Guardrails (10% token overhead) is the path of least resistance on AWS. For regulated sectors, layer NeMo Guardrails for more granular input/output control.' },
+      { label: 'CI/CD', text: '$80/mo for GitHub Actions is non-negotiable for any production agent. Without pipeline automation, agent deployments become manual and error-prone at scale.' },
+    ],
+    flags: [
+      { type: 'red', text: 'Self-hosted deployment without a dedicated ML infra team is a significant reliability risk' },
+      { type: 'amber', text: 'Basic CloudWatch logging is insufficient for debugging complex multi-agent workflows' },
+      { type: 'green', text: 'Managed API + LangSmith + Bedrock Guardrails = BCG production-ready baseline' },
+    ]
+  },
+  l5: {
+    emoji: '🔒', title: 'Governance, Security & Compliance',
+    impact: '15–30% of run cost in regulated industries',
+    summary: 'Governance costs are non-linear — they spike sharply at the regulated tier. The correct tier depends on your industry and data sensitivity, not project ambition.',
+    rules: [
+      { label: 'Governance tier', text: 'Standard governance (0.1 FTE + tooling, ~$2K/mo) is right for most enterprise deployments. Only step up to Enterprise/Regulated if you face external audit requirements or operate in FS, healthcare, or a regulated utility.' },
+      { label: 'Human-in-the-loop', text: 'HITL is expensive (0.5 FTE per 5 agents) but essential for high-stakes decisions — credit, medical, legal, HR. Design agent workflows to minimise HITL scope rather than applying it uniformly.' },
+      { label: 'EU AI Act', text: 'If operating in the EU, budget ~$1,500/mo for documentation, risk classification and audit readiness. Most enterprise agentic deployments fall within scope of the Act\'s high-risk category.' },
+      { label: 'Security posture', text: 'Enhanced security (SIEM + vault + network isolation) is the minimum for enterprise. Zero-trust is warranted for agents handling PII, financial transactions, or sensitive IP.' },
+    ],
+    flags: [
+      { type: 'red', text: 'Basic governance for FS or healthcare = material regulatory exposure' },
+      { type: 'amber', text: 'Broad HITL at Transform stage without scoped use-case design = major run cost bloat' },
+      { type: 'green', text: 'Standard governance + enhanced security covers most enterprise risk profiles adequately' },
+    ]
+  },
+  people: {
+    emoji: '👤', title: 'People & Change Management',
+    impact: 'Often 40–60% of Year 1 TCO when setup is included',
+    summary: 'The most consistently underestimated cost dimension. People costs dominate Year 1 and are sticky — unlike infrastructure, they don\'t compress easily once teams are structured.',
+    rules: [
+      { label: 'Team sizing (run)', text: 'BCG benchmark: 1 Agent Engineer + 0.5 Ops FTE per 5–10 agents in run phase. Add 0.25 FTE PM/governance from Scale stage onwards. Change management is often the first cut — resist this: adoption failure is the #1 reason AI programmes miss ROI targets.' },
+      { label: 'Engagement model', text: 'BCG-led build accelerates time-to-value by 30–50% vs. fully in-house for a first deployment. Hybrid (in-house core team + consulting sprint) is the most cost-effective sustained model.' },
+      { label: 'Setup duration', text: 'Pilot: 4–8 weeks. Scale: 12–20 weeks. Transform: 24–40 weeks. Compressing timelines below these ranges increases rework probability significantly.' },
+      { label: 'Geography', text: 'Offshore teams (E. EU / India) deliver ~65% people cost reduction. Viable for engineering and ops roles. Less so for governance and change management, which benefit from business proximity.' },
+    ],
+    flags: [
+      { type: 'red', text: 'No change management budget at Scale/Transform stage — adoption risk is high' },
+      { type: 'amber', text: '<0.5 FTE ops per 5 agents in run phase — likely to create operational debt' },
+      { type: 'green', text: 'Hybrid engagement model (BCG + in-house) optimises speed and long-term cost' },
+    ]
+  },
+  value: {
+    emoji: '📈', title: 'Value & Benefits',
+    impact: 'Determines whether the investment clears its ROI hurdle',
+    summary: 'Cost without value is only half the decision. This module estimates benefit the Gartner way — direct cost avoidance from headcount shift, plus productivity uplift on the remaining workforce, explicitly discounted by productivity leak (the gains that never reach the P&L).',
+    rules: [
+      { label: 'Headcount shift', text: 'Share of in-scope work taken over by agents. Gartner baseline 10–30%. The hardest-dollar value — but only real if you actually harvest it by redeploying or reducing headcount.' },
+      { label: 'Productivity uplift', text: 'Improvement for staff augmented rather than replaced. Gartner baseline 14–35%. Counts as value only when converted to output, revenue or reduced cost — otherwise it is "return on employee" that may never reach the P&L.' },
+      { label: 'Productivity leak', text: 'The critical discount. 20–30% of theoretical gains evaporate to context-switching, idle time and downstream bottlenecks. Keep this conservative — optimistic leak assumptions are the #1 reason AI business cases overstate ROI.' },
+      { label: 'Agent Value Multiple (AVM)', text: 'Total value ÷ total cost. Gartner customer-support benchmarks land ~1.6–3.5×. Below 1× the use case destroys value on a pure-cost basis and must be justified on strategic grounds.' },
+    ],
+    flags: [
+      { type: 'red', text: 'ROI below 0% — value does not cover TCO at these assumptions; revisit scope, pricing model or adoption' },
+      { type: 'amber', text: 'Productivity leak under 20% is optimistic vs. Gartner evidence — stress-test a more conservative figure' },
+      { type: 'green', text: 'Headcount shift + uplift defined with a realistic leak = a defensible, harvestable value case' },
+    ]
+  },
+  bvb: {
+    emoji: '⇄', title: 'Build vs Buy',
+    impact: 'Pricing model is Gartner\'s #1 driver of cost variability',
+    summary: 'Build carries high fixed cost (setup, engineering, infra) but a low marginal cost per conversation (raw tokens). Buy inverts that — minimal fixed cost on a managed platform, but a higher per-unit charge. The decision is therefore a volume question, and the break-even is the answer.',
+    rules: [
+      { label: 'Pricing model', text: 'Message-based (Copilot Studio) is a token proxy — watch GenAI vs non-GenAI message mix. Conversation-based (Agentforce) shifts length risk to the vendor (Gartner $0.30–$2/conv). Outcome-based (Zendesk/Intercom) charges per resolution — attractive at low volume but can exceed 2× conversation pricing at scale.' },
+      { label: 'Break-even', text: 'Below the break-even volume, buy is cheaper — ideal for pilots and uncertain demand. Above it, the build amortises its fixed base and wins. Gartner\'s customer-support example crosses at ~500–600 agent equivalents; yours depends on your own pricing and stack.' },
+      { label: 'Beyond cost', text: 'TCO is not the whole decision. Weigh time-to-market, control, customisability, data/IP ownership and switching risk. Buy to learn fast; build to scale commodity volume cost-effectively and keep strategic control.' },
+      { label: 'Hybrid reality', text: 'Most organisations land on a hybrid: buy to pilot and prove value, then selectively build the high-volume, differentiating agents while leaving commodity ones on the platform.' },
+    ],
+    flags: [
+      { type: 'red', text: 'High, stable volume well above break-even still on a per-unit platform — you are overpaying for managed convenience' },
+      { type: 'amber', text: 'Outcome-based pricing chosen at high volume — verify it still beats conversation-based at your resolution rate' },
+      { type: 'green', text: 'Volume below break-even on a managed platform = lowest-risk, lowest-cost path for this stage' },
+    ]
+  }
+};
+
+/* ─────────────────────────────────────────────────────────────
+   FLYOUT FUNCTIONS
+───────────────────────────────────────────────────────────── */
+function openGuide(sectionId) {
+  const g = GUIDE[sectionId];
+  if (!g) return;
+  document.getElementById('guide-emoji').textContent   = g.emoji;
+  document.getElementById('guide-title').textContent   = g.title;
+  document.getElementById('guide-impact').textContent  = '💰 ' + g.impact;
+  const flagIcons = { red: '⚠', amber: '◐', green: '✓' };
+  document.getElementById('guide-body').innerHTML = `
+    <div class="guide-summary">${g.summary}</div>
+    <div>
+      <div class="guide-sec-title">BCG Rules of Thumb</div>
+      ${g.rules.map(r => `<div class="guide-rule"><div class="guide-rule-label">${r.label}</div><div class="guide-rule-text">${r.text}</div></div>`).join('')}
+    </div>
+    <div>
+      <div class="guide-sec-title">Signals to watch</div>
+      ${g.flags.map(f => `<div class="guide-flag ${f.type}"><span class="guide-flag-icon">${flagIcons[f.type]}</span><span>${f.text}</span></div>`).join('')}
+    </div>`;
+  document.getElementById('guide-drawer').classList.add('open');
+  document.getElementById('guide-backdrop').classList.add('open');
+}
+
+function closeGuide() {
+  document.getElementById('guide-drawer').classList.remove('open');
+  document.getElementById('guide-backdrop').classList.remove('open');
+}
+
+/* ─────────────────────────────────────────────────────────────
+   DECISION DASHBOARD (Option C)
+───────────────────────────────────────────────────────────── */
+function updateDecisionDashboard(data) {
+  const checks = [];
+
+  // ── Foundation Models ──────────────────────────────
+  const frontierModels = ['opus48', 'gpt55', 'gpt54', 'gemini31pro', 'mistrallarge3', 'deepseekv4pro', 'o3'];
+  if (frontierModels.includes(state.llm) && ['simple','standard'].includes(state.complexity)) {
+    checks.push({ type:'red', layer:'Foundation Models',
+      text:`${LLM_LABELS[state.llm]} may be over-specified for ${state.complexity} tasks — GPT-5.4 Mini or Gemini 3.1 Flash-Lite would cut token costs 5–10×` });
+  }
+  const annTokenSaving = (data.tokenSingle - data.tokenRouted) * 12;
+  if (!state.routing && state.numAgents >= 4 && annTokenSaving > 1000) {
+    checks.push({ type:'amber', layer:'Foundation Models',
+      text:`Smart routing disabled — estimated annual saving: ${fmt(annTokenSaving)}` });
+  }
+  if (!state.caching) {
+    checks.push({ type:'amber', layer:'Foundation Models',
+      text:'Prompt caching disabled — ~35% input token saving available with minimal engineering effort' });
+  }
+  if (state.routing && state.caching && !frontierModels.includes(state.llm)) {
+    checks.push({ type:'green', layer:'Foundation Models', text:'Routing + caching active on a budget model — cost-optimal configuration ✓' });
+  }
+
+  // ── Orchestration ──────────────────────────────────
+  if (state.memory === 'hybrid' && !['multiagent'].includes(state.complexity)) {
+    checks.push({ type:'amber', layer:'Orchestration',
+      text:'Hybrid memory ($430/mo) likely over-specified — session memory covers most non-multi-agent use cases' });
+  }
+  if (state.orchFramework === 'temporal' && state.stage === 'pilot') {
+    checks.push({ type:'amber', layer:'Orchestration',
+      text:'Temporal Cloud ($400/mo) is heavy for a Pilot — consider LangGraph or n8n to reduce cost and complexity' });
+  }
+
+  // ── Data & Knowledge ───────────────────────────────
+  if (state.dataRefresh === 'realtime' && state.kbSize > 30) {
+    checks.push({ type:'red', layer:'Data & Knowledge',
+      text:`Realtime refresh on ${state.kbSize} GB KB — embedding costs are very high. Weekly refresh saves ~85–90% on this line item` });
+  } else if (state.dataRefresh === 'daily' && state.kbSize > 100) {
+    checks.push({ type:'amber', layer:'Data & Knowledge',
+      text:`Daily refresh on ${state.kbSize} GB KB — consider weekly unless data currency is operationally critical` });
+  }
+  if (state.rag === 'none' && state.kbSize > 1) {
+    checks.push({ type:'amber', layer:'Data & Knowledge',
+      text:'KB size > 1 GB but no RAG configured — agents will rely on context window only, increasing token cost and hallucination risk' });
+  }
+
+  // ── Platform & Ops ─────────────────────────────────
+  if (state.llmops === 'basic' && state.stage !== 'pilot') {
+    checks.push({ type:'red', layer:'Platform & Ops',
+      text:'Basic logging only — insufficient observability for Scale/Transform production agents; consider LangSmith ($150/mo)' });
+  }
+  if (['llama4self','deepseekself'].includes(state.llm) && state.deployModel !== 'selfhosted') {
+    checks.push({ type:'red', layer:'Platform & Ops',
+      text:'Self-hosted model selected but deployment model is not self-hosted — GPU compute will be needed; align deployment settings' });
+  }
+  if (!state.cicd && state.stage !== 'pilot') {
+    checks.push({ type:'amber', layer:'Platform & Ops',
+      text:'CI/CD disabled at Scale/Transform — manual agent deployments are error-prone; $80/mo is a negligible cost for this control' });
+  }
+  if (state.cicd && state.llmops !== 'basic') {
+    checks.push({ type:'green', layer:'Platform & Ops', text:'CI/CD pipeline + observability tooling active — production-ready baseline ✓' });
+  }
+
+  // ── Governance ─────────────────────────────────────
+  if (state.govLevel === 'basic' && (state.hitl || state.euAiAct)) {
+    checks.push({ type:'red', layer:'Governance',
+      text:'Basic governance with HITL or EU AI Act enabled — governance tier should be at least Standard to support these controls' });
+  }
+  if (state.euAiAct && state.govLevel !== 'regulated') {
+    checks.push({ type:'amber', layer:'Governance',
+      text:'EU AI Act enabled — consider Regulated governance tier to fully cover documentation, risk classification and audit requirements' });
+  }
+  if (state.govLevel !== 'basic' && state.security !== 'basic') {
+    checks.push({ type:'green', layer:'Governance', text:'Governance + security above baseline — adequate for most enterprise risk profiles ✓' });
+  }
+
+  // ── People ─────────────────────────────────────────
+  if (state.includePeopleCost) {
+    if (state.cmRun === 0 && state.stage !== 'pilot') {
+      checks.push({ type:'red', layer:'People',
+        text:'No change management FTE at Scale/Transform — adoption failure is the #1 reason AI programmes miss ROI targets' });
+    }
+    const opsPerAgent = state.opsRun / state.numAgents;
+    if (opsPerAgent < 0.05 && state.numAgents >= 5) {
+      checks.push({ type:'amber', layer:'People',
+        text:`Agent ops may be understaffed (${state.opsRun} FTE for ${state.numAgents} agents) — BCG benchmark: ≥0.5 FTE per 10 agents` });
+    }
+    if (state.cmRun >= 0.5 && state.engRun >= 1.0) {
+      checks.push({ type:'green', layer:'People', text:'Engineering + change management adequately staffed for the deployment stage ✓' });
+    }
+  }
+
+  // ── Value & ROI ────────────────────────────────────
+  if (state.valueEnabled) {
+    if (data.roi < 0) {
+      checks.push({ type:'red', layer:'Value & ROI',
+        text:`Negative ROI (${(data.roi*100).toFixed(0)}%) at current assumptions — value does not cover TCO over ${state.horizon} years` });
+    }
+    if (state.prodLeak < 20) {
+      checks.push({ type:'amber', layer:'Value & ROI',
+        text:`Productivity leak set to ${state.prodLeak}% — below Gartner's 20–30% range; the value case may be optimistic` });
+    }
+    if (data.paybackMo != null && data.paybackMo > state.horizon*12) {
+      checks.push({ type:'amber', layer:'Value & ROI',
+        text:`Payback exceeds the ${state.horizon}-year horizon — benefits accrue too slowly to clear setup cost in-window` });
+    }
+    if (data.roi >= 1 && state.prodLeak >= 20) {
+      checks.push({ type:'green', layer:'Value & ROI',
+        text:`Strong ROI (${(data.roi*100).toFixed(0)}%) with a realistic productivity leak — defensible business case ✓` });
+    }
+  }
+
+  // ── Sort: red → amber → green ──────────────────────
+  const order = { red:0, amber:1, green:2 };
+  checks.sort((a,b) => order[a.type] - order[b.type]);
+
+  const colorMap = { red:'#EF4444', amber:'#F59E0B', green:'#009A44' };
+  const reds   = checks.filter(c => c.type==='red').length;
+  const ambers = checks.filter(c => c.type==='amber').length;
+  const greens = checks.filter(c => c.type==='green').length;
+
+  document.getElementById('dc-count-red').textContent   = reds;
+  document.getElementById('dc-count-amber').textContent = ambers;
+  document.getElementById('dc-count-green').textContent = greens;
+
+  document.getElementById('decision-checks').innerHTML = checks.map(c => `
+    <div class="decision-check ${c.type}">
+      <div style="min-width:0">
+        <div class="dc-layer" style="color:${colorMap[c.type]}">${c.layer}</div>
+        <div class="dc-text">${c.text}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* ─────────────────────────────────────────────────────────────
+   AUTH
+───────────────────────────────────────────────────────────── */
+function unlockTool() {
+  const val = document.getElementById('auth-password').value;
+  if (val === atob('QWdlbnQwMDcj')) {
+    const overlay = document.getElementById('auth-overlay');
+    overlay.style.opacity = '0';
+    setTimeout(() => overlay.remove(), 400);
+  } else {
+    document.getElementById('auth-error').style.display = 'block';
+    const card = document.getElementById('auth-card');
+    card.classList.add('auth-shake');
+    setTimeout(() => card.classList.remove('auth-shake'), 350);
+    document.getElementById('auth-password').value = '';
+    document.getElementById('auth-password').focus();
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   INIT
+───────────────────────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  // Sync all select dropdowns to state
+  ['llm','gateway','orch-framework','memory','vectordb','embedding','data-refresh','cloud','deploy-model','llmops','guardrails','gov-level','security','engagement'].forEach(id => {
+    document.getElementById(id).addEventListener('change', recalc);
+  });
+  // Restore a shared configuration from the URL hash, if present
+  const m = (location.hash || '').match(/[#&]s=([^&]+)/);
+  if (m) { const st = decodeState(m[1]); if (st) applyStateToDOM(st); }
+  // Close the action menu on any outside click
+  document.addEventListener('click', (e) => {
+    const menu = document.getElementById('action-menu');
+    if (menu && menu.classList.contains('open') && !e.target.closest('.menu-wrap')) menu.classList.remove('open');
+  });
+  recalc();
+});
+</script>
+</body>
+</html>
