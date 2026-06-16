@@ -122,13 +122,16 @@ header .subtitle {
   font-weight: 600;
 }
 
-.stat-chip.urgent  { background: rgba(239,68,68,0.10);   color: #c03030; border: 1px solid rgba(239,68,68,0.25); }
-.stat-chip.staffed { background: rgba(139,92,246,0.10);  color: #6d28d9; border: 1px solid rgba(139,92,246,0.25); }
-.stat-chip.absence { background: rgba(245,158,11,0.12);  color: #b45309; border: 1px solid rgba(245,158,11,0.3); }
+.stat-chip.urgent        { background: rgba(239,68,68,0.10);   color: #c03030; border: 1px solid rgba(239,68,68,0.25); }
+.stat-chip.blocked-chip  { background: rgba(239,68,68,0.10);   color: #c03030; border: 1px solid rgba(239,68,68,0.25); }
+.stat-chip.staffed-chip  { background: rgba(26,127,75,0.10);   color: #166534; border: 1px solid rgba(26,127,75,0.25); }
+.stat-chip.staffed       { background: rgba(139,92,246,0.10);  color: #6d28d9; border: 1px solid rgba(139,92,246,0.25); }
+.stat-chip.absence       { background: rgba(245,158,11,0.12);  color: #b45309; border: 1px solid rgba(245,158,11,0.3); }
 .stat-dot { width: 7px; height: 7px; border-radius: 50%; }
 .dot-red    { background: #ef4444; }
 .dot-purple { background: #8b5cf6; }
 .dot-orange { background: #f59e0b; }
+.dot-green  { background: #16a34a; }
 
 /* ── Tab panels ───────────────────────────────────────────────────────────── */
 

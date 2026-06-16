@@ -166,9 +166,23 @@ loadRequests();
 function renderStats() {
   const s = state;
   const blockedCount = Object.keys(s.blocked).length;
+
+  // Non-blocked members who have case staffing or PTO today
+  const staffedCount = s.team.filter(m =>
+    !m.is_blocked && (m.block_reasons || []).some(r => r.toLowerCase().startsWith('case'))
+  ).length;
+  const absentCount = s.team.filter(m =>
+    !m.is_blocked && (m.block_reasons || []).some(r => r.toLowerCase().startsWith('pto'))
+  ).length;
+
   let html = `<div class="stat-chip urgent"><div class="stat-dot dot-red"></div>${s.unassignedCount} requests unassigned</div>`;
   if (blockedCount > 0)
-    html += `<div class="stat-chip staffed"><div class="stat-dot dot-purple"></div>${blockedCount} member${blockedCount > 1 ? 's' : ''} ≥75% blocked</div>`;
+    html += `<div class="stat-chip blocked-chip"><div class="stat-dot dot-red"></div>${blockedCount} member${blockedCount > 1 ? 's' : ''} blocked</div>`;
+  if (staffedCount > 0)
+    html += `<div class="stat-chip staffed-chip"><div class="stat-dot dot-green"></div>${staffedCount} on case</div>`;
+  if (absentCount > 0)
+    html += `<div class="stat-chip absence"><div class="stat-dot dot-orange"></div>${absentCount} absent</div>`;
+
   document.getElementById('statsBar').innerHTML = html;
   document.getElementById('capSublabel').textContent = `Max ${s.maxRequests} req/week`;
 }
