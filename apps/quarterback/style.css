@@ -752,45 +752,45 @@ header .subtitle {
 
 .list-table-wrap {
   overflow-x: auto;
-  border-radius: 12px;
-  border: 1px solid var(--ring);
+  border-radius: 8px;
+  border: 1px solid var(--ring-md);
+  background: rgba(255,255,255,0.7);
 }
 
 .list-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .list-table thead th {
-  background: rgba(26,127,75,0.07);
-  color: var(--text-2);
-  font-size: 10px;
+  background: rgba(10,33,24,0.04);
+  color: var(--text-3);
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--ring);
+  letter-spacing: 0.8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--ring-md);
   white-space: nowrap;
   text-align: left;
 }
 
 .list-table tbody tr {
   cursor: pointer;
-  transition: background 0.15s;
   border-bottom: 1px solid var(--ring);
 }
 
 .list-table tbody tr:last-child { border-bottom: none; }
 
-.list-table tbody tr:hover { background: rgba(26,127,75,0.05); }
+.list-table tbody tr:hover td { background: rgba(26,127,75,0.04); }
 
-.list-table tbody tr.row-active { background: rgba(26,127,75,0.08); }
+.list-table tbody tr.row-active td { background: rgba(26,127,75,0.07); }
 
-.list-table tbody tr.row-active:hover { background: rgba(26,127,75,0.13); }
+.list-table tbody tr.row-active:hover td { background: rgba(26,127,75,0.11); }
 
 .list-table td {
-  padding: 10px 14px;
+  padding: 10px 12px;
   color: var(--ink);
   vertical-align: middle;
 }
