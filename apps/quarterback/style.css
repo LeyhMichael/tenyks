@@ -756,7 +756,7 @@ header .subtitle {
   overflow-x: auto;
   border-radius: 8px;
   border: 1px solid var(--ring-md);
-  background: rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.9);
 }
 
 .list-table {
@@ -785,11 +785,13 @@ header .subtitle {
 
 .list-table tbody tr:last-child { border-bottom: none; }
 
-.list-table tbody tr:hover td { background: rgba(26,127,75,0.04); }
+.list-table tbody td { background: rgba(255,255,255,0.88); }
 
-.list-table tbody tr.row-active td { background: rgba(26,127,75,0.07); }
+.list-table tbody tr:hover td { background: rgba(26,127,75,0.06); }
 
-.list-table tbody tr.row-active:hover td { background: rgba(26,127,75,0.11); }
+.list-table tbody tr.row-active td { background: rgba(26,127,75,0.09); }
+
+.list-table tbody tr.row-active:hover td { background: rgba(26,127,75,0.14); }
 
 .list-table td {
   padding: 10px 12px;
