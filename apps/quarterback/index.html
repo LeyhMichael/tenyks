@@ -38,6 +38,7 @@
   <button class="nav-tab" data-tab="staffing">👥 Case Staffing</button>
   <button class="nav-tab" data-tab="pto">🏖️ PTO &amp; Absences</button>
   <button class="nav-tab" data-tab="backlog">📌 Backlog</button>
+  <button class="nav-tab" data-tab="pipeline">🔭 Pipeline</button>
   <button class="nav-tab" data-tab="workload">📊 Workload</button>
   <button class="nav-tab" id="agentBtn" onclick="openAgent()">🤖 Run Agent</button>
 </div>
@@ -103,6 +104,17 @@
       </select>
     </div>
     <div id="backlogContent"></div>
+  </div>
+</div>
+
+<!-- ── Tab: Pipeline ─────────────────────────────────────────────────────── -->
+<div class="tab-panel full" id="tab-pipeline" style="height:calc(100vh - 120px);">
+  <div class="panel full-panel">
+    <div class="panel-header">
+      <h2>Pipeline Tracking</h2>
+      <button class="btn-new" onclick="openPipelineModal()">+ New Entry</button>
+    </div>
+    <div id="pipelineContent"><div class="empty-state"><div class="icon">⏳</div><p>Loading…</p></div></div>
   </div>
 </div>
 
@@ -378,6 +390,89 @@
       <div style="display:flex;gap:10px;margin-left:auto;">
         <button class="btn-secondary" onclick="closePtoModal()">Cancel</button>
         <button class="btn-primary" onclick="savePtoEntry()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Pipeline entry modal ─────────────────────────────────────────────── -->
+<div class="overlay" id="pipelineOverlay">
+  <div class="modal modal-sm" id="pipelineModal">
+    <div class="modal-header">
+      <div><div class="modal-title" id="pipelineModalTitle">New Pipeline Entry</div></div>
+      <button class="modal-close" onclick="closePipelineModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="plId">
+      <div class="form-grid" style="margin-bottom:14px;">
+        <div class="form-field">
+          <label>Type</label>
+          <select id="plType">
+            <option value="Lead">🔍 Lead</option>
+            <option value="Proposal">📋 Proposal</option>
+            <option value="Case">💼 Case</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Status</label>
+          <select id="plStatus">
+            <option value="Ongoing">✅ Ongoing</option>
+            <option value="Lost">❌ Lost</option>
+          </select>
+        </div>
+        <div class="form-field" style="grid-column:1/-1;">
+          <label>Name</label>
+          <input type="text" id="plName">
+        </div>
+        <div class="form-field">
+          <label>Case Code</label>
+          <input type="text" id="plCaseCode">
+        </div>
+        <div class="form-field">
+          <label>Case Type</label>
+          <input type="text" id="plCaseType">
+        </div>
+        <div class="form-field">
+          <label>Industry</label>
+          <input type="text" id="plIndustry">
+        </div>
+        <div class="form-field">
+          <label>Region</label>
+          <input type="text" id="plRegion">
+        </div>
+        <div class="form-field">
+          <label>Project Value</label>
+          <input type="text" id="plProjectValue">
+        </div>
+        <div class="form-field">
+          <label>Team Member</label>
+          <select id="plTeamMember"><option value="">— Select —</option></select>
+        </div>
+        <div class="form-field">
+          <label>Capacity</label>
+          <select id="plCapacity">
+            <option value="0">0%</option>
+            <option value="25">25%</option>
+            <option value="50" selected>50%</option>
+            <option value="75">75%</option>
+            <option value="100">100%</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Start Date</label>
+          <input type="date" id="plStartDate">
+        </div>
+        <div class="form-field">
+          <label>End Date</label>
+          <input type="date" id="plEndDate">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-danger" id="plDeleteBtn" onclick="deletePipelineEntry()" style="display:none;">Delete</button>
+      <div style="display:flex;gap:10px;margin-left:auto;">
+        <button class="btn-secondary" onclick="closePipelineModal()">Cancel</button>
+        <button class="btn-primary" onclick="savePipelineEntry()">Save</button>
       </div>
     </div>
   </div>

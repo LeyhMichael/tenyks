@@ -11,7 +11,7 @@ const FLAGS = {
 let state = {
   requests: [], team: [], teamNames: [], blocked: {}, blockReasons: {},
   unassignedCount: 0, weekLabels: [], todayLabel: '', maxRequests: 14,
-  staffingItems: [], ptoItems: [], teamNamesLoaded: [],
+  staffingItems: [], ptoItems: [], pipelineItems: [], teamNamesLoaded: [],
   backlogItems: [],
   agentRecs: [],
   workloadOffset: 0, workloadData: null,
@@ -114,6 +114,7 @@ function activateTab(tab) {
   if (tab === 'staffing') loadStaffingTab();
   if (tab === 'pto')      loadPtoTab();
   if (tab === 'backlog')  loadBacklogTab();
+  if (tab === 'pipeline') loadPipelineTab();
   if (tab === 'workload') loadWorkloadTab();
 }
 
@@ -851,6 +852,165 @@ async function deleteBacklogItem() {
     });
     closeBacklogModal();
     await loadBacklogTab();
+  } catch (err) {
+    toast('Failed to delete: ' + err.message, 'error');
+  }
+}
+
+// ── Pipeline tab ──────────────────────────────────────────────────────────────
+
+const PIPELINE_SECTIONS = [
+  { key: 'Lead',     label: 'Leads',     icon: '🔍', cls: 'pipeline-lead' },
+  { key: 'Proposal', label: 'Proposals', icon: '📋', cls: 'pipeline-proposal' },
+  { key: 'Case',     label: 'Cases',     icon: '💼', cls: 'pipeline-case' },
+  { key: 'Lost',     label: 'Lost',      icon: '❌', cls: 'pipeline-lost' },
+];
+
+async function loadPipelineTab() {
+  document.getElementById('pipelineContent').innerHTML =
+    '<div class="empty-state"><div class="icon">⏳</div><p>Loading…</p></div>';
+  try {
+    const [items, teamData] = await Promise.all([
+      apiFetch(`${API}/pipeline`),
+      apiFetch(`${API}/team`),
+    ]);
+    state.pipelineItems   = items;
+    state.teamNamesLoaded = teamData.team_names;
+    populatePipelineTeamSelect();
+    renderPipeline();
+  } catch (err) {
+    document.getElementById('pipelineContent').innerHTML =
+      `<div class="empty-state"><div class="icon">⚠️</div><p>Error: ${err.message}</p></div>`;
+  }
+}
+
+function renderPipeline() {
+  const items = state.pipelineItems || [];
+
+  const sectionItems = {
+    Lead:     items.filter(i => i.type === 'Lead'     && i.status === 'Ongoing'),
+    Proposal: items.filter(i => i.type === 'Proposal' && i.status === 'Ongoing'),
+    Case:     items.filter(i => i.type === 'Case'     && i.status === 'Ongoing'),
+    Lost:     items.filter(i => i.status === 'Lost'),
+  };
+
+  const cols = `<th>Name</th><th>Code</th><th>Case Type</th><th>Industry</th><th>Region</th><th>Project Value</th><th>Team Member</th><th>Capacity</th><th>Start</th><th>End</th>`;
+
+  let html = '';
+  for (const sec of PIPELINE_SECTIONS) {
+    const rows = sectionItems[sec.key];
+    const id   = 'pl-sec-' + sec.key;
+    html += `
+    <div class="pipeline-section ${sec.cls}">
+      <div class="pipeline-section-header" onclick="toggleGroup('${id}')">
+        <span class="group-toggle open" id="toggle-${id}">▶</span>
+        <span class="pipeline-section-icon">${sec.icon}</span>
+        <span class="group-title">${sec.label}</span>
+        <span class="group-count">${rows.length} item${rows.length !== 1 ? 's' : ''}</span>
+      </div>
+      <div id="${id}">`;
+
+    if (!rows.length) {
+      html += `<div class="pipeline-empty">No ${sec.label.toLowerCase()} yet.</div>`;
+    } else {
+      html += `<div class="list-table-wrap" style="border-radius:0 0 8px 8px;border-top:none;">
+        <table class="list-table"><thead><tr>${cols}</tr></thead><tbody>`;
+      for (const i of rows) {
+        html += `<tr onclick="openPipelineModal(${JSON.stringify(i).replace(/"/g,'&quot;')})">
+          <td><strong>${escHtml(i.case_name)}</strong></td>
+          <td>${escHtml(i.case_code)}</td>
+          <td>${escHtml(i.case_type)}</td>
+          <td>${escHtml(i.industry)}</td>
+          <td>${escHtml(i.region)}</td>
+          <td>${escHtml(i.project_value)}</td>
+          <td>${escHtml(formatName(i.team_member))}</td>
+          <td>${i.capacity_pct ? `<span class="capacity-pill">${i.capacity_pct}%</span>` : '—'}</td>
+          <td>${i.start_date || '—'}</td>
+          <td>${i.end_date   || '—'}</td>
+        </tr>`;
+      }
+      html += `</tbody></table></div>`;
+    }
+    html += `</div></div>`;
+  }
+
+  document.getElementById('pipelineContent').innerHTML = html || '<div class="empty-state"><div class="icon">🔭</div><p>No pipeline entries yet.</p></div>';
+}
+
+function populatePipelineTeamSelect() {
+  const names = getTeamNames();
+  const sel = document.getElementById('plTeamMember');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Select —</option>';
+  names.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = formatName(n); if (n === cur) o.selected = true; sel.appendChild(o); });
+}
+
+function openPipelineModal(item) {
+  const isNew = !item;
+  document.getElementById('pipelineModalTitle').textContent = isNew ? 'New Pipeline Entry' : 'Edit Pipeline Entry';
+  document.getElementById('plDeleteBtn').style.display = isNew ? 'none' : 'inline-flex';
+  document.getElementById('plId').value           = item?.id            || '';
+  document.getElementById('plType').value         = item?.type          || 'Lead';
+  document.getElementById('plStatus').value       = item?.status        || 'Ongoing';
+  document.getElementById('plName').value         = item?.case_name     || '';
+  document.getElementById('plCaseCode').value     = item?.case_code     || '';
+  document.getElementById('plCaseType').value     = item?.case_type     || '';
+  document.getElementById('plIndustry').value     = item?.industry      || '';
+  document.getElementById('plRegion').value       = item?.region        || '';
+  document.getElementById('plProjectValue').value = item?.project_value || '';
+  document.getElementById('plTeamMember').value   = item?.team_member   || '';
+  document.getElementById('plCapacity').value     = String(item?.capacity_pct ?? 50);
+  document.getElementById('plStartDate').value    = item?.start_date    || '';
+  document.getElementById('plEndDate').value      = item?.end_date      || '';
+  document.getElementById('pipelineOverlay').classList.add('show');
+}
+
+function closePipelineModal() {
+  document.getElementById('pipelineOverlay').classList.remove('show');
+}
+
+async function savePipelineEntry() {
+  const name = document.getElementById('plName').value.trim();
+  if (!name) return toast('Name is required', 'warn');
+  const payload = {
+    id:            document.getElementById('plId').value ? parseInt(document.getElementById('plId').value) : null,
+    type:          document.getElementById('plType').value,
+    status:        document.getElementById('plStatus').value,
+    case_name:     name,
+    case_code:     document.getElementById('plCaseCode').value,
+    case_type:     document.getElementById('plCaseType').value,
+    industry:      document.getElementById('plIndustry').value,
+    region:        document.getElementById('plRegion').value,
+    project_value: document.getElementById('plProjectValue').value,
+    team_member:   document.getElementById('plTeamMember').value,
+    capacity_pct:  parseInt(document.getElementById('plCapacity').value) || 0,
+    start_date:    document.getElementById('plStartDate').value,
+    end_date:      document.getElementById('plEndDate').value,
+  };
+  try {
+    const data = await fetch(`${API}/pipeline/save`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).then(r => r.json());
+    if (data.error) return toast(data.error, 'error');
+    closePipelineModal();
+    await loadPipelineTab();
+  } catch (err) {
+    toast('Failed to save: ' + err.message, 'error');
+  }
+}
+
+async function deletePipelineEntry() {
+  const id = document.getElementById('plId').value;
+  if (!id || !confirm('Delete this pipeline entry?')) return;
+  try {
+    await fetch(`${API}/pipeline/delete`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: parseInt(id) }),
+    });
+    closePipelineModal();
+    await loadPipelineTab();
   } catch (err) {
     toast('Failed to delete: ' + err.message, 'error');
   }

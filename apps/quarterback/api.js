@@ -277,6 +277,26 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
     ALTER TABLE backlog ADD COLUMN IF NOT EXISTS team3_alloc INTEGER DEFAULT 0;
   `)).catch(err => console.error('[quarterback] backlog table init:', err.message));
 
+  // Pipeline table
+  pool.query(`
+    CREATE TABLE IF NOT EXISTS pipeline (
+      id            SERIAL PRIMARY KEY,
+      type          TEXT DEFAULT 'Lead',
+      status        TEXT DEFAULT 'Ongoing',
+      case_name     TEXT DEFAULT '',
+      case_code     TEXT DEFAULT '',
+      case_type     TEXT DEFAULT '',
+      industry      TEXT DEFAULT '',
+      region        TEXT DEFAULT '',
+      project_value TEXT DEFAULT '',
+      team_member   TEXT DEFAULT '',
+      capacity_pct  INTEGER DEFAULT 0,
+      start_date    DATE,
+      end_date      DATE,
+      created_at    TIMESTAMPTZ DEFAULT NOW()
+    )
+  `).catch(err => console.error('[quarterback] pipeline table init:', err.message));
+
   // Migrate staffing: drop old day-based table, create range-based one
   pool.query(`
     DO $$ BEGIN
@@ -919,6 +939,82 @@ Do not include any text outside the JSON array.`;
       }
 
       sendJson(res, { members, weeks: weekRanges, data, today, max_requests: MAX_REQUESTS });
+    } catch (err) {
+      sendError(res, 500, errMsg(err));
+    }
+  });
+
+  // ── GET pipeline ─────────────────────────────────────────────────────────────
+
+  register('GET', 'pipeline', async (req, res) => {
+    try {
+      const { rows } = await pool.query(`
+        SELECT id, type, status, case_name, case_code, case_type,
+               industry, region, project_value, team_member, capacity_pct,
+               start_date::text, end_date::text
+        FROM pipeline ORDER BY status ASC, type ASC, start_date DESC NULLS LAST
+      `);
+      sendJson(res, rows.map(r => ({
+        id:            r.id,
+        type:          r.type          || 'Lead',
+        status:        r.status        || 'Ongoing',
+        case_name:     r.case_name     || '',
+        case_code:     r.case_code     || '',
+        case_type:     r.case_type     || '',
+        industry:      r.industry      || '',
+        region:        r.region        || '',
+        project_value: r.project_value || '',
+        team_member:   r.team_member   || '',
+        capacity_pct:  parseInt(r.capacity_pct) || 0,
+        start_date:    (r.start_date   || '').slice(0, 10),
+        end_date:      (r.end_date     || '').slice(0, 10),
+      })));
+    } catch (err) {
+      sendError(res, 500, errMsg(err));
+    }
+  });
+
+  // ── POST pipeline/save ────────────────────────────────────────────────────────
+
+  register('POST', 'pipeline/save', async (req, res) => {
+    try {
+      const d = await readJson(req);
+      if (!d.case_name) return sendError(res, 400, 'Name is required');
+      const p = [
+        d.type || 'Lead', d.status || 'Ongoing',
+        d.case_name, d.case_code || '', d.case_type || '',
+        d.industry || '', d.region || '', d.project_value || '',
+        d.team_member || '', parseInt(d.capacity_pct) || 0,
+        d.start_date || null, d.end_date || null,
+      ];
+      let id;
+      if (d.id) {
+        await pool.query(`
+          UPDATE pipeline SET type=$1,status=$2,case_name=$3,case_code=$4,case_type=$5,
+            industry=$6,region=$7,project_value=$8,team_member=$9,capacity_pct=$10,
+            start_date=$11,end_date=$12 WHERE id=$13`, [...p, d.id]);
+        id = d.id;
+      } else {
+        const { rows } = await pool.query(`
+          INSERT INTO pipeline (type,status,case_name,case_code,case_type,industry,region,
+            project_value,team_member,capacity_pct,start_date,end_date)
+          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`, p);
+        id = rows[0].id;
+      }
+      sendJson(res, { success: true, id });
+    } catch (err) {
+      sendError(res, 500, errMsg(err));
+    }
+  });
+
+  // ── POST pipeline/delete ──────────────────────────────────────────────────────
+
+  register('POST', 'pipeline/delete', async (req, res) => {
+    try {
+      const { id } = await readJson(req);
+      if (!id) return sendError(res, 400, 'Missing id');
+      await pool.query('DELETE FROM pipeline WHERE id=$1', [id]);
+      sendJson(res, { success: true });
     } catch (err) {
       sendError(res, 500, errMsg(err));
     }
