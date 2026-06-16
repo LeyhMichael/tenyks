@@ -177,9 +177,13 @@ async function buildCapacity(requests) {
 
   const maps = await getCapacityBatchForDate(today);
 
-  const names = [...new Set(
-    requests.filter(r => r.assigned_to && r.assigned_to !== 'Unassigned').map(r => r.assigned_to)
-  )];
+  // Include anyone with assigned requests OR any capacity commitment today
+  const names = [...new Set([
+    ...requests.filter(r => r.assigned_to && r.assigned_to !== 'Unassigned').map(r => r.assigned_to),
+    ...Object.keys(maps.staffingMap),
+    ...Object.keys(maps.ptoMap),
+    ...Object.keys(maps.backlogMap),
+  ])];
 
   const result = [];
   for (const name of names) {
