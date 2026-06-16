@@ -165,7 +165,9 @@ loadRequests();
 
 function renderStats() {
   const s = state;
-  const blockedCount = Object.keys(s.blocked).length;
+  // Split blocked into ≥75% (not overloaded) and >100% (overloaded)
+  const overloadedCount = s.team.filter(m => m.is_overloaded).length;
+  const blockedCount    = s.team.filter(m => m.is_blocked && !m.is_overloaded).length;
 
   // All members with case staffing or PTO today (independent of blocked status)
   const staffedCount = s.team.filter(m =>
@@ -176,8 +178,10 @@ function renderStats() {
   ).length;
 
   let html = `<div class="stat-chip urgent"><div class="stat-dot dot-red"></div>${s.unassignedCount} requests unassigned</div>`;
+  if (overloadedCount > 0)
+    html += `<div class="stat-chip overloaded-chip"><div class="stat-dot dot-darkred"></div>${overloadedCount} member${overloadedCount > 1 ? 's' : ''} &gt;100%</div>`;
   if (blockedCount > 0)
-    html += `<div class="stat-chip blocked-chip"><div class="stat-dot dot-red"></div>${blockedCount} member${blockedCount > 1 ? 's' : ''} blocked</div>`;
+    html += `<div class="stat-chip blocked-chip"><div class="stat-dot dot-red"></div>${blockedCount} member${blockedCount > 1 ? 's' : ''} ≥75%</div>`;
   if (staffedCount > 0)
     html += `<div class="stat-chip staffed-chip"><div class="stat-dot dot-green"></div>${staffedCount} on case</div>`;
   if (absentCount > 0)

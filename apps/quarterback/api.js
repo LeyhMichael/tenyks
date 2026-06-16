@@ -147,12 +147,17 @@ function computeBreakdown(name, staffingMap, ptoMap, backlogMap) {
   const staffing_pct = staffingMap[name] || 0;
   const pto_pct      = ptoMap[name]      || 0;
   const backlog_pct  = backlogMap[name]  || 0;
-  const total        = Math.min(staffing_pct + pto_pct + backlog_pct, 100);
+  const raw_total    = staffing_pct + pto_pct + backlog_pct;
+  const total        = Math.min(raw_total, 100);
   const reasons      = [];
   if (staffing_pct > 0) reasons.push(`Case (${staffing_pct}%)`);
   if (pto_pct      > 0) reasons.push(`PTO (${pto_pct}%)`);
   if (backlog_pct  > 0) reasons.push(`Backlog (${backlog_pct}%)`);
-  return { total, staffing_pct, pto_pct, backlog_pct, reasons, is_blocked: total >= BLOCK_THRESHOLD };
+  return {
+    total, raw_total, staffing_pct, pto_pct, backlog_pct, reasons,
+    is_blocked:    raw_total >= BLOCK_THRESHOLD,
+    is_overloaded: raw_total > 100,
+  };
 }
 
 function effectiveCapFromBreakdown(breakdown) {
@@ -209,6 +214,7 @@ async function buildCapacity(requests) {
       result.push({
         name, daily, spillover, total, pct,
         is_blocked:    breakdown.is_blocked,
+        is_overloaded: breakdown.is_overloaded,
         block_reasons: breakdown.reasons,
         effective_cap: cap,
         at_capacity:   total >= cap || breakdown.is_blocked,
