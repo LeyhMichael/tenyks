@@ -376,6 +376,43 @@ header .subtitle { font-size: 12px; color: #6b7280; margin-top: 2px; }
 .toast.warn  { border-color: #f59e0b; color: #fbbf24; background: #1a1a0f; }
 .toast.error { border-color: #ef4444; color: #f87171; background: #1a0f0f; }
 
+/* ── Workload tab ─────────────────────────────────────────────────────────── */
+
+.wl-table { border-collapse: collapse; min-width: 100%; margin-top: 16px; }
+.wl-table thead th {
+  font-size: 11px; font-weight: 600; color: #6b7280;
+  padding: 8px 12px; border-bottom: 1px solid #2a2f3e;
+  white-space: nowrap; position: sticky; top: 0;
+  background: #0f1117; z-index: 10;
+}
+.wl-name-col { min-width: 140px; text-align: left; position: sticky !important; left: 0; z-index: 20 !important; }
+.wl-week-col { min-width: 120px; text-align: center; }
+.wl-table tbody tr { border-bottom: 1px solid #1e2330; transition: background 0.12s; }
+.wl-table tbody tr:hover { background: #1a1f2e; }
+.wl-name-cell {
+  padding: 12px 12px; font-size: 12px; white-space: nowrap;
+  position: sticky; left: 0; background: #0f1117; z-index: 5;
+  border-right: 1px solid #2a2f3e;
+}
+.wl-table tbody tr:hover .wl-name-cell { background: #1a1f2e; }
+.wl-first { font-weight: 600; color: #e5e7eb; }
+.wl-last  { color: #6b7280; font-weight: 400; }
+.wl-cell  { padding: 10px 12px; text-align: center; cursor: default; }
+.wl-current { background: rgba(59,130,246,0.06); }
+.wl-bar  { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: #1e2330; margin-bottom: 5px; }
+.wl-seg  { height: 100%; }
+.wl-pct  { font-size: 11px; font-weight: 700; }
+.wl-legend { display: flex; gap: 18px; margin-top: 20px; padding-top: 12px; border-top: 1px solid #2a2f3e; flex-wrap: wrap; }
+.wl-leg {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: #9ca3af;
+}
+.wl-leg::before {
+  content: ''; display: inline-block;
+  width: 12px; height: 8px; border-radius: 2px;
+  background: var(--c);
+}
+
 /* ── Scrollbar ────────────────────────────────────────────────────────────── */
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }

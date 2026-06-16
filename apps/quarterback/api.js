@@ -121,13 +121,26 @@ async function getBacklogAllocationToday(name) {
   const today = todayStr();
   try {
     const { rows } = await pool.query(`
-      SELECT allocation_pct FROM backlog
+      SELECT lead, team, lead_alloc, team1_alloc, team2_alloc, team3_alloc, allocation_pct
+      FROM backlog
       WHERE status = 'Working'
         AND (lead = $1 OR team LIKE $2)
         AND start_date IS NOT NULL AND end_date IS NOT NULL
         AND start_date::text <= $3 AND end_date::text >= $3
     `, [name, `%${name}%`, today]);
-    return Math.min(rows.reduce((s, r) => s + (parseInt(r.allocation_pct) || 0), 0), 100);
+    let total = 0;
+    for (const r of rows) {
+      if (r.lead === name) {
+        total += parseInt(r.lead_alloc) || parseInt(r.allocation_pct) || 0;
+      } else {
+        const teamArr = (r.team || '').split(',').map(n => n.trim());
+        const idx = teamArr.indexOf(name);
+        if (idx === 0) total += parseInt(r.team1_alloc) || 0;
+        if (idx === 1) total += parseInt(r.team2_alloc) || 0;
+        if (idx === 2) total += parseInt(r.team3_alloc) || 0;
+      }
+    }
+    return Math.min(total, 100);
   } catch {
     return 0;
   }
@@ -216,7 +229,7 @@ async function buildCapacity(requests, staffing, pto) {
 
 module.exports = function ({ register, readJson, sendJson, sendError }) {
 
-  // Ensure backlog table exists
+  // Ensure backlog table exists + per-person allocation columns
   pool.query(`
     CREATE TABLE IF NOT EXISTS backlog (
       id              SERIAL PRIMARY KEY,
@@ -234,7 +247,12 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
       stakeholders    TEXT DEFAULT '',
       allocation_pct  INTEGER DEFAULT 0
     )
-  `).catch(err => console.error('[quarterback] backlog table init:', err.message));
+  `).then(() => pool.query(`
+    ALTER TABLE backlog ADD COLUMN IF NOT EXISTS lead_alloc  INTEGER DEFAULT 0;
+    ALTER TABLE backlog ADD COLUMN IF NOT EXISTS team1_alloc INTEGER DEFAULT 0;
+    ALTER TABLE backlog ADD COLUMN IF NOT EXISTS team2_alloc INTEGER DEFAULT 0;
+    ALTER TABLE backlog ADD COLUMN IF NOT EXISTS team3_alloc INTEGER DEFAULT 0;
+  `)).catch(err => console.error('[quarterback] backlog table init:', err.message));
 
   // ── GET requests ─────────────────────────────────────────────────────────────
 
@@ -435,7 +453,8 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
       const { rows } = await pool.query(`
         SELECT id, group_name, name, lead, team, status,
                start_date::text, end_date::text, priority, hours,
-               completion_date::text, practice, stakeholders, allocation_pct
+               completion_date::text, practice, stakeholders, allocation_pct,
+               lead_alloc, team1_alloc, team2_alloc, team3_alloc
         FROM backlog ORDER BY group_name, id
       `);
       sendJson(res, rows.map(r => ({
@@ -453,6 +472,10 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
         practice:        r.practice || '',
         stakeholders:    r.stakeholders || '',
         allocation_pct:  parseInt(r.allocation_pct) || 0,
+        lead_alloc:      parseInt(r.lead_alloc)  || 0,
+        team1_alloc:     parseInt(r.team1_alloc) || 0,
+        team2_alloc:     parseInt(r.team2_alloc) || 0,
+        team3_alloc:     parseInt(r.team3_alloc) || 0,
       })));
     } catch (err) {
       sendError(res, 500, errMsg(err));
@@ -473,19 +496,25 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
         d.completion_date || null,
         d.practice || '', d.stakeholders || '',
         parseInt(d.allocation_pct) || 0,
+        parseInt(d.lead_alloc)  || 0,
+        parseInt(d.team1_alloc) || 0,
+        parseInt(d.team2_alloc) || 0,
+        parseInt(d.team3_alloc) || 0,
       ];
       if (d.id) {
         await pool.query(`
           UPDATE backlog SET group_name=$1,name=$2,lead=$3,team=$4,status=$5,
             start_date=$6,end_date=$7,priority=$8,hours=$9,completion_date=$10,
-            practice=$11,stakeholders=$12,allocation_pct=$13 WHERE id=$14`,
+            practice=$11,stakeholders=$12,allocation_pct=$13,
+            lead_alloc=$14,team1_alloc=$15,team2_alloc=$16,team3_alloc=$17 WHERE id=$18`,
           [...p, d.id]);
         sendJson(res, { success: true, id: d.id });
       } else {
         const { rows } = await pool.query(`
           INSERT INTO backlog (group_name,name,lead,team,status,start_date,end_date,
-            priority,hours,completion_date,practice,stakeholders,allocation_pct)
-          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id`, p);
+            priority,hours,completion_date,practice,stakeholders,allocation_pct,
+            lead_alloc,team1_alloc,team2_alloc,team3_alloc)
+          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING id`, p);
         sendJson(res, { success: true, id: rows[0].id });
       }
     } catch (err) {
@@ -659,6 +688,123 @@ Do not include any text outside the JSON array.`;
 
       if (applied.length) invalidateRequests();
       sendJson(res, { applied: applied.length, skipped, errors: [] });
+    } catch (err) {
+      sendError(res, 500, errMsg(err));
+    }
+  });
+
+  // ── GET workload?weeks=N&offset=N ────────────────────────────────────────────
+
+  register('GET', 'workload', async (req, res) => {
+    try {
+      const url   = new URL(req.url, 'http://x');
+      const weeks = Math.min(parseInt(url.searchParams.get('weeks')  || '6'), 12);
+      const offset= parseInt(url.searchParams.get('offset') || '0');
+
+      const [requests, teamMembers, staffing, pto] = await Promise.all([
+        loadRequests(), loadTeamMembers(), loadStaffing(), loadPto(),
+      ]);
+
+      // Active request count per person (current week only)
+      const activeReqs = {};
+      for (const r of getActiveRequests(requests)) {
+        if (r.assigned_to && r.assigned_to !== 'Unassigned')
+          activeReqs[r.assigned_to] = (activeReqs[r.assigned_to] || 0) + 1;
+      }
+
+      // Backlog items that have dates + allocation
+      const { rows: backlogRows } = await pool.query(`
+        SELECT name, lead, team, start_date::text, end_date::text,
+               allocation_pct, lead_alloc, team1_alloc, team2_alloc, team3_alloc
+        FROM backlog
+        WHERE start_date IS NOT NULL AND end_date IS NOT NULL AND status = 'Working'
+          AND (allocation_pct > 0 OR lead_alloc > 0 OR team1_alloc > 0 OR team2_alloc > 0 OR team3_alloc > 0)
+      `);
+
+      // Build week ranges
+      const baseMonday = addDays(getMondayStr(), offset * 7);
+      const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const weekRanges = [];
+      for (let w = 0; w < weeks; w++) {
+        const from = addDays(baseMonday, w * 7);
+        const to   = addDays(from, 4);
+        const fd = new Date(from + 'T00:00:00Z');
+        const td = new Date(to   + 'T00:00:00Z');
+        const label = fd.getUTCMonth() === td.getUTCMonth()
+          ? `${MONTHS[fd.getUTCMonth()]} ${fd.getUTCDate()}–${td.getUTCDate()}`
+          : `${MONTHS[fd.getUTCMonth()]} ${fd.getUTCDate()} – ${MONTHS[td.getUTCMonth()]} ${td.getUTCDate()}`;
+        weekRanges.push({ from, to, label });
+      }
+
+      const today   = todayStr();
+      const members = Object.keys(teamMembers).sort();
+      const data    = {};
+
+      for (const name of members) {
+        data[name] = {};
+        for (const week of weekRanges) {
+          // Case staffing: average % across Mon-Fri
+          let staffingSum = 0;
+          const staffingDays = {};
+          for (let i = 0; i < 5; i++) {
+            const d = addDays(week.from, i);
+            const pct = (staffing[name] || {})[d] || 0;
+            staffingSum += pct;
+            if (pct > 0) staffingDays[d] = pct;
+          }
+          const staffingAvg = Math.round(staffingSum / 5);
+
+          // PTO
+          let ptoDayCount = 0;
+          const ptoDays = {};
+          for (let i = 0; i < 5; i++) {
+            const d    = addDays(week.from, i);
+            const type = (pto[name] || {})[d];
+            if (type) { ptoDayCount++; ptoDays[d] = type; }
+          }
+          const ptoPct = Math.round((ptoDayCount / 5) * 100);
+
+          // Backlog — per-person allocation
+          let backlogPct = 0;
+          const backlogItems = [];
+          for (const item of backlogRows) {
+            const s = (item.start_date || '').slice(0, 10);
+            const e = (item.end_date   || '').slice(0, 10);
+            if (s > week.to || e < week.from) continue;
+            let pct = 0;
+            if (item.lead === name) {
+              pct = parseInt(item.lead_alloc) || parseInt(item.allocation_pct) || 0;
+            } else {
+              const teamArr = (item.team || '').split(',').map(n => n.trim());
+              const idx = teamArr.indexOf(name);
+              if (idx === 0) pct = parseInt(item.team1_alloc) || 0;
+              else if (idx === 1) pct = parseInt(item.team2_alloc) || 0;
+              else if (idx === 2) pct = parseInt(item.team3_alloc) || 0;
+            }
+            if (pct <= 0) continue;
+            backlogPct += pct;
+            backlogItems.push({ name: item.name, pct });
+          }
+          backlogPct = Math.min(backlogPct, 100);
+
+          // Requests — only current week has live count
+          const isCurrent = week.from <= today && week.to >= today;
+          const reqCount  = isCurrent ? (activeReqs[name] || 0) : 0;
+          const reqPct    = Math.round((reqCount / MAX_REQUESTS) * 100);
+
+          const total = staffingAvg + ptoPct + backlogPct + reqPct; // allow >100 to show overload
+
+          data[name][week.from] = {
+            staffing_pct: staffingAvg, staffing_days: staffingDays,
+            pto_pct: ptoPct,           pto_days: ptoDays,
+            backlog_pct: backlogPct,   backlog_items: backlogItems,
+            req_count: reqCount,       req_pct: reqPct,
+            total, is_current: isCurrent,
+          };
+        }
+      }
+
+      sendJson(res, { members, weeks: weekRanges, data, today, max_requests: MAX_REQUESTS });
     } catch (err) {
       sendError(res, 500, errMsg(err));
     }

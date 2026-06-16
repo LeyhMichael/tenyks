@@ -16,6 +16,7 @@ let state = {
   staffingData: {}, ptoData: {}, teamNamesLoaded: [],
   backlogItems: [],
   agentRecs: [],
+  workloadOffset: 0, workloadData: null,
 };
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
@@ -103,6 +104,7 @@ function activateTab(tab) {
   if (tab === 'staffing') loadStaffingTab();
   if (tab === 'pto')      loadPtoTab();
   if (tab === 'backlog')  loadBacklogTab();
+  if (tab === 'workload') loadWorkloadTab();
 }
 
 document.querySelectorAll('.nav-tab[data-tab]').forEach(btn => {
@@ -515,6 +517,7 @@ function populateBacklogTeamSelects() {
   const names = getTeamNames();
   ['blLead', 'blTeam1', 'blTeam2', 'blTeam3'].forEach(id => {
     const sel = document.getElementById(id);
+    if (!sel) return;
     const firstOpt = sel.options[0];
     sel.innerHTML = '';
     sel.appendChild(firstOpt);
@@ -635,15 +638,18 @@ function openBacklogModal(item) {
   document.getElementById('blGroupField').value = item?.group || 'IP & Product';
   document.getElementById('blStatusField').value = item?.status || 'Backlog';
   document.getElementById('blPriorityField').value = item?.priority || 'Unset';
-  document.getElementById('blAllocation').value = String(item?.allocation_pct || 0);
-  document.getElementById('blLead').value = item?.lead || '';
   document.getElementById('blStartDate').value = item?.start_date || '';
   document.getElementById('blEndDate').value = item?.end_date || '';
   document.getElementById('blPractice').value = item?.practice || '';
+  document.getElementById('blLead').value = item?.lead || '';
+  document.getElementById('blLeadAlloc').value  = String(item?.lead_alloc  || item?.allocation_pct || 0);
   const teamArr = (item?.team || '').split(',').map(n => n.trim()).filter(Boolean);
   document.getElementById('blTeam1').value = teamArr[0] || '';
   document.getElementById('blTeam2').value = teamArr[1] || '';
   document.getElementById('blTeam3').value = teamArr[2] || '';
+  document.getElementById('blTeam1Alloc').value = String(item?.team1_alloc || 0);
+  document.getElementById('blTeam2Alloc').value = String(item?.team2_alloc || 0);
+  document.getElementById('blTeam3Alloc').value = String(item?.team3_alloc || 0);
   document.getElementById('blStakeholders').value = item?.stakeholders || '';
   document.getElementById('backlogOverlay').classList.add('show');
 }
@@ -665,9 +671,13 @@ async function saveBacklogItem() {
     group:         document.getElementById('blGroupField').value,
     status:        document.getElementById('blStatusField').value,
     priority:      document.getElementById('blPriorityField').value,
-    allocation_pct:document.getElementById('blAllocation').value,
     lead:          document.getElementById('blLead').value,
+    lead_alloc:    parseInt(document.getElementById('blLeadAlloc').value)  || 0,
     team,
+    team1_alloc:   parseInt(document.getElementById('blTeam1Alloc').value) || 0,
+    team2_alloc:   parseInt(document.getElementById('blTeam2Alloc').value) || 0,
+    team3_alloc:   parseInt(document.getElementById('blTeam3Alloc').value) || 0,
+    allocation_pct:parseInt(document.getElementById('blLeadAlloc').value)  || 0,
     start_date:    document.getElementById('blStartDate').value,
     end_date:      document.getElementById('blEndDate').value,
     hours:         0,
@@ -700,6 +710,93 @@ async function deleteBacklogItem() {
   } catch (err) {
     toast('Failed to delete: ' + err.message, 'error');
   }
+}
+
+// ── Workload tab ──────────────────────────────────────────────────────────────
+
+async function loadWorkloadTab() {
+  document.getElementById('workloadContent').innerHTML =
+    '<div class="empty-state"><div class="icon">⏳</div><p>Loading…</p></div>';
+  try {
+    const data = await apiFetch(`${API}/workload?weeks=6&offset=${state.workloadOffset}`);
+    state.workloadData = data;
+    renderWorkload();
+  } catch (err) {
+    document.getElementById('workloadContent').innerHTML =
+      `<div class="empty-state"><div class="icon">⚠️</div><p>Error: ${err.message}</p></div>`;
+  }
+}
+
+function changeWorkloadOffset(delta, reset = false) {
+  state.workloadOffset = reset ? 0 : state.workloadOffset + delta;
+  loadWorkloadTab();
+}
+
+function renderWorkload() {
+  const { members, weeks, data } = state.workloadData;
+
+  // Range label
+  document.getElementById('workloadRangeLabel').textContent =
+    `${weeks[0].label} — ${weeks[weeks.length - 1].label}`;
+
+  const allocSel = (label, pct, color) =>
+    pct > 0 ? `<div class="wl-seg" style="width:${pct}%;background:${color};" title="${label}: ${pct}%"></div>` : '';
+
+  let html = `<table class="wl-table">
+    <thead><tr>
+      <th class="wl-name-col">Member</th>
+      ${weeks.map(w => `<th class="wl-week-col">${w.label}</th>`).join('')}
+    </tr></thead><tbody>`;
+
+  for (const member of members) {
+    const firstName = member.split(' ')[0];
+    const lastName  = member.split(' ').slice(1).join(' ');
+    html += `<tr>
+      <td class="wl-name-cell"><span class="wl-first">${firstName}</span> <span class="wl-last">${lastName}</span></td>`;
+
+    for (const week of weeks) {
+      const c = (data[member] || {})[week.from] || {};
+      const s  = Math.min(c.staffing_pct || 0, 100);
+      const p  = Math.min(c.pto_pct      || 0, Math.max(0, 100 - s));
+      const b  = Math.min(c.backlog_pct  || 0, Math.max(0, 100 - s - p));
+      const r  = Math.min(c.req_pct      || 0, Math.max(0, 100 - s - p - b));
+      const total = (c.total || 0);
+      const over  = total > 100;
+      const clr   = total === 0 ? '#374151' : over ? '#f87171' : total >= 85 ? '#fbbf24' : total >= 60 ? '#60a5fa' : '#34d399';
+
+      // Tooltip
+      const tips = [];
+      if (s > 0) tips.push(`🟣 Case: ${c.staffing_pct}%`);
+      if (p > 0) tips.push(`🟠 PTO: ${c.pto_pct}% (${Object.keys(c.pto_days || {}).length}d)`);
+      if (b > 0) {
+        tips.push(`🟡 Backlog: ${c.backlog_pct}%`);
+        (c.backlog_items || []).forEach(i => tips.push(`   · ${i.name} (${i.pct}%)`));
+      }
+      if (r > 0) tips.push(`🔵 Requests: ${c.req_count} (${c.req_pct}%)`);
+      if (!tips.length) tips.push('No load this week');
+
+      html += `<td class="wl-cell${c.is_current ? ' wl-current' : ''}" title="${tips.join('\n')}">
+        <div class="wl-bar">
+          ${allocSel('Case', s, '#8b5cf6')}
+          ${allocSel('PTO',  p, '#f59e0b')}
+          ${allocSel('Backlog', b, '#14b8a6')}
+          ${allocSel('Requests', r, '#3b82f6')}
+        </div>
+        <div class="wl-pct" style="color:${clr}">${total > 0 ? total + '%' : '—'}${over ? ' ⚠' : ''}</div>
+      </td>`;
+    }
+    html += '</tr>';
+  }
+
+  html += `</tbody></table>
+    <div class="wl-legend">
+      <span class="wl-leg" style="--c:#8b5cf6">Case Staffing</span>
+      <span class="wl-leg" style="--c:#f59e0b">PTO</span>
+      <span class="wl-leg" style="--c:#14b8a6">Backlog</span>
+      <span class="wl-leg" style="--c:#3b82f6">Requests (current week)</span>
+    </div>`;
+
+  document.getElementById('workloadContent').innerHTML = html;
 }
 
 // ── Agent modal ───────────────────────────────────────────────────────────────
