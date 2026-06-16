@@ -167,12 +167,12 @@ function renderStats() {
   const s = state;
   const blockedCount = Object.keys(s.blocked).length;
 
-  // Non-blocked members who have case staffing or PTO today
+  // All members with case staffing or PTO today (independent of blocked status)
   const staffedCount = s.team.filter(m =>
-    !m.is_blocked && (m.block_reasons || []).some(r => r.toLowerCase().startsWith('case'))
+    (m.block_reasons || []).some(r => r.toLowerCase().startsWith('case'))
   ).length;
   const absentCount = s.team.filter(m =>
-    !m.is_blocked && (m.block_reasons || []).some(r => r.toLowerCase().startsWith('pto'))
+    (m.block_reasons || []).some(r => r.toLowerCase().startsWith('pto'))
   ).length;
 
   let html = `<div class="stat-chip urgent"><div class="stat-dot dot-red"></div>${s.unassignedCount} requests unassigned</div>`;
