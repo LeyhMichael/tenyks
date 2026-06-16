@@ -43,9 +43,9 @@ function getCallerEmail(req) {
 }
 
 function isTeamMember(email) {
-  if (!email) return false;
-  // If TEAM_EMAILS is not configured at all, allow everyone (dev / fallback)
+  // If TEAM_EMAILS is not configured at all, allow everyone (dev / localhost)
   if (TEAM_EMAILS.size === 0) return true;
+  if (!email) return false;
   return TEAM_EMAILS.has(email);
 }
 

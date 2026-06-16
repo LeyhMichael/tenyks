@@ -99,6 +99,11 @@ function serveApps(): Plugin {
       // to an app folder path and serve the platform homepage instead.
       server.middlewares.use((req: any, res: any, next: any) => {
         const urlPath = (req.url ?? '/').split('?')[0];
+
+        if (urlPath === '/api/me') {
+          return sendJson(res, { email: null, isTeamMember: true });
+        }
+
         const parts = urlPath.split('/').filter(Boolean);
         if (!parts.length) return next();
 
