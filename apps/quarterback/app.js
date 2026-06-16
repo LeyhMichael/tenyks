@@ -155,14 +155,14 @@ loadRequests();
 
 function renderStats() {
   const s = state;
-  const blockedCount = s.team.filter(m => m.is_blocked).length;
-  let html = `
-    <div class="stat-chip urgent"><div class="stat-dot dot-red"></div>${s.unassignedCount} Unassigned</div>
-    <div class="stat-chip active"><div class="stat-dot dot-blue"></div>${s.requests.length} Active</div>
-    <div class="stat-chip team"><div class="stat-dot dot-green"></div>${s.team.length} Active This Week</div>
-  `;
-  if (blockedCount > 0)
-    html += `<div class="stat-chip blocked"><div class="stat-dot dot-red"></div>${blockedCount} Blocked</div>`;
+  const blockedNames  = Object.keys(s.blocked);
+  const staffedCount  = blockedNames.filter(n => s.blockReasons[n] === 'on case today').length;
+  const absenceCount  = blockedNames.filter(n => s.blockReasons[n] !== 'on case today').length;
+  let html = `<div class="stat-chip urgent"><div class="stat-dot dot-red"></div>${s.unassignedCount} requests unassigned</div>`;
+  if (staffedCount > 0)
+    html += `<div class="stat-chip staffed"><div class="stat-dot dot-purple"></div>${staffedCount} staffed</div>`;
+  if (absenceCount > 0)
+    html += `<div class="stat-chip absence"><div class="stat-dot dot-orange"></div>${absenceCount} on absence</div>`;
   document.getElementById('statsBar').innerHTML = html;
   document.getElementById('capSublabel').textContent = `Max ${s.maxRequests} req/week`;
 }

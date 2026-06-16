@@ -123,7 +123,7 @@ async function getBacklogAllocationToday(name) {
     const { rows } = await pool.query(`
       SELECT lead, team, lead_alloc, team1_alloc, team2_alloc, team3_alloc, allocation_pct
       FROM backlog
-      WHERE status = 'Working'
+      WHERE status NOT IN ('Complete', 'Deprioritized')
         AND (lead = $1 OR team LIKE $2)
         AND start_date IS NOT NULL AND end_date IS NOT NULL
         AND start_date::text <= $3 AND end_date::text >= $3
@@ -717,7 +717,8 @@ Do not include any text outside the JSON array.`;
         SELECT name, lead, team, start_date::text, end_date::text,
                allocation_pct, lead_alloc, team1_alloc, team2_alloc, team3_alloc
         FROM backlog
-        WHERE start_date IS NOT NULL AND end_date IS NOT NULL AND status = 'Working'
+        WHERE start_date IS NOT NULL AND end_date IS NOT NULL
+          AND status NOT IN ('Complete', 'Deprioritized')
           AND (allocation_pct > 0 OR lead_alloc > 0 OR team1_alloc > 0 OR team2_alloc > 0 OR team3_alloc > 0)
       `);
 
