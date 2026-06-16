@@ -65,6 +65,16 @@ function priorityBadge(p) {
   return `<span class="badge ${map[p] || 'badge-unset'}">${p || 'Unset'}</span>`;
 }
 
+// ── Name formatter ────────────────────────────────────────────────────────────
+// Names are stored "LastName FirstName" in DB → display as "FirstName LastName"
+
+function formatName(name) {
+  if (!name) return '';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length < 2) return name;
+  return parts.slice(1).join(' ') + ' ' + parts[0];
+}
+
 // ── API fetch helper ──────────────────────────────────────────────────────────
 
 async function apiFetch(url, options) {
@@ -196,7 +206,7 @@ function requestCard(r) {
   }[r.status] || `<span class="badge">${r.status}</span>`;
 
   const assigneeBadge = !isUnassigned
-    ? `<span class="badge badge-person">${r.assigned_to}</span>` : '';
+    ? `<span class="badge badge-person">${formatName(r.assigned_to)}</span>` : '';
 
   const blockBadge = !isUnassigned && state.blocked[r.assigned_to]
     ? `<span class="badge badge-blocked">${blockLabel(state.blockReasons[r.assigned_to])}</span>` : '';
@@ -205,7 +215,7 @@ function requestCard(r) {
 
   const opts = state.teamNames.map(name => {
     const isBlocked = state.blocked[name];
-    const label = isBlocked ? `${name} ${blockLabel(state.blockReasons[name])}` : name;
+    const label = isBlocked ? `${formatName(name)} ${blockLabel(state.blockReasons[name])}` : formatName(name);
     return `<option value="${name}" ${isBlocked ? 'disabled' : ''} ${!isUnassigned && r.assigned_to === name ? 'selected' : ''}>${label}</option>`;
   }).join('');
 
@@ -219,7 +229,7 @@ function requestCard(r) {
     </div>
     <div class="card-desc">${escHtml(r.short_description)}</div>
     <div class="card-meta">
-      <span>👤 ${escHtml(r.requestor)}</span>
+      <span>👤 ${escHtml(formatName(r.requestor))}</span>
       ${r.created_date ? `<span>📅 ${r.created_date}</span>` : ''}
       ${r.deadline ? `<span>⏰ ${r.deadline}</span>` : ''}
     </div>
@@ -280,12 +290,12 @@ function openRequestDetail(number) {
   document.getElementById('rdSubtitle').textContent = r.short_description;
 
   const fields = [
-    { label: 'Requestor',     value: r.requestor },
+    { label: 'Requestor',     value: formatName(r.requestor) },
     { label: 'Country',       value: `${flag} ${r.country}` },
     { label: 'Project Code',  value: r.project_code || '—' },
     { label: 'Created',       value: r.created_date || '—' },
     { label: 'Deadline',      value: r.deadline || '—' },
-    { label: 'Assigned To',   value: r.assigned_to || 'Unassigned' },
+    { label: 'Assigned To',   value: formatName(r.assigned_to) || 'Unassigned' },
   ];
 
   document.getElementById('rdBody').innerHTML = `
@@ -299,7 +309,7 @@ function openRequestDetail(number) {
 
   const opts = state.teamNames.map(name => {
     const isBlocked = state.blocked[name];
-    const label = isBlocked ? `${name} ${blockLabel(state.blockReasons[name])}` : name;
+    const label = isBlocked ? `${formatName(name)} ${blockLabel(state.blockReasons[name])}` : formatName(name);
     return `<option value="${name}" ${isBlocked ? 'disabled' : ''} ${!isUnassigned && r.assigned_to === name ? 'selected' : ''}>${label}</option>`;
   }).join('');
 
@@ -381,7 +391,7 @@ function memberCard(m) {
   return `
   <div class="member-card ${m.is_blocked ? 'blocked-card' : ''}">
     <div class="member-top">
-      <div class="member-name">${escHtml(m.name)}</div>
+      <div class="member-name">${escHtml(formatName(m.name))}</div>
       <span class="member-status status-${m.status}">${statusLabel}</span>
     </div>
     <div class="member-meta">${metaHtml} ${spilloverHtml}</div>
@@ -457,7 +467,7 @@ function renderCalendar(type) {
   html += '</tr></thead><tbody>';
 
   for (const name of names) {
-    html += `<tr><td class="name-cell">${escHtml(name)}</td>`;
+    html += `<tr><td class="name-cell">${escHtml(formatName(name))}</td>`;
     for (const d of dateStrs) {
       const weekend = isWeekend(d);
       const isToday = d === today;
@@ -598,7 +608,7 @@ function populateBacklogTeamSelects() {
     sel.appendChild(firstOpt);
     names.forEach(n => {
       const o = document.createElement('option');
-      o.value = n; o.textContent = n;
+      o.value = n; o.textContent = formatName(n);
       sel.appendChild(o);
     });
   });
@@ -678,7 +688,7 @@ function renderBacklog() {
               ${rows.map(i => `
               <tr onclick="openBacklogModal(${JSON.stringify(i).replace(/"/g,'&quot;')})">
                 <td>${escHtml(i.name)}</td>
-                <td>${escHtml(i.lead)}</td>
+                <td>${escHtml(formatName(i.lead))}</td>
                 <td>${statusBadge(i.status)}</td>
                 <td>${priorityBadge(i.priority)}</td>
                 <td style="font-size:11px;color:#6b7280;">${i.start_date && i.end_date ? `${i.start_date} → ${i.end_date}` : i.start_date || '—'}</td>
@@ -824,8 +834,9 @@ function renderWorkload() {
     </tr></thead><tbody>`;
 
   for (const member of members) {
-    const firstName = member.split(' ')[0];
-    const lastName  = member.split(' ').slice(1).join(' ');
+    const parts     = member.trim().split(/\s+/);
+    const firstName = parts.slice(1).join(' ');
+    const lastName  = parts[0];
     html += `<tr>
       <td class="wl-name-cell"><span class="wl-first">${firstName}</span> <span class="wl-last">${lastName}</span></td>`;
 
@@ -952,7 +963,7 @@ function renderAgentRecs() {
           </span>
         </div>
         <div class="match-dest">
-          <div class="match-dest-name">${FLAGS[assigneeCountry] || '🌍'} ${escHtml(r.assignee)}</div>
+          <div class="match-dest-name">${FLAGS[assigneeCountry] || '🌍'} ${escHtml(formatName(r.assignee))}</div>
           <div class="match-dest-cap">
             <div class="cap-bar-mini"><div class="cap-bar-fill" style="width:${capPct}%;background:${capColor}"></div></div>
             <span class="cap-text">${remaining} free</span>
