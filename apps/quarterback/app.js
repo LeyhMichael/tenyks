@@ -105,8 +105,8 @@ function toast(msg, type = '') {
 // ── Tab switching ─────────────────────────────────────────────────────────────
 
 function activateTab(tab) {
-  document.querySelectorAll('.nav-tab[data-tab]').forEach(b => b.classList.remove('active'));
-  const btn = document.querySelector(`.nav-tab[data-tab="${tab}"]`);
+  document.querySelectorAll('.nav-item[data-tab]').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.nav-item[data-tab="${tab}"]`);
   if (btn) btn.classList.add('active');
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   const panel = document.getElementById('tab-' + tab);
@@ -118,7 +118,7 @@ function activateTab(tab) {
   if (tab === 'workload') loadWorkloadTab();
 }
 
-document.querySelectorAll('.nav-tab[data-tab]').forEach(btn => {
+document.querySelectorAll('.nav-item[data-tab]').forEach(btn => {
   btn.addEventListener('click', () => {
     const tab = btn.dataset.tab;
     history.pushState({ tab }, '', '#' + tab);
@@ -178,25 +178,35 @@ function renderStats() {
     (m.block_reasons || []).some(r => r.toLowerCase().startsWith('pto'))
   ).length;
 
-  let html = `<div class="stat-chip urgent"><div class="stat-dot dot-red"></div>${s.unassignedCount} requests unassigned</div>`;
+  let html = `<div class="status-row status-urgent"><div class="stat-dot dot-red"></div>${s.unassignedCount} unassigned</div>`;
   if (overloadedCount > 0)
-    html += `<div class="stat-chip overloaded-chip"><div class="stat-dot dot-darkred"></div>${overloadedCount} member${overloadedCount > 1 ? 's' : ''} &gt;100%</div>`;
+    html += `<div class="status-row status-overload"><div class="stat-dot dot-darkred"></div>${overloadedCount} member${overloadedCount > 1 ? 's' : ''} &gt;100%</div>`;
   if (blockedCount > 0)
-    html += `<div class="stat-chip blocked-chip"><div class="stat-dot dot-red"></div>${blockedCount} member${blockedCount > 1 ? 's' : ''} ≥75%</div>`;
+    html += `<div class="status-row status-urgent"><div class="stat-dot dot-red"></div>${blockedCount} member${blockedCount > 1 ? 's' : ''} ≥75%</div>`;
   if (staffedCount > 0)
-    html += `<div class="stat-chip staffed-chip"><div class="stat-dot dot-green"></div>${staffedCount} on case</div>`;
+    html += `<div class="status-row status-staffed"><div class="stat-dot dot-green"></div>${staffedCount} on case</div>`;
   if (absentCount > 0)
-    html += `<div class="stat-chip absence"><div class="stat-dot dot-orange"></div>${absentCount} absent</div>`;
+    html += `<div class="status-row status-absent"><div class="stat-dot dot-orange"></div>${absentCount} absent</div>`;
 
-  document.getElementById('statsBar').innerHTML = html;
+  document.getElementById('statusBar').innerHTML = html;
   document.getElementById('capSublabel').textContent = `Max ${s.maxRequests} req/week`;
 }
 
 // ── Requests panel ────────────────────────────────────────────────────────────
 
 function renderRequestsPanel() {
-  const unassigned = state.requests.filter(r => r.is_unassigned);
-  const assigned   = state.requests.filter(r => !r.is_unassigned);
+  const numQ  = (document.getElementById('reqNumSearch')?.value  || '').toLowerCase();
+  const nameQ = (document.getElementById('reqNameSearch')?.value || '').toLowerCase();
+
+  let filtered = state.requests;
+  if (numQ)  filtered = filtered.filter(r => (r.number || '').toLowerCase().includes(numQ));
+  if (nameQ) filtered = filtered.filter(r =>
+    formatName(r.requestor).toLowerCase().includes(nameQ) ||
+    (r.requestor || '').toLowerCase().includes(nameQ)
+  );
+
+  const unassigned = filtered.filter(r => r.is_unassigned);
+  const assigned   = filtered.filter(r => !r.is_unassigned);
   let html = '';
 
   if (unassigned.length) {
@@ -207,7 +217,7 @@ function renderRequestsPanel() {
     html += `<div class="section-label assigned">Already Assigned (${assigned.length})</div>`;
     html += assigned.map(r => requestCard(r)).join('');
   }
-  if (!html) html = `<div class="empty-state"><div class="icon">✅</div><p>No active requests</p></div>`;
+  if (!html) html = `<div class="empty-state"><div class="icon">✅</div><p>${numQ || nameQ ? 'No matches' : 'No active requests'}</p></div>`;
 
   document.getElementById('requestsContent').innerHTML = html;
 }
@@ -367,13 +377,17 @@ function closeRequestDetail() {
 // ── Capacity panel ────────────────────────────────────────────────────────────
 
 function renderCapacityPanel() {
-  if (!state.team.length) {
+  const nameQ = (document.getElementById('capNameSearch')?.value || '').toLowerCase();
+  let team = state.team;
+  if (nameQ) team = team.filter(m => formatName(m.name).toLowerCase().includes(nameQ));
+
+  if (!team.length) {
     document.getElementById('capacityContent').innerHTML =
-      `<div class="empty-state"><div class="icon">✅</div><p>No active assignments this week</p></div>`;
+      `<div class="empty-state"><div class="icon">✅</div><p>${nameQ ? 'No matches' : 'No active assignments this week'}</p></div>`;
     return;
   }
   document.getElementById('capacityContent').innerHTML =
-    state.team.map(m => memberCard(m)).join('');
+    team.map(m => memberCard(m)).join('');
 }
 
 function memberCard(m) {
