@@ -116,6 +116,7 @@ function activateTab(tab) {
   if (tab === 'backlog')  loadBacklogTab();
   if (tab === 'pipeline') loadPipelineTab();
   if (tab === 'workload') loadWorkloadTab();
+  if (tab === 'myzone')   loadMyZoneTab();
 }
 
 document.querySelectorAll('.nav-item[data-tab]').forEach(btn => {
@@ -1284,6 +1285,136 @@ async function applyAllRecs() {
     btn.disabled = false; btn.textContent = '✅ Apply All';
     toast('Error: ' + err.message, 'error');
   }
+}
+
+// ── My Zone tab ───────────────────────────────────────────────────────────────
+
+async function loadMyZoneTab() {
+  document.getElementById('myZoneContent').innerHTML =
+    '<div class="empty-state"><div class="icon">⏳</div><p>Loading your zone…</p></div>';
+  try {
+    const data = await apiFetch(`${API}/my-zone`);
+    renderMyZone(data);
+  } catch (err) {
+    document.getElementById('myZoneContent').innerHTML =
+      `<div class="empty-state"><div class="icon">⚠️</div><p>Error: ${escHtml(err.message)}</p></div>`;
+  }
+}
+
+function renderMyZone(data) {
+  if (data.no_match) {
+    document.getElementById('myZoneContent').innerHTML = `
+      <div class="empty-state">
+        <div class="icon">🔍</div>
+        <p>Could not match your identity to a team member.</p>
+        <p style="font-size:12px;color:#9ca3af;margin-top:8px;">${escHtml(data.message)}</p>
+      </div>`;
+    return;
+  }
+
+  const today    = data.today || '';
+  const cap      = data.capacity || {};
+  const firstName = data.given_name || data.name.split(' ').slice(1).join(' ') || data.name;
+
+  // Capacity bar segments
+  const s = Math.min(cap.staffing_pct || 0, 100);
+  const p = Math.min(cap.pto_pct      || 0, Math.max(0, 100 - s));
+  const b = Math.min(cap.backlog_pct  || 0, Math.max(0, 100 - s - p));
+  const total = cap.raw_total || 0;
+  const capColor = total > 100 ? '#f87171' : total >= 75 ? '#fbbf24' : '#34d399';
+  const capLabel = cap.is_overloaded ? '🔴 Over capacity' : cap.is_blocked ? '🟠 Blocked ≥75%' : '🟢 Available';
+
+  const heroHtml = `
+    <div class="mz-hero">
+      <div class="mz-hero-top">
+        <div>
+          <div class="mz-greeting">👋 Hi, ${escHtml(firstName)}!</div>
+          <div class="mz-date">${today}</div>
+        </div>
+        <div class="mz-cap-status" style="color:${capColor}">${capLabel}</div>
+      </div>
+      <div class="mz-cap-bar-row">
+        <div class="mz-cap-bar">
+          ${s > 0 ? `<div class="mz-seg" style="width:${s}%;background:#8b5cf6;" title="Case ${s}%"></div>` : ''}
+          ${p > 0 ? `<div class="mz-seg" style="width:${p}%;background:#f59e0b;" title="PTO ${p}%"></div>`  : ''}
+          ${b > 0 ? `<div class="mz-seg" style="width:${b}%;background:#14b8a6;" title="Backlog ${b}%"></div>` : ''}
+        </div>
+        <span class="mz-cap-pct" style="color:${capColor}">${total}%</span>
+      </div>
+      ${cap.reasons?.length ? `<div class="mz-cap-reasons">${cap.reasons.map(r => `<span class="block-reason-tag">${escHtml(r)}</span>`).join('')}</div>` : ''}
+    </div>`;
+
+  // My Requests
+  const reqRows = (data.requests || []).map(r => {
+    const badge = { New: 'badge-new', Assigned: 'badge-assigned', 'Work in progress': 'badge-wip' }[r.status] || '';
+    return `<div class="mz-req-card" onclick="openRequestDetail('${escHtml(r.number)}')">
+      <div class="mz-req-top">
+        <span class="card-number">${escHtml(r.number)}</span>
+        <span class="badge ${badge}">${escHtml(r.status)}</span>
+      </div>
+      <div class="mz-req-desc">${escHtml(r.short_description)}</div>
+      <div class="mz-req-meta">${r.created_date ? `📅 ${r.created_date}` : ''}${r.deadline ? ` · ⏰ ${r.deadline}` : ''}</div>
+    </div>`;
+  }).join('') || '<div class="mz-empty">No active requests assigned to you.</div>';
+
+  // My Case Staffing
+  const sfRows = (data.staffing || []).map(i => {
+    const isActive = i.start_date && i.end_date && i.start_date <= today && i.end_date >= today;
+    return `<tr class="${isActive ? 'row-active' : ''}">
+      <td>${escHtml(i.case_name)}</td>
+      <td>${escHtml(i.case_code)}</td>
+      <td><span class="capacity-pill">${i.capacity_pct}%</span></td>
+      <td style="font-size:11px;color:#6b7280;">${i.start_date || '—'} → ${i.end_date || '—'}</td>
+    </tr>`;
+  }).join('');
+
+  // My PTO
+  const ptoRows = (data.pto || []).map(i => {
+    const isActive = i.start_date && i.end_date && i.start_date <= today && i.end_date >= today;
+    const emoji = { PTO: '🏖️', Training: '📚', Event: '🎉' }[i.absence_type] || '📅';
+    return `<tr class="${isActive ? 'row-active' : ''}">
+      <td>${emoji} ${escHtml(i.absence_type)}</td>
+      <td><span class="capacity-pill">${i.capacity_pct}%</span></td>
+      <td style="font-size:11px;color:#6b7280;">${i.start_date || '—'} → ${i.end_date || '—'}</td>
+    </tr>`;
+  }).join('');
+
+  // My Backlog
+  const blRows = (data.backlog || []).map(i =>
+    `<tr>
+      <td>${escHtml(i.name)}</td>
+      <td>${statusBadge(i.status)}</td>
+      <td>${priorityBadge(i.priority)}</td>
+      <td style="font-size:11px;color:#6b7280;">${i.start_date && i.end_date ? `${i.start_date} → ${i.end_date}` : i.start_date || '—'}</td>
+    </tr>`
+  ).join('');
+
+  document.getElementById('myZoneContent').innerHTML = `
+    ${heroHtml}
+
+    <div class="mz-section">
+      <div class="mz-section-title">📋 My Requests (${(data.requests || []).length})</div>
+      <div class="mz-req-list">${reqRows}</div>
+    </div>
+
+    <div class="mz-grid">
+      <div class="mz-section">
+        <div class="mz-section-title">💼 My Case Staffing (${(data.staffing || []).length})</div>
+        ${sfRows ? `<div class="list-table-wrap"><table class="list-table"><thead><tr><th>Case</th><th>Code</th><th>Cap</th><th>Dates</th></tr></thead><tbody>${sfRows}</tbody></table></div>`
+                 : '<div class="mz-empty">No staffing entries.</div>'}
+      </div>
+      <div class="mz-section">
+        <div class="mz-section-title">🏖️ My Absences (${(data.pto || []).length})</div>
+        ${ptoRows ? `<div class="list-table-wrap"><table class="list-table"><thead><tr><th>Type</th><th>Cap</th><th>Dates</th></tr></thead><tbody>${ptoRows}</tbody></table></div>`
+                  : '<div class="mz-empty">No absences recorded.</div>'}
+      </div>
+    </div>
+
+    <div class="mz-section">
+      <div class="mz-section-title">📌 My Backlog Projects (${(data.backlog || []).length})</div>
+      ${blRows ? `<div class="list-table-wrap"><table class="list-table"><thead><tr><th>Name</th><th>Status</th><th>Priority</th><th>Dates</th></tr></thead><tbody>${blRows}</tbody></table></div>`
+               : '<div class="mz-empty">No backlog projects assigned to you.</div>'}
+    </div>`;
 }
 
 // ── XSS helper ────────────────────────────────────────────────────────────────

@@ -1030,4 +1030,124 @@ Do not include any text outside the JSON array.`;
       sendError(res, 500, errMsg(err));
     }
   });
+
+  // ── GET my-zone ───────────────────────────────────────────────────────────────
+  // Personalised view for the logged-in user: their requests, staffing, PTO,
+  // backlog projects and today's capacity breakdown.
+
+  register('GET', 'my-zone', async (req, res) => {
+    try {
+      // 1. Identify caller from EasyAuth headers
+      const email = (req.headers['x-ms-client-principal-name'] || '').trim().toLowerCase();
+      let given_name = null, family_name = null;
+
+      const rawPrincipal = req.headers['x-ms-client-principal'];
+      if (rawPrincipal) {
+        try {
+          const decoded = JSON.parse(Buffer.from(rawPrincipal, 'base64').toString('utf8'));
+          for (const { typ, val } of (decoded.claims || [])) {
+            if (typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname') given_name  = val;
+            if (typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname')   family_name = val;
+            // Fallback: parse "Firstname Lastname" display name
+            if (typ === 'name' && !given_name && !family_name) {
+              const parts = val.split(' ');
+              if (parts.length >= 2) { given_name = parts[0]; family_name = parts.slice(1).join(' '); }
+            }
+          }
+        } catch {}
+      }
+
+      // Last resort: derive from email  firstname.lastname@bcg.com
+      if (!given_name && !family_name && email) {
+        const local = email.split('@')[0];
+        const parts = local.split('.');
+        if (parts.length >= 2) {
+          given_name  = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+          family_name = parts.slice(1).map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+        }
+      }
+
+      // 2. Match to team_members row (DB format: "FamilyName GivenName")
+      let teamMemberName = null;
+      if (family_name && given_name) {
+        const dbKey = `${family_name} ${given_name}`;
+        const exact = await pool.query(
+          `SELECT name FROM team_members WHERE LOWER(name) = LOWER($1) LIMIT 1`, [dbKey]
+        );
+        if (exact.rows.length) {
+          teamMemberName = exact.rows[0].name;
+        } else {
+          // Fuzzy: family name prefix match
+          const fuzzy = await pool.query(
+            `SELECT name FROM team_members WHERE LOWER(name) LIKE LOWER($1) LIMIT 1`,
+            [family_name + '%']
+          );
+          if (fuzzy.rows.length) teamMemberName = fuzzy.rows[0].name;
+        }
+      }
+
+      if (!teamMemberName) {
+        return sendJson(res, {
+          no_match: true,
+          message: `No team member found for ${family_name || ''} ${given_name || ''} (${email || 'unknown'})`,
+          given_name, family_name, email,
+        });
+      }
+
+      const today = todayStr();
+
+      // 3. Fetch all personal data in parallel
+      const [requests, staffingRes, ptoRes, backlogRes, maps] = await Promise.all([
+        loadRequests(),
+        pool.query(
+          `SELECT id, case_name, case_code, case_type, industry, region,
+                  project_value, capacity_pct, start_date::text, end_date::text
+           FROM case_staffing WHERE team_member=$1 ORDER BY start_date DESC`, [teamMemberName]
+        ),
+        pool.query(
+          `SELECT id, absence_type, capacity_pct, start_date::text, end_date::text
+           FROM pto WHERE team_member=$1 ORDER BY start_date DESC`, [teamMemberName]
+        ),
+        pool.query(
+          `SELECT id, name, group_name, status, priority, lead, team,
+                  lead_alloc, team1_alloc, team2_alloc, team3_alloc,
+                  start_date::text, end_date::text
+           FROM backlog
+           WHERE lead=$1 OR team LIKE $2
+           ORDER BY status, priority`, [teamMemberName, `%${teamMemberName}%`]
+        ),
+        getCapacityBatchForDate(today),
+      ]);
+
+      // 4. My active requests
+      const myRequests = getActiveRequests(requests).filter(r => r.assigned_to === teamMemberName);
+
+      // 5. Capacity breakdown
+      const bd = computeBreakdown(teamMemberName, maps.staffingMap, maps.ptoMap, maps.backlogMap);
+
+      sendJson(res, {
+        name:       teamMemberName,
+        given_name,
+        family_name,
+        email,
+        today,
+        requests:   myRequests,
+        staffing:   staffingRes.rows,
+        pto:        ptoRes.rows,
+        backlog:    backlogRes.rows,
+        capacity: {
+          staffing_pct:  bd.staffing_pct,
+          pto_pct:       bd.pto_pct,
+          backlog_pct:   bd.backlog_pct,
+          total:         bd.total,
+          raw_total:     bd.raw_total,
+          is_blocked:    bd.is_blocked,
+          is_overloaded: bd.is_overloaded,
+          reasons:       bd.reasons,
+        },
+      });
+    } catch (err) {
+      sendError(res, 500, errMsg(err));
+    }
+  });
 };

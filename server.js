@@ -42,6 +42,22 @@ function getCallerEmail(req) {
   return raw.trim().toLowerCase();
 }
 
+// Decode the richer X-MS-CLIENT-PRINCIPAL header (base64 JWT claims)
+function getCallerClaims(req) {
+  const raw = req.headers['x-ms-client-principal'];
+  if (!raw) return {};
+  try {
+    const decoded = JSON.parse(Buffer.from(raw, 'base64').toString('utf8'));
+    const result  = {};
+    for (const { typ, val } of (decoded.claims || [])) {
+      if (typ === 'name')                                                                    result.display_name  = val;
+      if (typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname')        result.given_name    = val;
+      if (typ === 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname')          result.family_name   = val;
+    }
+    return result;
+  } catch { return {}; }
+}
+
 function isTeamMember(email) {
   // If TEAM_EMAILS is not configured at all, allow everyone (dev / localhost)
   if (TEAM_EMAILS.size === 0) return true;
@@ -179,10 +195,14 @@ http.createServer({ maxHeaderSize: 32768 }, async (req, res) => {
 
   // ── /api/me — identity & team-membership endpoint used by the frontend ───
   if (urlPath === '/api/me') {
-    const email = getCallerEmail(req);
+    const email  = getCallerEmail(req);
+    const claims = getCallerClaims(req);
     return sendJson(res, {
-      email: email || null,
+      email:        email || null,
       isTeamMember: isTeamMember(email),
+      given_name:   claims.given_name   || null,
+      family_name:  claims.family_name  || null,
+      display_name: claims.display_name || null,
     });
   }
 

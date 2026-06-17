@@ -37,6 +37,8 @@
       <button class="nav-item" data-tab="backlog">📌 Backlog</button>
       <button class="nav-item" data-tab="pipeline">🔭 Pipeline</button>
       <button class="nav-item" data-tab="workload">📊 Workload</button>
+      <div class="nav-divider"></div>
+      <button class="nav-item nav-item-me" data-tab="myzone">🏠 My Zone</button>
     </div>
 
     <div class="sidebar-agent">
@@ -146,6 +148,13 @@
           </div>
         </div>
         <div id="workloadContent" style="overflow:auto;flex:1;padding:0 24px 24px;"></div>
+      </div>
+    </div>
+
+    <!-- Tab: My Zone -->
+    <div class="tab-panel" id="tab-myzone">
+      <div class="panel full-panel">
+        <div id="myZoneContent"><div class="empty-state"><div class="icon">⏳</div><p>Loading…</p></div></div>
       </div>
     </div>
 
