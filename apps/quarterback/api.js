@@ -246,6 +246,20 @@ async function spilloverCheck(name, maps) {
   return overflow;
 }
 
+// ── Mutation audit log ────────────────────────────────────────────────────────
+
+async function logMutation(email, operation, tableName, recordId, payload) {
+  try {
+    await pool.query(
+      `INSERT INTO mutation_log (user_email, operation, table_name, record_id, payload)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [email || 'unknown', operation, tableName, recordId || null, JSON.stringify(payload)]
+    );
+  } catch (err) {
+    console.error('[mutation_log]', err.message);
+  }
+}
+
 // ── Module export ─────────────────────────────────────────────────────────────
 
 module.exports = function ({ register, readJson, sendJson, sendError }) {
@@ -296,6 +310,19 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
       created_at    TIMESTAMPTZ DEFAULT NOW()
     )
   `).catch(err => console.error('[quarterback] pipeline table init:', err.message));
+
+  // Mutation audit log
+  pool.query(`
+    CREATE TABLE IF NOT EXISTS mutation_log (
+      id          SERIAL PRIMARY KEY,
+      ts          TIMESTAMPTZ DEFAULT NOW(),
+      user_email  TEXT,
+      operation   TEXT,
+      table_name  TEXT,
+      record_id   INTEGER,
+      payload     JSONB
+    )
+  `).catch(err => console.error('[quarterback] mutation_log table init:', err.message));
 
   // Migrate staffing: drop old day-based table, create range-based one
   pool.query(`
@@ -405,6 +432,8 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
       await pool.query('UPDATE requests SET assigned_to=$1, status=$2 WHERE number=$3',
         [assignee, 'Assigned', number]);
       invalidateRequests();
+      const email = (req.headers['x-ms-client-principal-name'] || '').trim().toLowerCase();
+      await logMutation(email, 'UPDATE', 'requests', null, { number, assignee, status: 'Assigned' });
       sendJson(res, { success: true });
     } catch (err) {
       sendError(res, 500, errMsg(err));
@@ -455,6 +484,7 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
       ];
 
       let id;
+      const op = d.id ? 'UPDATE' : 'INSERT';
       if (d.id) {
         await pool.query(`
           UPDATE staffing SET case_name=$1,case_code=$2,case_type=$3,industry=$4,
@@ -478,6 +508,8 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
         reassigned = await spilloverCheck(d.team_member, maps);
       }
 
+      const email = (req.headers['x-ms-client-principal-name'] || '').trim().toLowerCase();
+      await logMutation(email, op, 'staffing', id, d);
       sendJson(res, { success: true, id, reassigned });
     } catch (err) {
       sendError(res, 500, errMsg(err));
@@ -491,6 +523,8 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
       const { id } = await readJson(req);
       if (!id) return sendError(res, 400, 'Missing id');
       await pool.query('DELETE FROM staffing WHERE id=$1', [id]);
+      const email = (req.headers['x-ms-client-principal-name'] || '').trim().toLowerCase();
+      await logMutation(email, 'DELETE', 'staffing', id, { id });
       sendJson(res, { success: true });
     } catch (err) {
       sendError(res, 500, errMsg(err));
@@ -532,6 +566,7 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
       const p    = [d.team_member, type, d.start_date, d.end_date, cap];
 
       let id;
+      const op = d.id ? 'UPDATE' : 'INSERT';
       if (d.id) {
         await pool.query(`
           UPDATE pto SET team_member=$1,absence_type=$2,start_date=$3,end_date=$4,
@@ -551,6 +586,8 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
         reassigned = await spilloverCheck(d.team_member, maps);
       }
 
+      const email = (req.headers['x-ms-client-principal-name'] || '').trim().toLowerCase();
+      await logMutation(email, op, 'pto', id, d);
       sendJson(res, { success: true, id, reassigned });
     } catch (err) {
       sendError(res, 500, errMsg(err));
@@ -564,6 +601,8 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
       const { id } = await readJson(req);
       if (!id) return sendError(res, 400, 'Missing id');
       await pool.query('DELETE FROM pto WHERE id=$1', [id]);
+      const email = (req.headers['x-ms-client-principal-name'] || '').trim().toLowerCase();
+      await logMutation(email, 'DELETE', 'pto', id, { id });
       sendJson(res, { success: true });
     } catch (err) {
       sendError(res, 500, errMsg(err));
@@ -625,6 +664,7 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
         parseInt(d.team2_alloc) || 0,
         parseInt(d.team3_alloc) || 0,
       ];
+      const email = (req.headers['x-ms-client-principal-name'] || '').trim().toLowerCase();
       if (d.id) {
         await pool.query(`
           UPDATE backlog SET group_name=$1,name=$2,lead=$3,team=$4,status=$5,
@@ -632,6 +672,7 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
             practice=$11,stakeholders=$12,allocation_pct=$13,
             lead_alloc=$14,team1_alloc=$15,team2_alloc=$16,team3_alloc=$17 WHERE id=$18`,
           [...p, d.id]);
+        await logMutation(email, 'UPDATE', 'backlog', d.id, d);
         sendJson(res, { success: true, id: d.id });
       } else {
         const { rows } = await pool.query(`
@@ -640,6 +681,7 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
             lead_alloc,team1_alloc,team2_alloc,team3_alloc)
           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
           RETURNING id`, p);
+        await logMutation(email, 'INSERT', 'backlog', rows[0].id, d);
         sendJson(res, { success: true, id: rows[0].id });
       }
     } catch (err) {
@@ -654,6 +696,8 @@ module.exports = function ({ register, readJson, sendJson, sendError }) {
       const { id } = await readJson(req);
       if (!id) return sendError(res, 400, 'Missing id');
       await pool.query('DELETE FROM backlog WHERE id=$1', [id]);
+      const email = (req.headers['x-ms-client-principal-name'] || '').trim().toLowerCase();
+      await logMutation(email, 'DELETE', 'backlog', id, { id });
       sendJson(res, { success: true });
     } catch (err) {
       sendError(res, 500, errMsg(err));
@@ -800,6 +844,7 @@ Do not include any text outside the JSON array.`;
       const requests    = await loadRequests();
       const loadTracker = {};
       const applied = [], skipped = [];
+      const email = (req.headers['x-ms-client-principal-name'] || '').trim().toLowerCase();
 
       for (const { number, assignee } of recommendations) {
         if (!number || !assignee) continue;
@@ -810,6 +855,7 @@ Do not include any text outside the JSON array.`;
         if (loadTracker[assignee] >= cap) { skipped.push(number); continue; }
         await pool.query('UPDATE requests SET assigned_to=$1, status=$2 WHERE number=$3',
           [assignee, 'Assigned', number]);
+        await logMutation(email, 'UPDATE', 'requests', null, { number, assignee, status: 'Assigned', source: 'agent/apply' });
         applied.push(number);
         loadTracker[assignee]++;
       }
@@ -988,6 +1034,7 @@ Do not include any text outside the JSON array.`;
         d.start_date || null, d.end_date || null,
       ];
       let id;
+      const op = d.id ? 'UPDATE' : 'INSERT';
       if (d.id) {
         await pool.query(`
           UPDATE pipeline SET type=$1,status=$2,case_name=$3,case_code=$4,case_type=$5,
@@ -1001,6 +1048,8 @@ Do not include any text outside the JSON array.`;
           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`, p);
         id = rows[0].id;
       }
+      const email = (req.headers['x-ms-client-principal-name'] || '').trim().toLowerCase();
+      await logMutation(email, op, 'pipeline', id, d);
       sendJson(res, { success: true, id });
     } catch (err) {
       sendError(res, 500, errMsg(err));
@@ -1014,6 +1063,8 @@ Do not include any text outside the JSON array.`;
       const { id } = await readJson(req);
       if (!id) return sendError(res, 400, 'Missing id');
       await pool.query('DELETE FROM pipeline WHERE id=$1', [id]);
+      const email = (req.headers['x-ms-client-principal-name'] || '').trim().toLowerCase();
+      await logMutation(email, 'DELETE', 'pipeline', id, { id });
       sendJson(res, { success: true });
     } catch (err) {
       sendError(res, 500, errMsg(err));
