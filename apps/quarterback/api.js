@@ -1068,22 +1068,29 @@ Do not include any text outside the JSON array.`;
       }
 
       // 2. Match to team_members row (DB format: "FamilyName GivenName")
+      // Try both orderings — BCG emails are lastname.firstname so claims may be reversed
       let teamMemberName = null;
       if (family_name && given_name) {
-        const dbKey = `${family_name} ${given_name}`;
-        const exact = await pool.query(
-          `SELECT name FROM team_members WHERE LOWER(name) = LOWER($1) LIMIT 1`, [dbKey]
-        );
-        if (exact.rows.length) {
-          teamMemberName = exact.rows[0].name;
-        } else {
-          // Fuzzy: family name prefix match
-          const fuzzy = await pool.query(
-            `SELECT name FROM team_members WHERE LOWER(name) LIKE LOWER($1) LIMIT 1`,
-            [family_name + '%']
+        const candidates = [
+          `${family_name} ${given_name}`,  // "Leyh Michael"
+          `${given_name} ${family_name}`,  // "Michael Leyh" (in case claims are reversed)
+        ];
+        for (const candidate of candidates) {
+          const { rows } = await pool.query(
+            `SELECT name FROM team_members WHERE LOWER(name) = LOWER($1) OR LOWER(name) LIKE LOWER($2) LIMIT 1`,
+            [candidate, candidate + ' %']
           );
-          if (fuzzy.rows.length) teamMemberName = fuzzy.rows[0].name;
+          if (rows.length) { teamMemberName = rows[0].name; break; }
         }
+      }
+      // Fuzzy fallback: search by either name part
+      if (!teamMemberName && (family_name || given_name)) {
+        const { rows } = await pool.query(
+          `SELECT name FROM team_members
+           WHERE LOWER(name) LIKE LOWER($1) OR LOWER(name) LIKE LOWER($2) LIMIT 1`,
+          [`${family_name}%`, `${given_name}%`]
+        );
+        if (rows.length) teamMemberName = rows[0].name;
       }
 
       if (!teamMemberName) {
